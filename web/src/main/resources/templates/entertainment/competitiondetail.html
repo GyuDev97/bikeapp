@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+	<!-- kakaoAPI를 쓰기위한 KEY -->
+	<script type="text/javascript"	src="//dapi.kakao.com/v2/maps/sdk.js?appkey=75b139a908cf5a67ae5c093565896a18&libraries=services"></script>
+	<script type="text/javascript"	src="//dapi.kakao.com/v2/maps/sdk.js?appkey=dbb047c9e9b46e285f76df6669c00d7f&libraries=services"></script>
+	
+	<link rel="stylesheet" href="/css/entertainment/competitiondetail.css?af">
+
+	<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/entertainment_img.jpg');" data-stellar-background-ratio="0.5">
+	      <div class="overlay"></div>
+	      <div class="container">
+	        <div class="row no-gutters slider-text align-items-end justify-content-center">
+	          <div class="col-md-9 ftco-animate text-center">
+	            <h1 class="mb-2 bread">Competition</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">Entertainment <i class="ion-ios-arrow-forward"></i></a></span> <span>Competition <i class="ion-ios-arrow-forward"></i></span></p>
+	          </div>
+	        </div>
+	      </div>
+    </section>
+    
+    
+    
+    <section class="ftco-section fs">
+		<div class="container">
+			<div class="row">
+		         <div class="col-md-12 ftco-animate">
+		           <div class="blog-entry">
+		             <div class="text pt-3">
+		               <h1 class="heading"><a href="#" th:text="${comp.comp_name}">용평 MTB 축제</a></h1>
+		             </div>
+		           </div>
+		           		<a href="#" class="block-20" style="background-image: url('/test/images/image_1.jpg');" th:with="url = 'background-image: url(/entertainment/img/comp/'+${comp.comp_image}+')'" th:style="${url}">
+		             </a>
+		             
+		             <p class="text pt-3 pd-4" th:text="${comp.comp_content}">2020년 6월 17일부터 20일까지 부산 벡스코에서 '2020 부산MTB쇼'가 개최된다.</p>
+		             <p>#MTB #산악자전거 #우리 #모두 #달려요</p>
+		             
+		             <hr>
+		             
+		             <table class="type09">
+					    <thead>
+					    <tr>
+					        <th scope="cols" colspan="2">상세정보</th>
+					    </tr>
+					    </thead>
+					    <tbody>
+					    <tr>
+					        <th scope="row">시작일</th>
+					        <td th:text="${comp.start}">2020.06.17</td>
+					        
+					        <th scope="row">종료일</th>
+					        <td th:text="${comp.end}">2020.06.30</td>
+					    </tr>
+					    <tr>
+					        <th scope="row">주소</th>
+					        <td th:text="${comp.c_area}">부산광역시 해운대구 APEC로 55</td>
+					        
+					        <th scope="row">라이딩장소</th>
+					        <td>영진전문대학교</td>
+					    </tr>
+					    <tr>
+					        <th scope="row">주최</th>
+					        <td>(주) MTBCraft</td>
+					        
+					        <th scope="row">홈페이지</th>
+					        <td>http://www.mtbcraft.com</td>
+					    </tr>
+					    <tr>
+					        <th scope="row">코스</th>
+					        <td th:text="${comp.c_name}">운봉산 초입 제3지점까지</td>
+					        
+					        <th scope="row">거리</th>
+					        <td th:text="|${comp.c_distance} km|">9.7km</td>
+					    </tr>
+					    </tbody>
+					</table>
+		             
+		             <hr>
+		             
+		             <div id="map" class="mt-5 mb-5"></div>
+		             
+		             <hr>
+		             
+		             <p class="info_b">총<span th:text="${comp.cnt}">12</span>개의 클럽이 참여하였습니다.</p>
+		             
+		             <table class="type09 rank">
+		             		<thead>
+		             			<tr>
+		             			<th scope="cols">순위</th>
+		             			<th scope="cols" >클럽</th>
+		             			<th scope="cols">점수</th>
+		             			</tr>
+		             		</thead>
+		             		<input type="hidden" id="comp_num" th:value="${comp.comp_num}">
+		             		<tbody id="rank">
+		             		
+		             			
+		             		</tbody>
+		             	</table>
+		             	
+		             	<hr>
+		             	
+		             	<p class="info_b">보상배지</p>
+		             	<div class="row">
+		             	
+			             	<div class="col-md-6 col-lg-4 menu-wrap">
+				        		<div class="heading-menu text-center ftco-animate">
+				        			<h3>1위</h3>
+				        		</div>
+				        		<div class="menus d-flex ftco-animate">
+					              <div class="menu-img img" style="background-image: url(/test/images/breakfast-1.jpg);" th:style="'background-image: url(/entertainment/img/badge/'+${comp.bg_image}+'1.png)'"></div>
+					              
+					              <div class="text">
+					                	<h4 th:text="${comp.bg_name}">용평은 우리가 접-수</h4>
+			                	  </div>
+			                	  <div class="text">
+						              	<p th:text="|`${comp.comp_name}`|">용평MTB축제</p>
+						              	<p>1위에게 주어지는 배지</p>
+					              </div>
+					            </div>
+	        				</div>
+	        				
+			             	<div class="col-md-6 col-lg-4 menu-wrap">
+				        		<div class="heading-menu text-center ftco-animate">
+				        			<h3>2위</h3>
+				        		</div>
+				        		<div class="menus d-flex ftco-animate">
+					              <div class="menu-img img" style="background-image: url(/test/images/breakfast-1.jpg);" th:style="'background-image: url(/entertainment/img/badge/'+${comp.bg_image}+'2.png)'"></div>
+					              
+					              <div class="text">
+					                	<h4 th:text="${comp.bg_name}">용평은 우리가 접-수</h4>
+			                	  </div>
+			                	  <div class="text">
+						              	<p th:text="|`${comp.comp_name}`|">용평MTB축제</p>
+						              	<p>2위에게 주어지는 배지</p>
+					              </div>
+					            </div>
+	        				</div>
+	        				
+			             	<div class="col-md-6 col-lg-4 menu-wrap">
+				        		<div class="heading-menu text-center ftco-animate">
+				        			<h3>3위</h3>
+				        		</div>
+				        		<div class="menus d-flex ftco-animate">
+					              <div class="menu-img img" style="background-image: url(/test/images/breakfast-1.jpg);" th:style="'background-image: url(/entertainment/img/badge/'+${comp.bg_image}+'3.png)'"></div>
+					              
+					              <div class="text">
+					                	<h4 th:text="${comp.bg_name}">용평은 우리가 접-수</h4>
+			                	  </div>
+			                	  <div class="text">
+						              	<p th:text="|`${comp.comp_name}`|">용평MTB축제</p>
+						              	<p>3위에게 주어지는 배지</p>
+					              </div>
+					            </div>
+	        				</div>
+	        				
+        				</div>
+        				
+        				<div class="entback">
+        					<a href="/entertainment/competition" id="/entertainment/competition">돌아가기</a>
+        				</div>
+        				
+		         </div>
+			</div>
+		</div>
+	</section>
+
+	<!-- 코스번호 -->
+	<input type="hidden" id="c_gpx" name="c_gpx" th:value="${comp.c_gpx}">
+	<footer th:replace="footer2"></footer>
+	
+	<!-- loader -->
+  	<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+	<script src="/test/js/jquery.min.js"></script>
+	<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+	<script src="/test/js/popper.min.js"></script>
+	<script src="/test/js/bootstrap.min.js"></script>
+	<script src="/test/js/jquery.easing.1.3.js"></script>
+	<script src="/test/js/jquery.waypoints.min.js"></script>
+	<script src="/test/js/jquery.stellar.min.js"></script>
+	<script src="/test/js/owl.carousel.min.js"></script>
+	<script src="/test/js/jquery.magnific-popup.min.js"></script>
+	<script src="/test/js/aos.js"></script>
+	<script src="/test/js/jquery.animateNumber.min.js"></script>
+	<script src="/test/js/bootstrap-datepicker.js"></script>
+	<script src="/test/js/jquery.timepicker.min.js"></script>
+	<script src="/test/js/scrollax.min.js"></script>
+	<script src="/test/js/main.js"></script>
+
+	<script>
+		var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+	    mapOption = { 
+	        center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+	        level: 1 // 지도의 확대 레벨
+	    };  
+	
+		var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+		
+		
+		var linePath = [
+		    new kakao.maps.LatLng(33.452344169439975, 126.56878163224233),
+		    new kakao.maps.LatLng(33.452739313807456, 126.5709308145358),
+		    new kakao.maps.LatLng(33.45178067090639, 126.5726886938753) 
+		];
+
+		// 지도에 표시할 선을 생성합니다
+		var polyline = new kakao.maps.Polyline({
+		    path: linePath, // 선을 구성하는 좌표배열 입니다
+		    strokeWeight: 8, // 선의 두께 입니다
+		    strokeColor: '#FFAE00', // 선의 색깔입니다
+		    strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+		    strokeStyle: 'solid' // 선의 스타일입니다
+		});
+		
+		//rr_num으로 지도에 경로 그리기
+		 function drawPolylineByRR_Num(polyline, gpx_file){
+			 $.ajax({
+				 url : "/getInfoByGpxFile/"+gpx_file,
+				 type : "GET",
+				 dataType : "json",
+				 cache : false,
+				 success : function(data) {
+						
+						var point = data.infos;
+						var linePath = [];
+						
+						// 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
+						var bounds = new kakao.maps.LatLngBounds();
+						
+						for(var i=0;i<point.length;i++){
+							var location = new kakao.maps.LatLng(point[i].lat, point[i].lon);
+							linePath.push(location);
+							bounds.extend(location);
+							
+							
+							if(i==0){
+								
+								var imageSrc = '/imgs/entertainment/bike.png', // 마커이미지의 주소입니다    
+							    imageSize = new kakao.maps.Size(40, 60), // 마커이미지의 크기입니다
+							    imageOption = {offset: new kakao.maps.Point(20, 60)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+								
+								// 마커의 이미지정보를 가지고 있는 마커이미지를 생성합니다
+								var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
+								    markerPosition = location; // 마커가 표시될 위치입니다
+
+								// 마커를 생성합니다
+								var marker = new kakao.maps.Marker({
+								    position: markerPosition, 
+								    image: markerImage // 마커이미지 설정 
+								});
+								
+								// 마커가 지도 위에 표시되도록 설정합니다
+								marker.setMap(map); 
+							}
+						}
+						
+						// 지도에 선을 표시합니다 
+						polyline.setPath(linePath);
+						// 지도에 선을 표시합니다 
+						polyline.setMap(map);
+						// 맵을 이동시킵니다.
+						map.setBounds(bounds);
+				}
+			});
+		 }
+		
+		 $(document).ready(function(){
+			var c_gpx = $("#c_gpx").val();
+			drawPolylineByRR_Num(polyline, c_gpx);
+			
+			$.ajax({
+				url:"/info/comp/rank/"+$("#comp_num").val(),
+				type : "GET",
+				cache : false,
+				success : function(data){
+					console.log(data);
+					for(var j=0;j<data.length;j++){
+						var str= "<tr><td scope='row' class='r'>"
+						+(j+1)+"위</td><td class='c'>"
+						+data[j].cb_name+"</td><td>"
+						+data[j].cs_score+"</td></tr>";
+						
+						$("#rank").append(str);
+					}
+				}
+			});
+		 });
+
+	</script>
+
+	</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="header"></head>
+<body>
+<div class="root">
+<script>
+$(document).ready(function() {
+	$.ajax({
+		url : "/entertainment/history/test", 
+		dataType : "json", 
+		cache : false, 
+		success : function(data) {
+				var records = "";
+				for (var i=0 ; i<data.length ; i++){
+					records += "<tr><th>" + data[i].comp_num + "</th><th>" + data[i].comp_course + "</th><th>" +  "<img src='/imagetest'>" + "</th><th>" + data[i].comp_name + "</th><th>" + data[i].comp_period + "</th><th>" + data[i].comp_content + "</th></tr>";					
+				}
+				$("#result").html(records);
+			}
+		});	
+});
+</script>
+	<table class = "table" id="compHistory" width="100%" cellspacing="0">
+		<thead>
+		<tr>
+		<th>#번호</th>
+		<th>경쟁전 코스</th>
+		<th>경쟁전 배지</th>
+		<th>경쟁전 이름</th>
+		<th>경쟁전 날짜</th>
+		<th>경쟁전 내용</th>
+		</tr>
+		</thead>
+		
+		<tfoot>
+		<tr>
+		<th>#번호</th>
+		<th>경쟁전 코스</th>
+		<th>경쟁전 배지</th>
+		<th>경쟁전 이름</th>
+		<th>경쟁전 날짜</th>
+		<th>경쟁전 내용</th>
+		</tr>
+		</tfoot>
+		
+		<tbody id="result">
+
+		</tbody>
+	</table>
+</div>
+</body>
+
+<footer th:replace="footer"></footer>

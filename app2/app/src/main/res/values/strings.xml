@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">TestApplication</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">홈</string>
+    <string name="menu_records">내 기록</string>
+    <string name="menu_course_view">코스 보기</string>
+    <string name="menu_course_search">코스 찾기</string>
+    <string name="menu_course_scrap">스크랩 보관함</string>
+    <string name="menu_competition_view">경쟁전</string>
+    <string name="menu_mission_view">미션</string>
+    <string name="menu_danger_view">위험지역</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+<link rel="stylesheet" href="/css/etc/badgeCheck.css?a">
+
+<body>
+	<section class="hero-wrap hero-wrap-2"
+		style="background-image: url('/imgs/visual2.png');"
+		data-stellar-background-ratio="0.5">
+		<div class="overlay"></div>
+		<div class="container">
+			<div
+				class="row no-gutters slider-text align-items-end justify-content-center">
+
+			</div>
+		</div>
+	</section>
+
+	<section class="ftco-section">
+
+		<section class="ftco-section">
+			<div class="container">
+				<div class="row">
+
+					<div class="col-lg-4 sidebar ftco-animate">
+						<div class="sidebar-box clubinfo">
+							<div class="clubimg"
+								style="background-image: url('/imgs/main3.jpg');"></div>
+
+							<h2 th:text="${#authentication.name}+'님'">사용자명</h2>
+							<h2>현재 포인트</h2>
+							<a class="r_point" id="r_point" th:text="${list} + P"></a>
+							<div class="buttonBox">
+								<button class="btn" onclick="checkPoint()">커스텀 배지 등록</button>
+								<p>200p가 필요합니다.</p>
+							</div>
+						</div>
+
+						<div class="sidebar-box clubinfo">
+							<a href="#">내가 쓴 게시글</a> 
+							<a href="#">내가 쓴 댓글</a> 
+							<a href="/mypage/badge">내 배지 보기</a> 
+							<a href="/mypage/riding">내가 지나온 길</a> 
+							<a href="/entertainment/badgeCheck">커스텀 배지</a>
+						</div>
+
+
+
+
+
+					</div>
+
+
+					<div class="col-lg-8 ftco-animate board">
+						<h1>커스텀 배지</h1>
+						<div class="flex">
+							<div class="badgeitem" th:each="badge:${badgeList}">
+								<div class="bgimg">
+									<img alt="" src="#" 
+										th:if="${#strings.substring(badge.bg_image,0,4)}=='comp'"
+										th:src="|/entertainment/img/badge/${badge.bg_image}1.png|">
+									<img alt="" src="#"
+										th:unless="${#strings.substring(badge.bg_image,0,4)}=='comp'"
+										th:src="|/entertainment/img/badge/${badge.bg_image}|">
+										
+								</div>
+								
+								<p th:text="${badge.bg_name}"></p>
+							</div>
+							<div class="cbadgeitem" th:each="cbadge:${cbadgeList}">
+							<div class="cbgimg">
+									<img alt="" src="#"
+									th:src="|/entertainment/img/badge/${cbadge.cbg_image}|">
+								</div>
+								</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</section>
+
+
+
+
+
+
+		<script>
+			//     $(document).ready(function() {
+			//        $.ajax({
+			//           url : "/entertainment/badgeCheck/get",
+			//           dataType : "json",
+			//           cache : false,
+			//           data : {r_point : $("#r_point").text()},
+			//           success : function(data) {
+			//                    $("#list").val(data);
+			//              }
+			//           });
+			//     });
+			function checkPoint() {
+				if ($("#r_point").text() < 200) { 
+					alert("포인트가 부족합니다");
+					return;
+				} else {
+					alert("배지 등록페이지로 이동합니다.");
+					location.href = "/entertainment/badgeUpload";
+				}
+			}
+		</script>
+
+
+	</section>
+
+
+
+</body>
+
+
+
+
+<!-- <footer th:replace="footer"></footer> -->
+<footer th:replace="footer2"></footer>
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen">
+	<svg class="circular" width="48px" height="48px">
+		<circle class="path-bg" cx="24" cy="24" r="22" fill="none"
+			stroke-width="4" stroke="#eeeeee" />
+		<circle class="path" cx="24" cy="24" r="22" fill="none"
+			stroke-width="4" stroke-miterlimit="10" stroke="#F96D00" /></svg>
+</div>
+<script src="/test/js/jquery.min.js"></script>
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script
+	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+<script src="/test/js/google-map.js"></script>
+<script src="/test/js/main.js"></script>
+</html>

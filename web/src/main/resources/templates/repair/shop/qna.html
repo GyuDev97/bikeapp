@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+	<link rel="stylesheet" href="/css/repair/shopQNA.css">
+<style>
+.hero-wrap.hero-wrap-2 {
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+</style>
+
+<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">QNA</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">repair <i class="ion-ios-arrow-forward"></i></a></span> <span>Qna <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+	
+	<section class="ftco-section">
+			<div class="main">
+			<h3>문의 답변하기</h3>
+				<table class="tb_apply">
+					<thead>
+						<tr>
+							<th>분류</th>
+							<th>내용</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>문의번호</td>
+							<td th:text="${qna.qa_num}"></td>
+						</tr>
+						<tr>
+							<td>문의자</td>
+							<td th:text="${qna.qa_rider}"></td>
+						</tr>
+						<tr>
+							<td>문의제목</td>
+							<td th:text="${qna.qa_title}"></td>
+						</tr>
+						<tr>
+							<td>문의일시</td>
+							<td th:text="${qna.shop_time}"></td>
+						</tr>
+						<tr>
+							<td>문의내용</td>
+							<td><textarea rows="6" cols="100" name="ra_content" th:text="${qna.qa_content}" readonly></textarea></td>
+						</tr>
+						<tr>
+							<td>답변내용</td>
+							<td><textarea rows="6" cols="100" id="newanswer" th:text="${qna.qa_answer}"></textarea></td>
+						</tr>
+					</tbody>
+				</table>
+				<br>
+				<div class="btnbox">
+					<a href="#" id="1" class="btn_apy">답변하기</a>
+					<a href="#"  id="2" class="btn_apy">돌아가기</a>
+				</div>
+			
+		</div>
+	</section>
+	
+	<form action="/repair/shop/qna" id="form1" method="post">
+		<input type="hidden" name="qa_num" th:value="${qna.qa_num}">
+		<input type="hidden" name="qa_shop" th:value="${qna.qa_shop}">
+		<input type="hidden" name="qa_answer" id="qa_answer" th:value="${qna.qa_answer}">
+	</form>
+	<form  action="/repair" method="post" id="form2" >
+		<input type="hidden" name="rider" th:value="${qna.qa_shop}">
+	</form>	
+	
+	<script>
+		$(".btnbox a").click(function(){
+			if(this.id==1){
+				$("#qa_answer").val( $("#newanswer").val() );
+			}
+			$("#form"+this.id).submit();
+		});
+	</script>
+	
+<footer th:replace="footer2"></footer>
+	
+	<!-- loader -->
+	  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+	
+	
+	  <script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+	  <script src="/test/js/popper.min.js"></script>
+	  <script src="/test/js/bootstrap.min.js"></script>
+	  <script src="/test/js/jquery.easing.1.3.js"></script>
+	  <script src="/test/js/jquery.waypoints.min.js"></script>
+	  <script src="/test/js/jquery.stellar.min.js"></script>
+	  <script src="/test/js/owl.carousel.min.js"></script>
+	  <script src="/test/js/jquery.magnific-popup.min.js"></script>
+	  <script src="/test/js/aos.js"></script>
+	  <script src="/test/js/jquery.animateNumber.min.js"></script>
+	  <script src="/test/js/bootstrap-datepicker.js"></script>
+	  <script src="/test/js/jquery.timepicker.min.js"></script>
+	  <script src="/test/js/scrollax.min.js"></script>
+	  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+	  <script src="/test/js/google-map.js"></script>
+	  <script src="/test/js/main.js"></script>
+	
+	<script>
+		$(".mm").click(function(){
+			var form = document.createElement("form");
+			form.setAttribute("method", "Post");  
+			form.setAttribute("action", this.id); 
+		  	var hiddenField = document.createElement("input");
+			hiddenField.setAttribute("type", "hidden");
+			hiddenField.setAttribute("name", "rider");
+		    hiddenField.setAttribute("value", $("#hiddenID").val());
+	        form.appendChild(hiddenField);
+	        
+	        document.body.appendChild(form);
+	        form.submit();
+		});
+	</script>
+	</body>
+</html>
+	

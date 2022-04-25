@@ -1,0 +1,60 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header"></head>
+
+<link rel="stylesheet" href="/css/community/join.css">
+
+
+<div class="root">
+	<h1>클럽 가입 페이지</h1>
+   <table class = "table" id="mission" width="100%" cellspacing="0">
+      <thead>
+      <tr>
+      <th>클럽명</th>
+      <th>매니저</th>
+      <th>클럽대문</th>
+      </tr>
+      </thead>
+      
+     <tr class="list" th:each="club : ${list}">
+	      <th th:id="${club.cb_num}" style="cursor:hand" onClick="confirmCLub(this.id)" th:text="${club.cb_name}"></th>
+	      <th th:text="${club.cb_manager}"></th>
+	      <th>
+	      	<img th:src="'/data/img/club/'+${club.cb_image}">
+      </th>
+      
+      
+      
+   </table>
+   <input type="hidden" id="cj_rider" name="cj_rider">
+	<form action="/community/club" method="get">
+		<input type="submit" value="돌아가기">
+	</form>
+</div>
+
+<script>
+$(document).ready(function() {
+	//로그인 했을때만 로그인한 사용자아이디 가져옴
+	$("#cj_rider").val($("#nav_t_login ul li b span").html());
+	
+   $.ajax({
+      url : "/community/club/get",
+      dataType : "json",
+      cache : false,
+      data : {cj_rider : $("#nav_t_login ul span").text()},
+      success : function(data) {
+            	$("#userclub").val(data);
+         }
+      });
+});
+
+function confirmCLub(cb_num) {
+	if(confirm("해당 클럽으로 가입하시겠습니까?")) {
+		location.href="/join/decision/" + cb_num + "/" + $("#cj_rider").val();
+	} else {
+		alert("취소.");
+		return;
+	}
+}
+</script>
+<footer th:replace="footer"></footer>

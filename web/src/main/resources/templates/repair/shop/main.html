@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+<link rel="stylesheet" href="/css/repair/shopmain.css">
+<style>
+.hero-wrap.hero-wrap-2 {
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+</style>
+
+<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">Repair</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">HOME <i class="ion-ios-arrow-forward"></i></a></span> <span>Repair <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+	<section class="ftco-section">
+		<div class="main">
+		<h3><span th:text=${shop.r_nickname}>정비소명</span>님, 반갑습니다!</h3>
+		<hr>
+		<div class="news">
+			<div class="newApply">
+				<h4>새로운 신청</h4>
+					<table>
+						<thead>
+							<tr>
+								<th>신청번호</th>
+								<th>정비종류</th>
+								<th>라이더</th>
+								<th>방문날짜</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="noapply:${noApplyList}" th:id="'/repair/shop/apply/'+${noapply.ra_num}">
+								<th th:text="${noapply.ra_num}"></th>
+								<th th:if="${noapply.ra_type}==0" th:text="체인"></th>
+								<th th:if="${noapply.ra_type}==1" th:text="타이어"></th>
+								<th th:if="${noapply.ra_type}==2" th:text="브레이크"></th>
+								<th th:if="${noapply.ra_type}==3" th:text="세척"></th>
+								<th th:if="${noapply.ra_type}==4" th:text="풀정비"></th>
+								<th th:if="${noapply.ra_type}==5" th:text="기타"></th>
+								<th th:text="${noapply.ra_rider}"></th>
+								<th th:text="${noapply.shop_time}"></th>
+							</tr>
+						</tbody>
+					</table>
+			</div>
+			
+			<div class="newQNA">
+				<h4>새로운 문의</h4>
+				<table>
+					<thead>
+						<tr>
+							<th>문의번호</th>
+							<th>문의제목</th>
+							<th>라이더</th>
+							<th>문의날짜</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="noqna:${noQnaList}" th:id="'/repair/shop/qna/'+${noqna.qa_num}">
+							<th th:text="${noqna.qa_num}"></th>
+							<th th:text="${noqna.qa_title}"></th>
+							<th th:text="${noqna.qa_rider}"></th>
+							<th th:text="${noqna.shop_time}"></th>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<hr>
+		<div class="applyList">
+			<h3>전체 신청 내역</h3>
+			<table class="tb_apply">
+				<thead>
+					<tr>
+						<th>신청번호</th>
+						<th>정비종류</th>
+						<th>신청내용</th>
+						<th>라이더</th>
+						<th>방문날짜</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="apply:${applyList}" th:id="'/repair/shop/apply/'+${apply.ra_num}">
+						<th th:text="${apply.ra_num}"></th>
+						<th th:if="${apply.ra_type}==0" th:text="체인"></th>
+						<th th:if="${apply.ra_type}==1" th:text="타이어"></th>
+						<th th:if="${apply.ra_type}==2" th:text="브레이크"></th>
+						<th th:if="${apply.ra_type}==3" th:text="세척"></th>
+						<th th:if="${apply.ra_type}==4" th:text="풀정비"></th>
+						<th th:if="${apply.ra_type}==5" th:text="기타"></th>
+						<th th:text="${apply.ra_content}"></th>
+						<th th:text="${apply.ra_rider}"></th>
+						<th th:text="${apply.shop_time}"></th>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<div class="applyList">
+			<h3>전체 문의 내역</h3>
+			<table class="tb_qna">
+				<thead>
+					<tr>
+						<th>문의번호</th>
+						<th>문의제목</th>
+						<th>라이더</th>
+						<th>문의날짜</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="qna:${qnaList}" th:id="'/repair/shop/qna/'+${qna.qa_num}">
+						<th th:text="${qna.qa_num}"></th>
+						<th th:text="${qna.qa_title}"></th>
+						<th th:text="${qna.qa_rider}"></th>
+						<th th:text="${qna.shop_time}"></th>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	
+	
+	
+	
+		</div>
+	</section>
+	
+
+<footer th:replace="footer2"></footer>
+
+<script>
+	$("tr").click(function(){
+		location.href=this.id;
+	});
+</script>
+
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+<script src="/test/js/google-map.js"></script>
+<script src="/test/js/main.js"></script>
+</body>
+</html>

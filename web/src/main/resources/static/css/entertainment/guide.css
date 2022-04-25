@@ -1,0 +1,33 @@
+@charset "UTF-8";
+
+.cp_title h1{
+	text-align: center;
+	font-weight: 800;
+	color: orange;
+}
+
+.cp_title p{
+	text-align: center;
+}
+
+.cp_title img{
+	display : block;
+	margin: 0 auto;
+}
+
+
+
+.ms_title h1{
+	text-align: center;
+	font-weight: 800;
+	color: orange;
+}
+
+.ms_title p{
+	text-align: center;
+}
+.ms_title img{
+	display : block;
+	margin: 0 auto;
+	margin-top: 5%;
+}

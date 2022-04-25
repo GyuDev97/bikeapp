@@ -1,0 +1,58 @@
+@charset "UTF-8";
+
+.ftco-footer {
+	padding : 20px;
+	background: black;
+	height: 500px;
+	margin-top: 60px;
+}
+.footerFlex {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+}
+.footer_Img {
+	width: 100%;
+	height: 100%;
+}
+.footerPersonImgBox {
+	width : 100%;
+	height: 100%;
+	max-width : 200px;
+	max-height: 200px;
+	margin-bottom: 20px;
+}
+.footerLogoBox {
+	width: 30%;
+	height: 250px;
+}
+
+.footerInfo{
+	width : 70%;
+	padding : 30px;
+	color: white;
+}
+
+.footerInfo h1, .footerInfo h5 {
+	color : white;
+	font-weight: 700;
+}
+
+.footerPeople {
+	display: flex;
+	justify-content: space-around;
+}
+
+.footerPeople > div {
+	margin: 10px;
+	text-align: center;
+}
+
+.footerPeople > div h5 {
+	margin-top: 5px;
+}
+
+.ftco-footer .row * {
+	margin: 0;
+}

@@ -1,0 +1,76 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+<section class="hero-wrap hero-wrap-2" style="background-image: url(/imgs/community/clubimage.jpg)" data-stellar-background-ratio="1.0">
+   <div class="overlay"></div>
+   <div class="container">
+     <div class="row no-gutters slider-text align-items-end justify-content-center">
+       <div class="col-md-9 ftco-animate text-center">
+       </div>
+     </div>
+   </div>
+</section>
+
+<section class="ftco-section testimony-section img">
+	<div class="overlay"></div>
+      
+     <div class="col-md-7 text-center heading-section ftco-animate club-table">
+	<button onclick="goJoinClub()">클럽 조회</button>
+	<input type="hidden" id="userclub" name="userclub">
+	<input type="hidden" id="cb_manager" name="cb_manager">
+	</div>
+</section>
+  <!-- loader -->
+  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+  <script>
+$(document).ready(function() {
+	//로그인 했을때만 로그인한 사용자아이디 가져옴
+	$("#cb_manager").val($("#hiddenID").val());
+	
+   $.ajax({
+      url : "/community/club/get",
+      dataType : "json",
+      cache : false,
+      data : {cj_rider : $("#hiddenID").val()},
+      success : function(data) {
+            	$("#userclub").val(data);
+         }
+      });
+});
+
+function goBoard() {
+	if($("#userclub").val()==0) {
+		alert("이미 클럽에 소속되어 있거나 로그인 중이 아닙니다.");
+		return;
+	}
+	location.href = "/community/club/club_board/"+ $("#userclub").val();
+}
+
+function goCreateClub() {
+	if($("#userclub").val()!=0 || $("#userclub").val()=="" || $("#userclub").val()== null || $("#cb_manager").val()=="") {
+		alert("이미 클럽에 소속되어 있거나 로그인 중이 아닙니다.");
+		return;
+	}
+	location.href = "/community/club/create";
+}
+
+function moveCalender(){
+	if($("#userclub").val()==0) {
+		alert("클럽에 가입되어 있지 않습니다.");
+		return;
+	}
+	location.href="/community/club/calender";
+}
+function goJoinClub() {
+	// 유저 클럽번호가 0이 아닐 때(이미 클럽에 가입한 경우), 공백이나 널일때(비로그인)
+	if($("#userclub").val()!=0 || $("#userclub").val()=="" || $("#userclub").val()== null
+			|| $("#cb_manager").val()=="" || $("#cb_manager").val()== null) { 
+		alert("이미 클럽에 소속되어 있거나 로그인 중이 아닙니다.");
+		return;
+	}
+	location.href="/community/club/join";
+}
+
+</script>
+<footer th:replace="footer2"></footer>

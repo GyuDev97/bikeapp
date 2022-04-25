@@ -1,0 +1,96 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+	<link rel="stylesheet" href="/css/community/club_main.css">
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">Club</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">COMMUNITY <i class="ion-ios-arrow-forward"></i></a></span> <span>CLUB <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row">
+			
+				<div class="col-lg-4 sidebar ftco-animate">
+					<div class="sidebar-box clubinfo">
+		              <div class="clubimg" style="background-image: url('/imgs/main3.jpg');" th:style="'background-image: url(/data/img/club/'+${club.cb_image}+');'">
+		              </div>
+		              
+		              <h2 th:text="${club.cb_name}">클럽명</h2>
+		              <input type="hidden" id="hiddenCLUB" th:value="${club.cb_num}">
+		            </div>
+		            
+		            <div class="sidebar-box clubinfo">
+		            	<a href="/community/club" th:href="'/community/club/'+${club.cb_num}">게시판</a>
+		            	<a href="#" th:href="'/community/club/calender/'+${club.cb_num}">캘린더</a>
+		            </div>
+		            
+				</div>
+				
+				
+				<div class="col-lg-8 ftco-animate board">
+					<h1>클럽 게시판</h1>
+					<p>오늘은 어떤 소식이 있을까요?</p>
+					<table class="type09">
+	             		<thead>
+	             			<tr>
+	             			<th scope="cols" class="r">분류</th>
+	             			<th scope="cols" >제목</th>
+	             			<th scope="cols" class="j">글쓴이</th>
+	             			<th scope="cols" class="j">작성일</th>
+	             			<th scope="cols">조회</th>
+	             			</tr>
+	             		</thead>
+	             		<tbody>
+	             			<tr th:each="post:${postlist}">
+	             			<td scope="row" class="r" th:if="${post.b_subject}==0" th:text="자유"></td>
+	             			<td scope="row" class="r" th:if="${post.b_subject}==1" th:text="라이딩"></td>
+	             			<td scope="row" class="r" th:if="${post.b_subject}==2" th:text="질문"></td>
+	             			<td class="c" th:text="${post.b_title}" th:id="${post.b_num}">오늘 기온 장난아닙니다ㅠㅠ</td>
+	             			<td class="j" th:text="${post.b_rider}">180137</td>
+	             			<td class="j" th:text="${post.date}">2020-06-07</td>
+	             			<td th:text="${post.b_hit}">21</td>
+	             			<input type="hidden" id="b_num" th:value="${post.b_num}">
+	             			</tr>
+	             			
+	             		</tbody>
+	             	</table>
+	             	
+	             	<div class="pageclub">
+		             	<a href="#">이전</a>
+		             	<a href="#">1</a>
+		             	<a href="#">다음</a>
+	             	</div>
+	             	
+	             	<div class="bo_se_btn">
+		             	<input type="text" class="bar" size="">
+		             	<input type="button" class="btn btn_color" value="검색">
+		             	<input type="button" class="btn btn_color2" value="글쓰기">
+	             	</div>
+				</div>
+			</div>
+		</div>
+	</section>
+  <!-- loader -->
+  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+ss
+
+<script>
+$(".btn").click(function(){
+	if(this.value=="글쓰기"){
+		location.href = "/community/club/write/"+$("#hiddenCLUB").val();
+	}
+});
+
+$(".type09 tbody tr td:nth-child(2)").click(function() {
+	location.href="/community/club/boardGet?b_num=" + this.id;
+});
+</script>
+<footer th:replace="footer2"></footer>

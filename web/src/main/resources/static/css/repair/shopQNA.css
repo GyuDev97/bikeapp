@@ -1,0 +1,71 @@
+@charset "UTF-8";
+
+.ftco-section {
+	padding-top: 50px;
+}
+
+.main {
+	width: 80%;
+	margin: 0 auto;
+}
+
+table thead th {
+    font-weight: bold;
+    vertical-align: top;
+    color: #369;
+    border-bottom: 3px solid #036;
+}
+
+table tbody th {
+    font-weight: bold;
+    vertical-align: top;
+    border-bottom: 1px solid #ccc;
+}
+
+
+.btnbox {
+	display: flex;
+	justify-content: center;
+}
+.btnbox a {
+	color : #369;
+	display: inline-block;
+	width: 12%;
+	height: 50px;
+	line-height : 50px;
+	text-align: center;
+	border : 1px solid black;
+	border-radius: 15px;
+	font-weight: 900;
+	font-size: 1.1em;
+}
+
+.btnbox a:hover {
+	color : white;
+	border : 1px solid #ffa323;
+	background-color : #ffa323;
+	border-radius: 15px;
+	font-weight: 900;
+	font-size: 1.1em;
+}
+
+.btnbox a:nth-child(2){
+	margin-left: 30px;
+	margin-right: 30px;
+}
+
+.tb_apply {
+	margin : 0 auto;
+	width: 100%;
+}
+
+.tb_apply thead tr th:first-child,
+.tb_apply tbody tr td:first-child
+ {
+	width: 15%;
+	text-align: center;
+}
+
+.tb_apply textarea {
+	padding: 10px;
+}

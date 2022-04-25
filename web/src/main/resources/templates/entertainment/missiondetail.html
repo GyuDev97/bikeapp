@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+	
+<link rel="stylesheet" href="/css/entertainment/missionDetail.css">
+
+<body>
+
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/entertainment_img.jpg');" data-stellar-background-ratio="0.5">
+	      <div class="overlay"></div>
+	      <div class="container">
+	        <div class="row no-gutters slider-text align-items-end justify-content-center">
+	          <div class="col-md-9 ftco-animate text-center">
+	            <h1 class="mb-2 bread">MISSION</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">Entertainment <i class="ion-ios-arrow-forward"></i></a></span> <span>Mission <i class="ion-ios-arrow-forward"></i></span></p>
+	          </div>
+	        </div>
+	      </div>
+   </section>
+   
+   <div class="main">
+	   	<div>
+	   		<h3 th:text="${mission.m_name}">미션명</h3>
+	   		<div class="flex">
+		   		<div class="part1">
+		   			<div>
+		   				<img alt="" src="/imgs/main2.jpg" th:src="'/data/img/mission/'+${mission.m_img}">
+		   			</div>
+		   			<h5 th:text="${mission.bg_name}">배지명</h5>
+		   		</div>
+		   		
+		   		<div class="part2">
+		   			<table class="type08">
+		   				<thead>
+		   					<tr>
+		   						<th>구분</th>
+		   						<th>내용</th>
+		   					</tr>
+		   				</thead>
+		   				
+		   				<tbody>
+		   					<tr>
+		   						<th>미션번호</th>
+		   						<td th:text="'#'+${mission.m_num}">#1</td>
+		   					</tr>
+		   					<tr>
+		   						<th>조건</th>
+		   						<td th:text="${mission.m_content}">조건 ~~~~~~</td>
+		   					</tr>
+		   					<tr>
+		   						<th>성공률</th>
+		   						<td th:text=${rate}>84.6%</td>
+		   					</tr>
+		   				</tbody>
+		   			</table>
+		   		</div>
+	   		</div>
+	   	</div>
+   	
+	   	<div class="riderlist">
+	   		<h4>완료한 라이더들</h4>
+	   		
+	   		<table>
+	   			<thead>
+	   				<tr>
+	   					<th>유저이미지</th>
+	   					<th>대표배지</th>
+	   					<th>닉네임</th>
+	   				</tr>
+	   			</thead>
+	   			<tbody>
+	   				<tr th:each="rider:${list}">
+	   					<th><img alt="" src="/imgs/logo.png" th:src="'/data/img/rider/'+${rider.user_img}"></th>
+	   					<th>
+	   						<img alt="" src="/imgs/logo.png" th:if="${rider.bg_num}>=300" th:src="'/data/img/cbadge/'+${rider.bg_img}">
+	   						<img alt="" src="/imgs/logo.png" th:unless="${rider.bg_num}>=300" th:src="'/data/img/badge/'+${rider.bg_img}">
+	   					</th>
+	   					<th th:text="${rider.nickname}+' 님'">닉네임</th>
+	   				</tr>
+	   			</tbody>
+	   		</table>
+	   	</div>
+   
+   		<div class="back_btn">
+		   	<button onclick="goMissionPage()">돌아가기</button>
+	   </div>
+   </div>
+   
+   <script>
+   	function goMissionPage(){
+   		location.href="/entertainment/mission";
+   	}
+   </script>
+   
+  
+
+<footer th:replace="footer2"></footer>
+
+<!-- loader -->
+ 	<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+<script src="/test/js/jquery.min.js"></script>
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script src="/test/js/main.js"></script>
+
+</body>
+</html>

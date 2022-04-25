@@ -1,0 +1,104 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+	<link rel="stylesheet" href="/css/etc/postDetail.css">
+	
+<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/imgs/visual2.png');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">POST</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">MYPAGE <i class="ion-ios-arrow-forward"></i></a></span> <span>POST <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row">
+			
+				<div class="col-lg-4 sidebar ftco-animate">
+					<div class="sidebar-box clubinfo">
+		              <div class="clubimg" style="background-image: url('/imgs/main3.jpg');" th:style="|background-image: url('/data/img/rider/${rider.r_image}');|">
+		              </div>
+		              <h2 th:text="${rider.r_nickname}+'님'">사용자명</h2>
+		              <h2>안라하세요!</h2>
+		            </div>
+		            
+		            <div class="sidebar-box clubinfo">
+		            	<a href="/mypage/riding">내가 지나온 길</a>
+		            	<a href="/mypage/post">내가 쓴 게시글</a>
+		            	<a href="/mypage/reply">내가 쓴 댓글</a>
+		            	<a href="/mypage/badge">내 배지 보기</a>
+		            </div>
+		            
+				</div>
+				
+				
+				<div class="col-lg-8 ftco-animate board">
+					
+					<h3 th:text='|"${board.b_title}"|'></h3>
+					<hr>
+					<div class="flex">
+						<div class="ib userImg">
+							<img alt="" th:src="|/data/img/rider/${board.b_img}|">
+						</div>
+						<div class="ib">
+							<h5 th:text="${board.b_rider}"></h5>
+							<h5 th:text="${board.customDate}"></h5>
+						</div>
+					</div>
+					
+					
+					<p th:text="${board.b_content}" class="pd20"></p>
+					<hr>
+					<h4>댓글</h4>
+					<div class="wd95">
+						<div th:each="reply:${replys}">
+							<div class="flex">
+								<div class="replyImg">
+									<img alt="" th:src="|/data/img/badge/${reply.r_image}|">
+								</div>
+								<h5 th:text="${reply.re_rider}"></h5>
+								
+							</div>
+							<p class="pd10" th:text="${reply.re_content}"></p>
+							<p class="fs10 pd10" th:text="${reply.re_day}"></p>
+							<hr>
+						</div>
+					</div>
+					<div class="mg0">
+						<a class="backBtn" href="/mypage/post">돌아가기</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+<footer th:replace="footer2"></footer>
+  
+	  <!-- loader -->
+	  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+	
+	
+	  <script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+	  <script src="/test/js/popper.min.js"></script>
+	  <script src="/test/js/bootstrap.min.js"></script>
+	  <script src="/test/js/jquery.easing.1.3.js"></script>
+	  <script src="/test/js/jquery.waypoints.min.js"></script>
+	  <script src="/test/js/jquery.stellar.min.js"></script>
+	  <script src="/test/js/owl.carousel.min.js"></script>
+	  <script src="/test/js/jquery.magnific-popup.min.js"></script>
+	  <script src="/test/js/aos.js"></script>
+	  <script src="/test/js/jquery.animateNumber.min.js"></script>
+	  <script src="/test/js/bootstrap-datepicker.js"></script>
+	  <script src="/test/js/jquery.timepicker.min.js"></script>
+	  <script src="/test/js/scrollax.min.js"></script>
+	  <script src="/test/js/main.js"></script>
+  </body>
+</html>

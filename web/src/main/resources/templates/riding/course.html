@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header"></head>
+<link rel="stylesheet" href="/css/riding/course.css"/>
+<div id="sub_img"></div>
+<!-- 위는 로컬에 적용하는 KEY, 아래는 서버에 적용하는 KEY입니다. 로컬에서는 상단KEY를 쓰고 아래 KEY를 주석처리해주세요.-->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=75b139a908cf5a67ae5c093565896a18&libraries=services"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=dbb047c9e9b46e285f76df6669c00d7f&libraries=services"></script>
+
+<!-- 메인 기능 버튼 -->
+<div>
+	<input type="button" value="내 정보보기" onclick="moveMyInfo()">
+	<input type="button" value="코스 검색하기" onclick="moveSearchCourse()">
+	<input type="button" value="위험지역등록하기" onclick="show_post_DA()">
+	<input type="button" value="위험지역등록하기" onclick="">
+	<label for="chk_DA">위험지역 보기</label> <input id="chk_DA" name="DA" type="checkbox">
+</div>
+
+<div id="mainbox">
+	<div id="myInfoBox">
+		<div id="myRecords">
+		<h2>나의 기록</h2>
+		<ul>
+			<li class="li_rr" th:each="record : ${ridingrecords}" th:id="${record.rr_num}">
+				<span th:text="${record.rr_area}"></span>
+				<span th:text="${record.rr_gpx}"></span>
+			</li>
+		</ul>
+		</div>
+		<div id="myScraps">
+		<h2>나의 스크랩 코스</h2>
+			<ul>
+				<li class="li_sc" th:each="course : ${scrapcourses}" th:id="${course.rr_num}" >
+					<span th:text="${course.rr_area}"></span>
+					<span>코스명 : </span>
+					<span th:text="${course.rr_name}"></span>
+				</li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="map" style="width:75%; height:600px;"></div>
+	
+	<div id="box_post_DA">
+		<form id="form_post_DA" action="/riding/DA" method="post">
+			<label>위도</label><input type="text" id="DA_Lat" name="da_latitude" size="18">
+			<label>경도</label><input type="text" id="DA_Lon" name="da_longitude" size="18">
+			<label>등록주소</label><input type="text" id="DA_addr" name="da_addr" size="8" required>
+			<label>한줄평</label><input type="text" id="DA_content" name="da_content" size="40" required>
+			<label>이미지첨부</label><input type="file" id="DA_Image" name="da_image" accept="image/*">
+			<input type="hidden" id="DARider" name="da_rider" th:value="${#authentication.name}">
+			<input type="hidden" name="page" th:value="course">
+			<input type="submit" value="등록신청">
+			<button type="button" onclick="cancel_post_DA()">취소</button>
+		</form>
+	</div>
+</div>
+
+<div id="box_courseInfo">
+	<h2>선택한 코스 정보</h2>
+	<div id="courseInfo">
+	</div>
+	<button id="bt_mode" onclick="change()">스크랩하기</button>
+	<button id="bt_like" onclick="like()">추천!</button>
+	<h2>코스 한줄평</h2>
+	<div id="courseReview">
+	</div>
+	<h3>리뷰 작성하기</h3>
+	<form id="postReview"  action="/riding/review" method="post"  enctype="multipart/form-data">
+		<input type="text" size="50" id="cr_content" name="cr_content">
+		<input type="file" id="cr_images" name="files">
+		<input type="hidden" id="cr_rider" name="cr_rider">
+		<input type="hidden" id="cr_rnum" name="cr_rnum">
+	</form>
+	<button type="button" onclick="postReview()">리뷰 등록하기</button>
+	<input type="hidden" id="bt_rr_open">
+	<input type="hidden" id="selected_rr_num">
+</div>
+
+<script type="text/javascript" src="/js/riding/basic.js"></script>
+<script type="text/javascript" src="/js/riding/course.js"></script>
+
+<footer th:replace="footer"></footer>

@@ -1,0 +1,123 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+<link rel="stylesheet" href="/css/community/reg_goods.css"/>
+
+<body>
+
+<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+   <div class="overlay"></div>
+   <div class="container">
+     <div class="row no-gutters slider-text align-items-end justify-content-center">
+       <div class="col-md-9 ftco-animate text-center">
+       		<h1 class="mb-2 bread">SELL</h1>
+            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">COMMUNITY <i class="ion-ios-arrow-forward"></i></a></span> <span>MARKET <i class="ion-ios-arrow-forward"></i></span></p>
+       </div>
+     </div>
+   </div>
+</section>
+
+<div class="main">
+	<form action="/community/regist/goods" method="post" enctype="multipart/form-data">
+		<h1>물품 등록</h1>
+		<div>
+			<div class="flex">
+				<div class="imgPart">
+					<div><img id="img" alt="" src="/imgs/club.png"></div>
+					<input type="file" id="input_img" name="img_file" required="required">
+				</div>
+				<div class="infoPart">
+					<table class="type09">
+					    <thead>
+						    <tr>
+						        <th scope="cols" class="t_center">물품명</th>
+						       
+						        <th scope="cols"><input type="text" placeholder="물품명을 입력하세요" name="g_title"></th>
+						    </tr>
+					    </thead>
+					    <tbody>
+						    <tr>
+						        <th scope="row" class="t_center">가격</th>
+						        <td><input type="number" placeholder="ex) 9000" name="g_price"></td>
+						    </tr>
+						    <tr>
+						        <th scope="row" class="t_center">거래지역</th>
+						        <td><input type="text" placeholder="읍면동 단위까지 적어주세요" name="g_location"></td>
+						    </tr>
+						    <tr>
+						        <th scope="row" class="even t_center">물품설명</th>
+						        <td class="even"><textarea rows="" cols="" placeholder="물품에 대한 설명을 적어주세요" name="g_content"></textarea> </td>
+						    </tr>
+					    </tbody>
+					</table>
+				</div>
+			 </div>
+			<div class="t_center">
+					<button type="button" onclick="cancel()">취소</button>
+					<button>등록하기</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+	var sel_file;
+	
+	$(document).ready(function(){
+		$("#input_img").on("change", handleImgFile);
+	});
+	
+	function handleImgFile(e){
+		var files = e.target.files;
+		var filesArr = Array.prototype.slice.call(files);
+		
+		console.log(e);
+		
+		filesArr.forEach(function(f){
+			if(!f.type.match("image.*")){
+				alert("확장자는 이미지 확장자만 가능합니다.");
+				return;
+			}
+			
+			sel_file = f;
+			
+			
+			var reader = new FileReader();
+			reader.onload = function(e){
+				console.log(e);
+				$("#img").attr("src", e.target.result);
+			}
+			reader.readAsDataURL(f);
+		});
+	}
+	
+	function cancel(){
+		location.href="/community/market";
+	}
+</script>
+
+<footer th:replace="footer2"></footer>
+ 
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+<script src="/test/js/google-map.js"></script>
+<script src="/test/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+<link rel="stylesheet" href="/css/repair/shopApply.css">
+<style>
+.hero-wrap.hero-wrap-2 {
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+</style>
+
+<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">Apply</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">repair <i class="ion-ios-arrow-forward"></i></a></span> <span>Apply <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+	<section class="ftco-section">
+			<div class="main">
+			<h3>정비 신청</h3>
+				<table class="tb_apply">
+					<thead>
+						<tr>
+							<th>분류</th>
+							<th>내용</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>신청번호</td>
+							<td th:text="${apply.ra_num}"></td>
+						</tr>
+						<tr>
+							<td>신청자</td>
+							<td th:text="${apply.ra_rider}"></td>
+						</tr>
+						<tr>
+							<td>정비분류</td>
+							<td th:if="${apply.ra_type}==0" th:text="체인"></td>
+							<td th:if="${apply.ra_type}==1" th:text="타이어"></td>
+							<td th:if="${apply.ra_type}==2" th:text="브레이크"></td>
+							<td th:if="${apply.ra_type}==3" th:text="세척"></td>
+							<td th:if="${apply.ra_type}==4" th:text="풀정비"></td>
+							<td th:if="${apply.ra_type}==5" th:text="기타"></td>
+						</tr>
+						<tr>
+							<td>방문일시</td>
+							<td th:text="${apply.shop_time}"></td>
+						</tr>
+						<tr>
+							<td>정비신청내용</td>
+							<td><textarea rows="6" cols="100" name="ra_content" th:text="${apply.ra_content}" readonly></textarea></td>
+						</tr>
+					</tbody>
+				</table>
+				<br>
+				<div class="btnbox">
+					<a href="#" id="1" class="btn_apy">수락하기</a>
+					<a href="#"  id="2" class="btn_apy">거절하기</a>
+					<a href="#"  id="3" class="btn_apy">돌아가기</a>
+				</div>
+			
+		</div>
+	</section>
+	
+	<form action="/repair/shop/apply" id="form1" method="post">
+		<input type="hidden" name="ra_num" th:value="${apply.ra_num}">
+		<input type="hidden" name="ra_shop" th:value="${apply.ra_shop}">
+	</form>
+	<form  action="/repair/shop/noapply"  id="form2" method="post">
+		<input type="hidden" name="ra_num" th:value="${apply.ra_num}">
+		<input type="hidden" name="ra_shop" th:value="${apply.ra_shop}">
+	</form>	
+	<form  action="/repair" method="post" id="form3" >
+		<input type="hidden" name="rider" th:value="${apply.ra_shop}">
+	</form>	
+	
+	<script>
+		$(".btnbox a").click(function(){
+			$("#form"+this.id).submit();
+		});
+	</script>
+
+<footer th:replace="footer2"></footer>
+
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+<script src="/test/js/google-map.js"></script>
+<script src="/test/js/main.js"></script>
+
+</body>
+</html>

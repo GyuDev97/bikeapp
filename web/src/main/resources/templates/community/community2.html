@@ -1,0 +1,81 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+<link rel="stylesheet" href="/css/community/main.css"/>
+<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">COMMUNITY</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">HOME <i class="ion-ios-arrow-forward"></i></a></span> <span>COMMUNITY <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+   
+
+		<section class="ftco-section bg-light">
+			<div class="container">
+				<div class="row justify-content-center mb-5 pb-2">
+          <div class="col-md-7 text-center heading-section ftco-animate">
+          	<h3 class="subheading">Community</h3>
+          	<br>
+          	<br>
+            <h3 class="mb-4">다른 라이더들과 소통해보세요!</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate text-center">
+            <div class="media block-6 services d-block">
+              <div class="mm d-flex justify-content-center align-items-center">
+              	<th:block th:if="${club}">
+            		<a th:href="@{'community/club/'+${club}}" id="community/club" class="commtag mm2">
+            			<img alt="" src="/imgs/club.jpg">
+            		</a>
+            	</th:block >
+            	<th:block th:unless="${club}">
+            		<script>alert("아직 클럽에 가입하지 않았습니다");</script>
+            	</th:block>
+              </div>
+              <div class="media-body p-2 mt-3">
+                <h3 class="heading">클럽</h3>
+                <p>팀을 꾸리거나 팀에 들어가 더욱 즐겁게 라이딩을 해봐요!</p>
+              </div>
+            </div>      
+          </div>
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate text-center">
+            <div class="media block-6 services d-block">
+              <div class="mm d-flex justify-content-center align-items-center">
+            		<a href="/community/mutub" class="mm2">
+            			<img alt="" src="/imgs/sns.jpg">
+            		</a>
+              </div>
+              <div class="media-body p-2 mt-3">
+                <h3 class="heading">SNS</h3>
+                <p>공개된 공간에서 새로운 사람들을 만나보세요!</p>
+              </div>
+            </div>    
+          </div>
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate text-center">
+            <div class="media block-6 services d-block">
+              <div class="mm d-flex justify-content-center align-items-center">
+            		<a href="/community/market" class="mm2">
+            			<img alt="" src="/imgs/market.jpg">
+            		</a>
+              </div>
+              <div class="media-body p-2 mt-3">
+                <h3 class="heading">거래</h3>
+                <p>가지고 있는 자전거 제품을 사고 팔 수 있어요!</p>
+              </div>
+            </div>      
+          </div>
+        </div>
+			</div>
+		</section>
+		
+
+	  <!-- loader -->
+	  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+	    <footer th:replace="footer2"></footer>

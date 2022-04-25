@@ -1,0 +1,23 @@
+@charset "UTF-8";
+
+.ftco-section {
+	margin-top: 20px;
+	padding-top: 20px;
+}
+
+.container h1 {
+	margin-bottom: 20px;
+}
+
+.blog-entry {
+	margin-bottom: 0px;
+}
+
+.mg-t-3 {
+	margin-top: 30px;
+}
+
+.block-20 {
+	background-size: 100% 100%;
+	border-radius: 15%;
+}

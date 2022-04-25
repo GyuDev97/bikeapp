@@ -1,0 +1,163 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+	<link rel="stylesheet" href="/css/etc/myReply.css">
+	
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+<body>
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/imgs/visual2.png');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">REPLY</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">MYPAGE <i class="ion-ios-arrow-forward"></i></a></span> <span>REPLY <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row">
+			
+				<div class="col-lg-4 sidebar ftco-animate">
+					<div class="sidebar-box clubinfo">
+		              <div class="clubimg" style="background-image: url('/imgs/main3.jpg');" th:style="|background-image: url('/data/img/rider/${rider.r_image}');|">
+		              </div>
+		              <h2 th:text="${rider.r_nickname}+'님'">사용자명</h2>
+		              <h2>안라하세요!</h2>
+		            </div>
+		            
+		            <div class="sidebar-box clubinfo">
+		            	<a href="/mypage/riding">내가 지나온 길</a>
+		            	<a href="/mypage/post">내가 쓴 게시글</a>
+		            	<a href="/mypage/reply">내가 쓴 댓글</a>
+		            	<a href="/mypage/badge">내 배지 보기</a>
+		            </div>
+		            
+				</div>
+				
+				
+				<div class="col-lg-8 ftco-animate board">
+					<h1>달리는 즐거움! 소통하는 즐거움!</h1>
+					<p>MTBCraft!</p>
+					<hr>
+					<h3>리플 모아보기</h3>
+					<table class="type09">
+					    <thead>
+						    <tr>
+						        <th scope="cols">댓글번호</th>
+						        <th scope="cols">원글</th>
+						        <th scope="cols">내용</th>
+						        <th scope="cols">작성일</th>
+						    </tr>
+					    </thead>
+					    
+					    <tbody>
+						    <tr th:each="reply:${replys}">
+						        <th scope="row" th:text="'#'+${reply.re_num}"></th>
+						        <td><a th:onclick="'crayBtn1('+${reply.re_board}+')'">[원글보기]</a></td>
+						        <td th:text="${reply.re_content}"></td>
+						        <td th:text="${reply.re_day}"></td>
+						    </tr>
+					    </tbody>
+					</table>
+					
+					<hr>
+					
+				</div>
+			</div>
+		</div>
+	</section>
+	<div id="dialog-message" title="원글" style='display:none'>
+	  <table class="type09" style="width:600px;">
+		    <thead>
+			    <tr>
+			        <th scope="cols">분류</th>
+			        <th>내용</th>
+			    </tr>
+		    </thead>
+		    
+		    <tbody>
+			    <tr>
+			        <th scope="row">제목</th>
+			        <td id="o_title">호부호영 왜 못해~</td>
+			    </tr>
+			    <tr>
+			        <th scope="row">작성일</th>
+			        <td id="o_day">2020-07-30 12:30:27</td>
+			    </tr>
+			    <tr>
+			        <th scope="row">작성자</th>
+			        <td id="o_writer">홍길동</td>
+			    </tr>
+			    <tr>
+			        <th scope="row">내용</th>
+			        <td><textarea id="o_content" disabled="disabled">이이이잉 호부호영 못해서 개속상해~</textarea> </td>
+			    </tr>
+		    </tbody>
+		</table>
+	</div>
+	
+	<script>
+		function crayBtn1(re_board)
+		{
+			$.ajax({
+				url : "/info/mypage/post/"+re_board,
+				type : "GET",
+				cache : false,
+				dataType : "json",
+				success : function(data) {
+					console.log(data);
+					
+					if(data.b_title==null){
+						$("#o_title").text("SNS게시글");
+					}else{
+						$("#o_title").text(data.b_title);
+					}
+					$("#o_day").text(data.customDate);
+					$("#o_writer").text(data.b_rider);
+					$("#o_content").text(data.b_content);
+					
+					$('#dialog-message').dialog({
+						modal: true, 
+						buttons: {
+							"확인": function() { $(this).dialog('close'); },
+						}
+					});
+				}
+			});		
+			
+			
+		}
+	</script>
+
+	<footer th:replace="footer2"></footer>
+  
+	  <!-- loader -->
+	  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+	
+	
+	  <script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+	  <script src="/test/js/popper.min.js"></script>
+	  <script src="/test/js/bootstrap.min.js"></script>
+	  <script src="/test/js/jquery.easing.1.3.js"></script>
+	  <script src="/test/js/jquery.waypoints.min.js"></script>
+	  <script src="/test/js/jquery.stellar.min.js"></script>
+	  <script src="/test/js/owl.carousel.min.js"></script>
+	  <script src="/test/js/jquery.magnific-popup.min.js"></script>
+	  <script src="/test/js/aos.js"></script>
+	  <script src="/test/js/jquery.animateNumber.min.js"></script>
+	  <script src="/test/js/bootstrap-datepicker.js"></script>
+	  <script src="/test/js/jquery.timepicker.min.js"></script>
+	  <script src="/test/js/scrollax.min.js"></script>
+	  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+	  <script src="/test/js/google-map.js"></script>
+	  <script src="/test/js/main.js"></script>
+  </body>
+</html>

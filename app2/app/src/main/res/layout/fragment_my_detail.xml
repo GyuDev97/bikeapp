@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.records.MyDetailFragment">
+
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+           >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                tools:ignore="MissingConstraints">
+
+                <RelativeLayout
+                    android:id="@+id/map_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="100dp"
+                     />
+
+                <GridLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="30dp"
+                    android:columnCount="3"
+                    android:orientation="horizontal"
+                    android:rowCount="3"
+                    android:verticalSpacing="30dp"
+                    tools:ignore="MissingConstraints">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:id="@+id/imageView3"
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/riding_time" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="라이딩 시간"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="00:00:00"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="50dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/rest_time"
+                            tools:layout_editor_absoluteX="131dp"
+                            tools:layout_editor_absoluteY="407dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="휴식시간"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_rest"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="00:00:00"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="50dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/riding_des"
+                            tools:layout_editor_absoluteX="131dp"
+                            tools:layout_editor_absoluteY="407dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="이동거리"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_distance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="0.0km"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="40dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/max_speed"
+                            tools:layout_editor_absoluteX="131dp"
+                            tools:layout_editor_absoluteY="407dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="최대속도"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_max"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="00.0km/h"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="50dp"
+                        android:layout_marginTop="40dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/avg_speed"
+                            tools:layout_editor_absoluteX="131dp"
+                            tools:layout_editor_absoluteY="407dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="평균속도"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_avg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="00.0km/h"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="50dp"
+                        android:layout_marginTop="40dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="74dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/godo"
+                            tools:layout_editor_absoluteX="131dp"
+                            tools:layout_editor_absoluteY="407dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="획득고도"
+                            android:textColor="#000"
+                            android:textSize="17dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/Riding_godo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="0.0km"
+                            android:textColor="#000"
+                            android:textSize="15dp"
+                            tools:ignore="MissingConstraints" />
+                    </LinearLayout>
+                </GridLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="40dp"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="74dp"
+                        android:layout_height="54dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/addr" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="주소"
+                        android:textColor="#000"
+                        android:textSize="17dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/Riding_addr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="대한민국 대구광역시 북구 관문동"
+                        android:textColor="#000"
+                        android:textSize="15dp" />
+                </LinearLayout>
+
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/tag_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="25dp"
+                    android:fitsSystemWindows="true"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="20dp"
+                    app:alignContent="flex_start"
+                    app:alignItems="center"
+                    app:dividerDrawable="@drawable/divider_shape"
+                    app:flexDirection="row"
+                    app:flexWrap="wrap"
+                    app:justifyContent="flex_start"
+                    app:showDivider="beginning|middle"
+                    tools:ignore="MissingClass">
+
+
+                </com.google.android.flexbox.FlexboxLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/set_open"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="0dp"
+                        android:background="#ABABAB"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/open_icon" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/set_noopen"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:layout_gravity="center"
+                        android:background="#997982"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/no_open_icon" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+</FrameLayout>

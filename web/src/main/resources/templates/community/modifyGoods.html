@@ -1,0 +1,131 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+<link rel="stylesheet" href="/css/community/goodsDetail.css"/>
+
+<body>
+<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+   <div class="overlay"></div>
+   <div class="container">
+     <div class="row no-gutters slider-text align-items-end justify-content-center">
+       <div class="col-md-9 ftco-animate text-center">
+       		<h1 class="mb-2 bread">MARKET</h1>
+            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">COMMUNITY <i class="ion-ios-arrow-forward"></i></a></span> <span>MARKET <i class="ion-ios-arrow-forward"></i></span></p>
+       </div>
+     </div>
+   </div>
+</section>
+
+<div class="main">
+	<form id="modifyform" th:action="'/community/myMarket/'+${goods.g_num}" enctype="multipart/form-data" method="post">
+		<div class="goods_img">
+			<img id="img" alt="" src="/imgs/club.png" th:src="'/data/img/goods/'+${goods.g_image}">
+		</div>
+		<input type="file" name="img_file" id="input_img">
+		
+		<hr>
+		<div>
+			<h3 class="w-900" th:text="${goods.g_title}" id="g_title" contenteditable>글 제목</h3>
+			<p th:text="${goods.g_date}">등록시간</p>
+			<h4 th:text="${goods.g_price}+'원'" contenteditable id="price">가격</h4>
+			<div th:text="${goods.g_content}" contenteditable id="g_content">글 내용</div>
+			<p class="nowInfo">
+				<span th:text="'조회 : '+${goods.g_hit}">조회 : 20</span>
+				<span id="like" th:text="'관심 : '+${goods.g_like}">관심 : 7</span>
+			</p>
+			<input type="hidden" id="g_num" th:value="${goods.g_num}">
+			<input type="hidden" name="g_title">
+			<input type="hidden" name="price">
+			<input type="hidden" name="g_content">
+		</div>
+		<hr>
+		<div class="goodsBtn">
+			<button type="button" th:if="${goods.g_status}==1" onclick="backToList()">돌아가기</button>
+			<button type="button" th:if="${goods.g_status}==2" onclick="backToList()">돌아가기</button>
+			<button type="button" th:if="${goods.g_status}==0" onclick="modifyGoods()">수정하기</button>
+			<button type="button" th:if="${goods.g_status}==0" onclick="removeGoods()">삭제하기</button>
+			<button type="button" th:if="${goods.g_status}==2" onclick="buyGoods()" disabled="disabled">거래완료</button>
+		</div>
+	</form>
+</div>
+
+<footer th:replace="footer2"></footer>
+
+<script>
+var sel_file;
+
+$(document).ready(function(){
+	$("#input_img").on("change", handleImgFile);
+});
+
+function handleImgFile(e){
+	var files = e.target.files;
+	var filesArr = Array.prototype.slice.call(files);
+	
+	console.log(e);
+	
+	filesArr.forEach(function(f){
+		if(!f.type.match("image.*")){
+			alert("확장자는 이미지 확장자만 가능합니다.");
+			return;
+		}
+		
+		sel_file = f;
+		
+		
+		var reader = new FileReader();
+		reader.onload = function(e){
+			console.log(e);
+			$("#img").attr("src", e.target.result);
+		}
+		reader.readAsDataURL(f);
+	});
+}
+
+//목록페이지로 이동
+function backToList(){
+	location.href="/community/myMarket";
+}
+
+//상품삭제
+function removeGoods(){
+	location.href="/community/removeMyGoods/"+$("#g_num").val();
+}
+
+function modifyGoods(){
+	$("input[name=g_title]").val( $("#g_title").html() );
+	$("input[name=price]").val( $("#price").html() );
+	$("input[name=g_content]").val( $("#g_content").html() );
+	
+	console.log( $("input[name=g_title]").val() );
+	console.log( $("input[name=price]").val() );
+	console.log( $("input[name=g_content]").val() );
+	
+	$("#modifyform").submit();
+}
+
+</script>
+  
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+
+<script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/test/js/popper.min.js"></script>
+<script src="/test/js/bootstrap.min.js"></script>
+<script src="/test/js/jquery.easing.1.3.js"></script>
+<script src="/test/js/jquery.waypoints.min.js"></script>
+<script src="/test/js/jquery.stellar.min.js"></script>
+<script src="/test/js/owl.carousel.min.js"></script>
+<script src="/test/js/jquery.magnific-popup.min.js"></script>
+<script src="/test/js/aos.js"></script>
+<script src="/test/js/jquery.animateNumber.min.js"></script>
+<script src="/test/js/bootstrap-datepicker.js"></script>
+<script src="/test/js/jquery.timepicker.min.js"></script>
+<script src="/test/js/scrollax.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+<script src="/test/js/google-map.js"></script>
+<script src="/test/js/main.js"></script>
+</body>
+</html>

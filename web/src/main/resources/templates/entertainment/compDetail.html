@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="header"></head>
+
+
+<body>
+<table class = "table" id="competition" width="100%" cellspacing="0">
+		<thead>
+		<tr>
+		<th>진행중 경쟁전 코스</th>
+		<th>진행중 경쟁전 배지</th>
+		<th>진행중 경쟁전 이름</th>
+		<th>진행중 경쟁전 날짜</th>
+		<th>진행중 경쟁전 내용</th>
+		</tr>
+		</thead>
+		
+		<tbody>
+			<tr th:each="CompIng : ${list}">
+			<th th:text="${CompIng.comp_course}"></th>
+			<th><img src='/imagetest'></th>
+			<th th:text="${CompIng.comp_name}"></th>
+			<th th:text="${CompIng.comp_period}"></th>
+			<th th:text="${CompIng.comp_content}"></th>
+			</tr>
+		</tbody>
+		
+</table>
+</body>
+
+<footer th:replace="footer"></footer>
+</html>

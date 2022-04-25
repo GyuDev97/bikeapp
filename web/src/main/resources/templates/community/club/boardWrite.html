@@ -1,0 +1,134 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+	<link rel="stylesheet" href="/css/community/boardwrite.css">
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/test/images/community_img.jpg');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">Club</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">COMMUNITY <i class="ion-ios-arrow-forward"></i></a></span> <span>CLUB <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row">
+			
+				<div class="col-lg-4 sidebar ftco-animate">
+					<div class="sidebar-box clubinfo">
+		              <div class="clubimg" style="background-image: url('/imgs/main3.jpg');" th:style="'background-image: url(/data/img/club/'+${club.cb_image}+');'">
+		              </div>
+		              
+		              <h2 th:text="${club.cb_name}">클럽명</h2>
+		              <input type="hidden" id="hiddenCLUB" th:value="${club.cb_num}">
+		            </div>
+		            
+		            <div class="sidebar-box clubinfo">
+		            	<a href="/community/club" th:href="'/community/club/'+${club.cb_num}">게시판</a>
+		            	<a href="#" th:href="'/community/club/calender/'+${club.cb_num}">캘린더</a>
+		            </div>
+		            
+				</div>
+				
+				
+				<div class="col-lg-8 ftco-animate board">
+					<h1>클럽 게시판</h1>
+					<p>어떤 이야기를 들려주실 건가요?</p>
+					<form action="/createBoard/check" id="boardform" method="post" enctype="multipart/form-data">
+					
+						<table class="type09">
+		             		<thead>
+		             			<tr>
+		             			<th scope="cols" class="r">구분</th>
+		             			<th scope="cols" >내용</th>
+		             			</tr>
+		             		</thead>
+		             		<tbody>
+		             			<tr>
+		             			<td scope="row">제목</td>
+		             			<td class="c" ><input type="text" name="b_title" class="full"></td>
+		             			</tr>
+		             			<tr>
+		             			<td scope="row" class="r">분류</td>
+		             				<td class="c" >
+			             				<select class="inputModal" name="b_subject" id="">
+						                    <option value="0">자유</option>
+						                    <option value="1">라이딩</option>
+						                    <option value="2">질문</option>
+				                    	</select>
+			                    	</td>
+		             			</tr>
+		             			<tr>
+		             			<td scope="row" class="r">내용</td>
+		             			<td class="c" ><textarea class="full" name="b_content"></textarea> </td>
+		             			</tr>
+		             			<tr>
+		             			<td scope="row" class="r">첨부파일</td>
+		             			<td class="c" ><input type="file" name="uploadfile"></td>
+		             			</tr>
+		             			
+		             		</tbody>
+		             	</table>
+		             	<input type="hidden" name="b_rider" id="b_rider">
+		             	<input type="hidden" name="b_club" id="b_club" th:value="${club.cb_num}">
+	             	</form>
+	             	
+	             	<div class="search">
+		             	<input type="button" class="btn" value="작성">
+		             	<input type="button" class="btn" value="취소">
+	             	</div>
+				</div>
+			</div>
+		</div>
+	</section>
+		
+		
+    <footer th:replace="footer2"></footer>
+  
+  <!-- loader -->
+  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+
+
+  <script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+  <script src="/test/js/popper.min.js"></script>
+  <script src="/test/js/bootstrap.min.js"></script>
+  <script src="/test/js/jquery.easing.1.3.js"></script>
+  <script src="/test/js/jquery.waypoints.min.js"></script>
+  <script src="/test/js/jquery.stellar.min.js"></script>
+  <script src="/test/js/owl.carousel.min.js"></script>
+  <script src="/test/js/jquery.magnific-popup.min.js"></script>
+  <script src="/test/js/aos.js"></script>
+  <script src="/test/js/jquery.animateNumber.min.js"></script>
+  <script src="/test/js/bootstrap-datepicker.js"></script>
+  <script src="/test/js/jquery.timepicker.min.js"></script>
+  <script src="/test/js/scrollax.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+  <script src="/test/js/google-map.js"></script>
+  <script src="/test/js/main.js"></script>
+  
+  <script>
+	$(document).ready(function() {
+		//로그인 했을때만 로그인한 사용자아이디 가져옴
+		$("#b_rider").val($("#hiddenID").val());
+	});
+	
+	$(".btn").click(function(){
+		if(this.value=="작성"){
+			$("#boardform").submit();
+		}else {
+			location.href = "/community/club/"+$("#b_club").val();
+		}
+	})
+</script>
+
+
+</script>
+    
+  </body>
+</html>

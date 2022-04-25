@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script	src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="/js/common.js"></script>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>
+	body, html { height : 100%;
+	}
+</style>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=dbb047c9e9b46e285f76df6669c00d7f&libraries=services"></script>
+</head>
+
+<body>
+	<div id="map" style="width:100%; height:100%;"></div>
+	
+	<script>
+	$(document).ready(function() {
+		
+		var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+	    mapOption = { 
+	        center: new kakao.maps.LatLng(35.89617906303501, 128.62171907592318), // 지도의 중심좌표
+	        level: 5 // 지도의 확대 레벨
+	    };
+		var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다 
+		
+		var polyline;
+		
+		function getParam(sname) {
+		    var params = location.search.substr(location.search.indexOf("?") + 1);
+		    var sval = "";
+		    params = params.split("&");
+		    for (var i = 0; i < params.length; i++) {
+		        temp = params[i].split("=");
+		        if ([temp[0]] == sname) { sval = temp[1]; }
+		    }
+		    return sval;
+		}
+		
+		$.ajax({
+			url : "/getGpxByRR_Num",
+			type : "GET",
+			data : {rr_num : getParam("rr_num")},
+			dataType : "json",
+			cache : false,
+			success : function(data) {
+				if(polyline){
+					polyline.setMap(null);
+				}
+				
+				var point = data.infos;
+				var linePath = [];
+				
+				// 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
+				var bounds = new kakao.maps.LatLngBounds();
+				
+				for(var i=0;i<point.length;i++){
+					var location = new kakao.maps.LatLng(point[i].lat, point[i].lon);
+					linePath.push(location);
+					bounds.extend(location);
+				}
+				// 지도에 표시할 선을 생성합니다
+				polyline = new kakao.maps.Polyline({
+				    path: linePath, // 선을 구성하는 좌표배열 입니다
+				    strokeWeight: 7, // 선의 두께 입니다
+				    strokeColor: "#FF6600", // 선의 색깔입니다
+				    strokeOpacity: 0.5, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+				    strokeStyle: 'solid' // 선의 스타일입니다
+				});
+				// 지도에 선을 표시합니다 
+				polyline.setMap(map);
+				// 맵을 이동시킵니다.
+				map.setBounds(bounds);
+			}
+		});
+	});
+</script>
+</body>
+</html>

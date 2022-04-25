@@ -1,0 +1,91 @@
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header2"></head>
+
+	<link rel="stylesheet" href="/css/etc/userInfo.css">
+	
+<body>
+	
+	<section class="hero-wrap hero-wrap-2" style="background-image: url('/imgs/visual2.png');" data-stellar-background-ratio="0.5">
+	   <div class="overlay"></div>
+	   <div class="container">
+	     <div class="row no-gutters slider-text align-items-end justify-content-center">
+	       <div class="col-md-9 ftco-animate text-center">
+	       		<h1 class="mb-2 bread">Info</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.html">User <i class="ion-ios-arrow-forward"></i></a></span> <span>Info <i class="ion-ios-arrow-forward"></i></span></p>
+	       </div>
+	     </div>
+	   </div>
+	</section>
+	
+	<div class="main">
+		<div>
+			<table class="type09">
+			
+			    <thead>
+				    <tr>
+				        <th scope="cols" colspan="2">회원 정보 보기</th>
+				    </tr>
+			    </thead>
+			    
+			    <tbody>
+				    <tr>
+				        <th scope="row">닉네임</th>
+				        <td th:text="${userInfo.r_nickname}">대구살아염</td>
+				    </tr>
+				    <tr>
+				        <th scope="row">대표배지</th>
+				        <!-- <td><img alt="" src="/imgs/f_logo.png" th:src="'/data/img/badge'+${userInfo.badge}"></td> -->
+				        <td><img alt="" src="/imgs/f_logo.png"></td>
+				    </tr>
+				    <tr>
+				        <th scope="row">가입일</th>
+				        <td th:text="${userInfo.r_regdate}">2019-12-25 17:25</td>
+				    </tr>
+				    <tr>
+				        <th scope="row">주행거리</th>
+				        <td th:text="${userInfo.total}+'M'">342157m</td>
+				    </tr>
+				    <tr>
+				        <th scope="row">라이딩포인트</th>
+				        <td th:text="${userInfo.r_point}">34212</td>
+				    </tr>
+			    </tbody>
+			</table>
+		</div>
+		<a href="#" th:href="${beforePage}">돌아가기</a>
+	</div>
+	
+	<footer th:replace="footer2"></footer>
+  
+	  <!-- loader -->
+	  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+	
+	
+	  <script src="/test/js/jquery-migrate-3.0.1.min.js"></script>
+	  <script src="/test/js/popper.min.js"></script>
+	  <script src="/test/js/bootstrap.min.js"></script>
+	  <script src="/test/js/jquery.easing.1.3.js"></script>
+	  <script src="/test/js/jquery.waypoints.min.js"></script>
+	  <script src="/test/js/jquery.stellar.min.js"></script>
+	  <script src="/test/js/owl.carousel.min.js"></script>
+	  <script src="/test/js/jquery.magnific-popup.min.js"></script>
+	  <script src="/test/js/aos.js"></script>
+	  <script src="/test/js/jquery.animateNumber.min.js"></script>
+	  <script src="/test/js/bootstrap-datepicker.js"></script>
+	  <script src="/test/js/jquery.timepicker.min.js"></script>
+	  <script src="/test/js/scrollax.min.js"></script>
+	  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+	  <script src="/test/js/google-map.js"></script>
+	  <script src="/test/js/main.js"></script>
+    	<script>
+    		$(".commtag").click(function(){
+    			if($("#hiddenCLUB").val()==0){
+    				location.href = this.id;
+    			}else {
+    				location.href = this.id+"/"+$("#hiddenCLUB").val();
+    			}
+    		});
+    	</script>
+  </body>
+</html>

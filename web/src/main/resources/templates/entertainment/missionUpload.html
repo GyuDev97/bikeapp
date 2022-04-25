@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header"></head>
+
+<body>
+
+<form action="/entertainment/missionUpload" method="post" enctype="multipart/form-data">
+
+
+         미션 배지 : <input type="text" id="m_badge" name="m_badge"><br> 
+         미션 이름 : <input type="text" id="m_name" name="m_name"> <br><br> 
+         미션 내용  : <textarea id="m_content" name="m_content"></textarea><br> 
+         미션 타입 : <input type="text" id="m_type" name="m_type"> 
+    
+      <input type="submit" value="등록">
+    </form>
+    
+<!--         <form method="POST" enctype="multipart/form-data" action="/files"> -->
+<!--         <input type="file" name="File" id="File"><br><input type="submit" value="Upload" /> -->
+<!--         </form> -->
+<!--         <ul> -->
+<!--         	<li th:each = "file : ${files}"> -->
+<!--         	<a th:href="${file}" th:text="${file}">file</a> -->
+<!--         	</li> -->
+<!--         </ul> -->
+</body>
+
+<script>
+
+</script>
+
+<footer th:replace="footer"></footer>
+</html>

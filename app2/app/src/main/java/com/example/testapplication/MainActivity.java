@@ -102,18 +102,12 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.nav_course_scrap:
                     navController.navigate(R.id.action_nav_home_to_nav_course_scrap);
                     break;
-                case R.id.nav_competition_view:
-                    navController.navigate(R.id.action_nav_home_to_nav_competition_view);
-                    break;
-                case R.id.nav_mission_view:
-                    navController.navigate(R.id.action_nav_home_to_nav_mission_view);
-                    break;
                 case R.id.friend_invite:
                     Intent friend = new Intent();
                     friend.setAction(Intent.ACTION_SEND);
                     friend.setType("text/plain");
                     friend.putExtra(Intent.EXTRA_SUBJECT, model.r_Nickname.getValue() + "님이 귀하를 초대합니다. 앱 설치하기");
-                    friend.putExtra(Intent.EXTRA_TEXT, "tmarket://details?id=com.capston.mtbcraft");
+                    friend.putExtra(Intent.EXTRA_TEXT, "tmarket://details?id=com.bikeapp.mtbroadmap");
 
                     Intent chooser = Intent.createChooser(friend, "초대하기");
                     startActivity(chooser);

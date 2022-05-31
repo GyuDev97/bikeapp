@@ -25,14 +25,6 @@
             android:icon="@drawable/nav_scrap"
             android:title="스크랩 보관함" />
         <item
-            android:id="@+id/nav_competition_view"
-            android:icon="@drawable/nav_chanl"
-            android:title="경쟁전" />
-        <item
-            android:id="@+id/nav_mission_view"
-            android:icon="@drawable/nav_mission"
-            android:title="미션" />
-        <item
             android:id="@+id/friend_invite"
             android:icon="@drawable/nav_chodae"
             android:title="친구초대하기" />

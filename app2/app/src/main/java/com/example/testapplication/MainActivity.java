@@ -90,19 +90,19 @@ public class MainActivity extends AppCompatActivity {
 
             int id = menuItem.getItemId();
             switch (id) {
-                case R.id.nav_records:
+                case R.id.nav_records: //내 기록
                     navController.navigate(R.id.action_nav_home_to_nav_records);
                     break;
-                case R.id.nav_course_view:
+                case R.id.nav_course_view: //코스 보기
                     navController.navigate(R.id.action_nav_home_to_nav_course_view);
                     break;
-                case R.id.nav_course_search:
+                case R.id.nav_course_search: //코스 검색
                     navController.navigate(R.id.action_nav_home_to_nav_course_search);
                     break;
-                case R.id.nav_course_scrap:
+                case R.id.nav_course_scrap: // 스크랩 보관함
                     navController.navigate(R.id.action_nav_home_to_nav_course_scrap);
                     break;
-                case R.id.friend_invite:
+               /* case R.id.friend_invite: //초대
                     Intent friend = new Intent();
                     friend.setAction(Intent.ACTION_SEND);
                     friend.setType("text/plain");
@@ -111,18 +111,20 @@ public class MainActivity extends AppCompatActivity {
 
                     Intent chooser = Intent.createChooser(friend, "초대하기");
                     startActivity(chooser);
-                    break;
-                case R.id.nav_danger_view:
+                    break; */
+                case R.id.nav_danger_view: //위험지역
                     navController.navigate(R.id.action_nav_home_to_nav_danger_view);
                     break;
-                case R.id.nav_sett:
+                    /*
+                case R.id.nav_sett: //설정
                     navController.navigate(R.id.action_nav_home_to_setting);
-                    break;
+                    break; */
             }
             return true;
         });
 
         try {
+            //지도등록 값
             PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");

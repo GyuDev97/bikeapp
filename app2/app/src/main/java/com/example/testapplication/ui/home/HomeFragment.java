@@ -66,7 +66,7 @@ public class HomeFragment extends BaseFragment {
         mainKm = (TextView) view.findViewById(R.id.main_km);
         rider = (TextView) view.findViewById(R.id.idinfo);
         main_dis = (TextView) view.findViewById(R.id.main_dis);
-        rider.setText(model.r_Nickname.getValue()+"님 저희와 함께");
+        //rider.setText(model.r_Nickname.getValue()+"님 저희와 함께"); 2022/06/02 사용안함
         ridingstart.setOnClickListener(v->{
            Intent intent = new Intent(getActivity(), StartActivity.class);
            startActivity(intent);
@@ -97,8 +97,7 @@ public class HomeFragment extends BaseFragment {
                             total_dis += test.getRr_distance();
                             //오늘 주행한거
                             Log.d("내용확인",oTime+" "+ date.substring(0,10));
-                            if(oTime.equals(date.substring(0,10))) {
-                                Log.d("if문임","if문임");
+                            if(oTime.equals(date.substring(0,10))) { //날짜가 같으면 시간을 구함
                                 int hour;
                                 int min;
                                 int sec = riding_time;

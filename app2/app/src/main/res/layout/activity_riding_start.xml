@@ -519,6 +519,7 @@
                 android:onClick="myOnClick"
                 android:layout_marginLeft="50dp"/>
         </LinearLayout>
+        <!--
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -541,7 +542,7 @@
                 android:layout_marginLeft="50dp"
                 android:spinnerMode="dialog"
                 android:layout_weight="1" />
-        </LinearLayout>
+        </LinearLayout> -->
 
     </GridLayout>
 </LinearLayout>

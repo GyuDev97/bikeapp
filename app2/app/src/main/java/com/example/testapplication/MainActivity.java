@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.testapplication.net.ServerAddress;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.internal.NavigationMenuItemView;
 import com.google.android.material.snackbar.Snackbar;
@@ -81,7 +82,10 @@ public class MainActivity extends AppCompatActivity {
         model.r_ClubName.setValue(auto.getString("r_clubname", ""));
         lay.setText(model.r_Nickname.getValue() + "님 환영합니다");
 
-        Picasso.get().load("http://53.92.32.2:8080/app/getGPX/rider/" + model.r_Image.getValue())
+        ServerAddress serverAddress = new ServerAddress();
+        String serverIP = serverAddress.getServerIP();
+
+        Picasso.get().load(serverIP+"/app/getGPX/rider/"+ model.r_Image.getValue())
                 .into(userImage);
 
         navigationView.setNavigationItemSelectedListener(menuItem -> {

@@ -4,6 +4,8 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.testapplication.net.ServerAddress;
+
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -25,9 +27,10 @@ public class SendGPXFile extends AppCompatActivity implements Runnable {
 
     @Override
     public void run() {
-
+        ServerAddress serverAddress = new ServerAddress();
+        String serverIP = serverAddress.getServerIP();
         try {
-            url_address = "http://13.209.229.237:8080/app/fileUpload/gpx/" + fileName;
+            url_address = serverIP+"/app/fileUpload/gpx/" + fileName;
             Log.e("파일네임", fileName);
             FileInputStream fis = new FileInputStream(filepath + fileName);
             URL url = new URL(url_address);

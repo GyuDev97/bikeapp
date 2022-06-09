@@ -47,6 +47,7 @@ import com.example.testapplication.gpx.Track;
 import com.example.testapplication.gpx.TrackPoint;
 import com.example.testapplication.gpx.TrackSegment;
 import com.example.testapplication.net.Server;
+import com.example.testapplication.net.ServerAddress;
 import com.example.testapplication.net.ServerApi;
 import com.google.android.material.tabs.TabLayout;
 import net.daum.mf.map.api.CalloutBalloonAdapter;
@@ -132,7 +133,7 @@ public class StartActivity extends AppCompatActivity
     private ServerApi serverApi = Server.getInstance().getApi();
     private Call<List<DangerousArea>> DangerGet;
     private List<DangerousArea> getDanger;
-
+    private String serverIP;
     public StartActivity() {
     }
 
@@ -164,6 +165,9 @@ public class StartActivity extends AppCompatActivity
         View view = binding.getRoot();
         setContentView(view);
 
+        ServerAddress serverAddress = new ServerAddress();
+        serverIP = serverAddress.getServerIP();
+        /*
         SharedPreferences phone = getSharedPreferences("auto", MODE_PRIVATE);
         number = phone.getString("sosphone", "");
 
@@ -269,7 +273,7 @@ public class StartActivity extends AppCompatActivity
                 play = false;
             }
         });
-
+*/
         timeThread = new Thread(new timeThread());
         timeThread.start();
 
@@ -304,7 +308,7 @@ public class StartActivity extends AppCompatActivity
                         polyline.setTag(1000);
                         polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline 컬러 지정.
                         //서버에 올려둔 이미지 URL
-                        URL url = new URL("http://13.209.229.237:8080/app/getGPX/gpx/"+gpx_name);
+                        URL url = new URL(serverIP+"/app/getGPX/gpx/"+gpx_name);
                         //Web에서 이미지 가져온 후 ImageView에 지정할 Bitmap 만들기
                     /* URLConnection 생성자가 protected로 선언되어 있으므로
                      개발자가 직접 HttpURLConnection 객체 생성 불가 */

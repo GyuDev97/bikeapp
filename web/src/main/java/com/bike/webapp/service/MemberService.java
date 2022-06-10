@@ -1,6 +1,7 @@
 package com.bike.webapp.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +11,9 @@ import com.bike.webapp.mapper.MemberMapper;
 
 @Service
 @Transactional
+
 public class MemberService {
 
-	@Autowired
 	private MemberMapper memberMapper;
 	
 	//회원가입

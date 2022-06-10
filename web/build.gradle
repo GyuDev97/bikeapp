@@ -22,7 +22,10 @@ dependencies {
 	
 	//스프링 부트 jdbc 로그
 	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
-
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc:2.7.0'
+	implementation 'org.mybatis:mybatis:3.5.10'
+	implementation 'org.mybatis:mybatis-spring:2.0.7'
+	
 }
 
 tasks.named('test') {

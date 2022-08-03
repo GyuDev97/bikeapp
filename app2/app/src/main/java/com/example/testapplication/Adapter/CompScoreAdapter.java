@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.testapplication.MainViewModel;
 import com.example.testapplication.dto.CompScore;
 import com.example.testapplication.R;
+import com.example.testapplication.net.NetworkAddr;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class CompScoreAdapter extends RecyclerView.Adapter<CompScoreAdapter.Comp
     String Save_Path;
     public NavController controller;
     public MainViewModel model;
-
+    protected NetworkAddr networkAddr;
     public CompScoreAdapter(Context mContext, ArrayList<CompScore> itemList, String save_path, NavController controller, MainViewModel model) {
         this.mContext = mContext;
         this.itemList = itemList;
@@ -49,7 +50,7 @@ public class CompScoreAdapter extends RecyclerView.Adapter<CompScoreAdapter.Comp
         int score = itemList.get(position).getRr_avgspeed();
         String mem_image = itemList.get(position).getR_image();
 
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + mem_image)
+        Picasso.get().load(networkAddr.getIp_addr()+"/app/getGPX/rider/" + mem_image)
                 .into(holder.imageView);
 
         //holder.imageView.setImageBitmap(myBitmap);

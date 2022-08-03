@@ -43,6 +43,7 @@ public class LoginAccess extends AppCompatActivity {
     public String info(){
         return userid;
     }
+    protected NetworkAddr networkAddr;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

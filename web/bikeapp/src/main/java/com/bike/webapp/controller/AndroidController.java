@@ -80,7 +80,7 @@ public class AndroidController {
 	//안드로이드 로그인 후 유저 정보 가져오기
 	@RequestMapping(value = "getLoginInfo/{LoginId}")
 	public @ResponseBody LoginInfo getLoginInfo(@PathVariable String LoginId) throws Exception{
-		return androidService.getLoginInfo(LoginId);
+		return null;
 	}
 
 	// 주행기록 등록(안드로이드)

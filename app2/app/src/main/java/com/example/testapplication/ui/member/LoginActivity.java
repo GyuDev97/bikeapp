@@ -59,21 +59,9 @@ public class LoginActivity extends AppCompatActivity {
 
 
             loginbt.setOnClickListener(v -> {
-                SharedPreferences auto2 = getSharedPreferences("auto", Activity.MODE_PRIVATE);
-                SharedPreferences.Editor autoLogin2 = auto2.edit();
-                autoLogin2.putString("r_clubname", "없음");
-                autoLogin2.putInt("r_club", 123);
-                autoLogin2.putString("r_image","없음");
-                autoLogin2.putString("r_nickname", "gyu");
-                //Intent intent=new Intent(getApplicationContext(), LoginAccess.class);
-               // intent.putExtra("UserId",userid.getText().toString());
-               // intent.putExtra("UserPw", userpw.getText().toString());
-                //startActivity(intent);
-
-                autoLogin2.commit();
-
-                Toast toast = Toast.makeText(getApplicationContext(), "Gyu님 로그인했습니다.", Toast.LENGTH_SHORT); toast.show();
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                Intent intent=new Intent(getApplicationContext(), LoginAccess.class);
+                intent.putExtra("UserId",userid.getText().toString());
+                intent.putExtra("UserPw", userpw.getText().toString());
                 startActivity(intent);
                 finish();
             });

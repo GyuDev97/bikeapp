@@ -11,10 +11,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Server{
     private static Server instance;
     private ServerApi api;
+    protected NetworkAddr networkAddr;
 
     private Server(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://39.127.7.53:8080/")
+                .baseUrl("http://192.168.162.13:8080/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         api = retrofit.create(ServerApi.class);

@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.testapplication.net.NetworkAddr;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.internal.NavigationMenuItemView;
 import com.google.android.material.snackbar.Snackbar;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private View view;
     private ImageView userImage;
     private SharedPreferences auto;
+    protected NetworkAddr networkAddr;
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         model.r_ClubName.setValue(auto.getString("r_clubname", ""));
         lay.setText(model.r_Nickname.getValue() + "님 환영합니다");
 
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + model.r_Image.getValue())
+        Picasso.get().load("http://192.168.162.13:8080/app/getGPX/rider/" + model.r_Image.getValue())
                 .into(userImage);
 
         navigationView.setNavigationItemSelectedListener(menuItem -> {

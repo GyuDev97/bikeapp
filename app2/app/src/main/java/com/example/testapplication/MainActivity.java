@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.testapplication.net.ServerAddress;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.internal.NavigationMenuItemView;
 import com.google.android.material.snackbar.Snackbar;
@@ -82,10 +81,7 @@ public class MainActivity extends AppCompatActivity {
         model.r_ClubName.setValue(auto.getString("r_clubname", ""));
         lay.setText(model.r_Nickname.getValue() + "님 환영합니다");
 
-        ServerAddress serverAddress = new ServerAddress();
-        String serverIP = serverAddress.getServerIP();
-
-        Picasso.get().load(serverIP+"/app/getGPX/rider/"+ model.r_Image.getValue())
+        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + model.r_Image.getValue())
                 .into(userImage);
 
         navigationView.setNavigationItemSelectedListener(menuItem -> {
@@ -94,41 +90,45 @@ public class MainActivity extends AppCompatActivity {
 
             int id = menuItem.getItemId();
             switch (id) {
-                case R.id.nav_records: //내 기록
+                case R.id.nav_records:
                     navController.navigate(R.id.action_nav_home_to_nav_records);
                     break;
-                case R.id.nav_course_view: //코스 보기
+                case R.id.nav_course_view:
                     navController.navigate(R.id.action_nav_home_to_nav_course_view);
                     break;
-                case R.id.nav_course_search: //코스 검색
+                case R.id.nav_course_search:
                     navController.navigate(R.id.action_nav_home_to_nav_course_search);
                     break;
-                case R.id.nav_course_scrap: // 스크랩 보관함
+                case R.id.nav_course_scrap:
                     navController.navigate(R.id.action_nav_home_to_nav_course_scrap);
                     break;
-               /* case R.id.friend_invite: //초대
+                case R.id.nav_competition_view:
+                    navController.navigate(R.id.action_nav_home_to_nav_competition_view);
+                    break;
+                case R.id.nav_mission_view:
+                    navController.navigate(R.id.action_nav_home_to_nav_mission_view);
+                    break;
+                case R.id.friend_invite:
                     Intent friend = new Intent();
                     friend.setAction(Intent.ACTION_SEND);
                     friend.setType("text/plain");
                     friend.putExtra(Intent.EXTRA_SUBJECT, model.r_Nickname.getValue() + "님이 귀하를 초대합니다. 앱 설치하기");
-                    friend.putExtra(Intent.EXTRA_TEXT, "tmarket://details?id=com.bikeapp.mtbroadmap");
+                    friend.putExtra(Intent.EXTRA_TEXT, "tmarket://details?id=com.capston.mtbcraft");
 
                     Intent chooser = Intent.createChooser(friend, "초대하기");
                     startActivity(chooser);
-                    break; */
-                case R.id.nav_danger_view: //위험지역
+                    break;
+                case R.id.nav_danger_view:
                     navController.navigate(R.id.action_nav_home_to_nav_danger_view);
                     break;
-                    /*
-                case R.id.nav_sett: //설정
+                case R.id.nav_sett:
                     navController.navigate(R.id.action_nav_home_to_setting);
-                    break; */
+                    break;
             }
             return true;
         });
 
         try {
-            //지도등록 값
             PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");

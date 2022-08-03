@@ -95,6 +95,43 @@ public interface ServerApi {
     @GET("app/record/gettag/{rr_num}")
     Call<List<Tag_Status>> getTag(@Path("rr_num") String rr_num);
 
+
+    //완료한 경쟁전 목록
+    @GET("app/competition/{id}")
+    Call<List<String>> getJoinedList(@Path("id") String id);
+
+    //경쟁전 목록
+    @GET("app/competition")
+    Call<List<Competition>> getCompetition();
+
+    //경쟁전 배지 정보
+    @GET("app/getCompBadge/{comp_badge}")
+    Call<Badge> getCompBadge(@Path("comp_badge") int comp_badge);
+
+    //경쟁전 클럽 순위
+    @GET("app/getCompClub/{comp_num}")
+    Call<List<CompClub>> getCompClub(@Path("comp_num") int comp_num);
+
+    //경쟁전 개인 순위
+    @GET("app/getCompScore/{comp_num}")
+    Call<List<CompScore>> getCompScore(@Path("comp_num") int comp_num);
+
+    //미션 정보
+    @GET("app/getAllMission/{id}")
+    Call<List<Mission>> getAllMission(@Path("id") String id);
+
+    //완료한 미션 정보
+    @GET("app/getComMission/{id}")
+    Call<List<String>> getCompMission(@Path("id") String id);
+
+    //미션 순위
+    @GET("app/getMisRanking")
+    Call<List<MissionRanking>> getMisRanking();
+
+    //미션 완료 일자
+    @GET("app/getWhenCom/{id}/{m_num}")
+    Call<Date> getWhenCom(@Path("id") String id, @Path("m_num") String m_num);
+
     //위험지역 정보
     @GET("app/danger/{id}")
     Call<List<DangerousArea>> getDanger(@Path("id") String id);

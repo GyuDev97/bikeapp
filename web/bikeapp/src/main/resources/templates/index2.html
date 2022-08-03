@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="header2"></head>
+<section class="home-slider owl-carousel js-fullheight">
+	<div class="slider-item js-fullheight"
+		style="background-image: url(/imgs/visual.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div
+				class="row slider-text js-fullheight justify-content-center align-items-center"
+				data-scrollax-parent="true">
+				<div class="col-md-12 col-sm-12 text-center ftco-animate">
+					<h1 class="mb-4 mt-5">show</h1>
+					<h1 class="mb-4 mt-5">your</h1>
+					<h1 class="mb-4 mt-5">riding</h1>
+					<p>
+						<a href="#" class="btn btn-primary p-3 px-xl-4 py-xl-3">코스 보기</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="slider-item js-fullheight"
+		style="background-image: url(/imgs/main2.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div
+				class="row slider-text js-fullheight justify-content-center align-items-center"
+				data-scrollax-parent="true">
+				<div class="col-md-12 col-sm-12 text-center ftco-animate">
+					<h1 class="mb-4 mt-5">Enjoy Competition</h1>
+					<p>
+						<a href="#" class="btn btn-primary p-3 px-xl-4 py-xl-3">경쟁전 보기</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="slider-item js-fullheight"
+		style="background-image: url(/imgs/main3.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div
+				class="row slider-text justify-content-center align-items-center"
+				data-scrollax-parent="true">
+
+				<div class="col-md-12 col-sm-12 text-center ftco-animate">
+					<h1 class="mb-4 mt-5">what's your story?</h1>
+					<p>
+						<a href="#" class="btn btn-primary p-3 px-xl-4 py-xl-3">커뮤니티
+							보기</a>
+					</p>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="slider-item js-fullheight"
+		style="background-image: url(/imgs/main4.jpg);">
+		<div class="overlay"></div>
+		<div class="container">
+			<div
+				class="row slider-text justify-content-center align-items-center"
+				data-scrollax-parent="true">
+
+				<div class="col-md-12 col-sm-12 text-center ftco-animate">
+					<h1 class="mb-4 mt-5">Check</h1>
+					<h1 class="mb-4 mt-5">your bike</h1>
+					<p>
+						<a href="#" class="btn btn-primary p-3 px-xl-4 py-xl-3">정비 보기</a>
+					</p>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="ftco-section ftco-counter img" id="section-counter"
+	data-stellar-background-ratio="0.5">
+	<!-- <section class="ftco-section ftco-counter img ftco-no-pt" id="section-counter"> -->
+	<div class="container">
+		<div class="row d-md-flex align-items-center justify-content-center">
+			<div class="col-lg-10">
+				<div class="row d-md-flex align-items-center">
+					<div
+						class="col-md d-flex justify-content-center counter-wrap ftco-animate">
+						<div class="block-18">
+							<div class="text">
+								<strong class="number" data-number="112">0</strong> <span>Course</span>
+							</div>
+						</div>
+					</div>
+					<div
+						class="col-md d-flex justify-content-center counter-wrap ftco-animate">
+						<div class="block-18">
+							<div class="text">
+								<strong class="number" data-number="278553">0</strong> <span>Total
+									KM</span>
+							</div>
+						</div>
+					</div>
+					<div
+						class="col-md d-flex justify-content-center counter-wrap ftco-animate">
+						<div class="block-18">
+							<div class="text">
+								<strong class="number" data-number="87">0</strong> <span>Club</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+	<section id="content1">
+		안녕하세요!<br />산악 라이딩의 재미를 불어넣는 <br />
+		<br /> <span id="f50">MTB CRAFT</span>입니다.
+	</section>
+	<!--  content 2 -->
+
+	<section id="content2" class="left_txt">
+		산악라이딩 코스를 <br />잘 모르시나요?<br /> <br /> <b>MTB CRAFT에서 즐겨보세요!</b>
+		<div class="left_bt">
+			<a href="/riding/course"><img src="/imgs/riding_bt.png"
+				alt="riding" title="riding" /></a>
+		</div>
+		<div id="right_img">
+			<img src="/imgs/map.png" alt="riding" title="riding" />
+		</div>
+	</section>
+	<!--  content 3 -->
+	<section id="content3" class="right_txt">
+		혼자 라이딩하니까<br />심심한가요?<br /> <br /> <b>다른 사람과 같이 라이딩을 즐겨보세요!</b>
+		<div class="right_bt">
+			<a href="/comunity/club"><img src="/imgs/club_bt.png"
+				alt="riding" title="riding" /></a>
+		</div>
+		<div id="left_img">
+			<img src="/imgs/club.png" alt="club" title="club" />
+		</div>
+	</section>
+	<!--  content 4 -->
+	<section id="content4" class="left_txt">
+		라이딩하는데<br />문제가 생겼나요?<br /> <br /> <b>고품질과 섬세한 정비로 쾌적하게 라이딩하세요!</b>
+		<div class="left_bt">
+			<a href="/riding/course"><img src="/imgs/riding_bt.png"
+				alt="riding" title="riding" /></a>
+		</div>
+		<div id="repair_img">
+			<img src="/imgs/repair.png" alt="repair" title="repair" />
+		</div>
+	</section>
+</div>
+
+
+
+	<input type="hidden" id="hidden_userId">
+	<!-- 내 서비스 버튼들 -->
+	<section id="select_section">
+		<p>나의 서비스</p>
+		<div id="m_riding_bt">
+			<a href="#rec_riding"><img src="/imgs/m_riding_bt.png"
+				alt="m_riding_bt" title="m_riding_bt" /></a>
+		</div>
+		<div id="m_comu_bt">
+			<a href="#m_section2"><img src="/imgs/m_comu_bt.png"
+				alt="m_comu_bt" title="m_comu_bt" /></a>
+		</div>
+		<div id="m_repair_bt">
+			<a href="#m_section3"><img src="/imgs/m_repair_bt.png"
+				alt="m_repair_bt" title="m_repair_bt" /></a>
+		</div>
+
+	</section>
+	<!-- 최근 라이딩 기록 -->
+	<section id="m_section1">
+		<div class="le_name">최근 라이딩 기록</div>
+		<div id="myRR"></div>
+	
+	</section>
+
+	<!-- 내 클럽 최신글 -->
+	<section id="m_section2">
+		<div id="m_club">
+			<div class="le_name">내 클럽 최신글</div>
+			<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img">
+						<img src="/imgs/club_sample.png" alt="club_sample"
+							title="club_sample" height="100" width="100" />
+					</div>
+					<div class="my_club_name">MTBB Club</div>
+				</div>
+				<div class="my_club_writer">나랑께님</div>
+				<div class="my_club_title">밤에 흐르는~</div>
+				<div class="my_club_con">영진 냥냥이</div>
+				<div class="my_new_img">
+					<img src="/imgs/teest_img.jpg" alt="" title="" />
+				</div>
+			</div>
+
+			<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img">
+						<img src="/imgs/club_sample.png" alt="club_sample"
+							title="club_sample" height="100" width="100" />
+					</div>
+					<div class="my_club_name">MTBB Club</div>
+				</div>
+				<div class="my_club_writer">나랑께님</div>
+				<div class="my_club_title">밤에 흐르는~</div>
+				<div class="my_club_con">영진 냥냥이</div>
+				<div class="my_new_img">
+					<img src="/imgs/teest_img.jpg" alt="" title="" />
+				</div>
+			</div>
+
+			<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img">
+						<img src="/imgs/club_sample.png" alt="club_sample"
+							title="club_sample" height="100" width="100" />
+					</div>
+					<div class="my_club_name">MTBB Club</div>
+				</div>
+				<div class="my_club_writer">나랑께님</div>
+				<div class="my_club_title">밤에 흐르는~</div>
+				<div class="my_club_con">영진 냥냥이</div>
+				<div class="my_new_img">
+					<img src="/imgs/teest_img.jpg" alt="" title="" />
+				</div>
+			</div>
+			<div class="community_list">
+				<div id="commu_more">
+					<a href="">+더보기</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- 정비소 추천  -->
+	<section id="m_section3">
+		<div class="le_name">정비소 찾기</div>
+		<div id="repair_sec">
+			<div id="select_area">
+				지역선택 <select>
+					<option value="선택">선택</option>
+					<option value=""></option>
+				</select>
+			</div>
+
+		</div>
+		<div id="repair_map">
+			<h1>MAP INPUT</h1>
+		</div>
+
+	</section>
+
+
+
+
+<!-- loader -->
+<div id="ftco-loader" class="show fullscreen">
+	<svg class="circular" width="48px" height="48px">
+		<circle class="path-bg" cx="24" cy="24" r="22" fill="none"
+			stroke-width="4" stroke="#eeeeee" />
+		<circle class="path" cx="24" cy="24" r="22" fill="none"
+			stroke-width="4" stroke-miterlimit="10" stroke="#F96D00" /></svg>
+</div>
+
+<script>
+	$(document)
+			.ready(
+					function() {
+						var loginUser = $("#hidden_userId").val();
+						if(loginUser==null){
+							return;
+						}
+						$.ajax({
+									url : "/ridingrecordTop3", // 제이슨오브젝트값을 가져옴
+									data : {
+										rr_rider : loginUser
+									},
+									type : "GET",
+									dataType : "json", // 데이터 타입을 제이슨 꼭해야함, 다른방법도 2가지있음
+									cache : false, // 이걸 안쓰거나 true하면 수정해도 값반영이 잘안댐
+									success : function(data) {
+										if (data.length == 0) {
+											$("#myRR").html(
+													'<h4>최근 주행기록이 없습니다</h4>');
+											$("#ri_more_bt").hide();
+											return;
+										}
+										var rr_numlist = [];
+										part_ridingrecord = "";
+										for (var i = 0; i < data.length; i++) {
+											part_ridingrecord += "<div class='gal_box'><div id='myRR"+i+"' class='gal_img' width='400' height='300'></div>"
+													+ "<div class='riding_name'>"
+													+ data[i].rr_area
+													+ "</div><div class='riding_date'>"
+													+ (data[i].rr_date)
+															.substring(0, 10)
+													+ "</div></div>";
+											rr_numlist.push(data[i].rr_num);
+										}
+										$("#myRR").html(part_ridingrecord);
+										makeMyRR(rr_numlist);
+									}
+								});
+					});
+	function makeMyRR(rr_numlist) {
+		var cnt = 0;
+		for (var i = 0; i < rr_numlist.length; i++) {
+			$.ajax({
+				url : "/getGpxByRR_Num", // 제이슨오브젝트값을 가져옴
+				data : {
+					rr_num : rr_numlist[i]
+				},
+				type : "GET",
+				dataType : "json", // 데이터 타입을 제이슨 꼭해야함, 다른방법도 2가지있음
+				cache : false, // 이걸 안쓰거나 true하면 수정해도 값반영이 잘안댐
+				success : function(data) {
+					var mapContainer = document.getElementById('myRR' + cnt), // 지도를 표시할 div 
+					mapOption = {
+						center : new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+						level : 3
+					// 지도의 확대 레벨
+					};
+					var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+					drawPolyline(map, data.infos);
+					cnt++;
+				}
+			});
+		}
+	}
+	function drawPolyline(map, infos) {
+		// 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
+		var bounds = new kakao.maps.LatLngBounds();
+		var linePath = [];
+		for (var i = 0; i < infos.length; i++) {
+			linePath.push(new kakao.maps.LatLng(infos[i].lat, infos[i].lon));
+			bounds.extend(linePath[i]);
+		}
+		// 지도에 표시할 선을 생성합니다
+		var polyline = new kakao.maps.Polyline({
+			path : linePath, // 선을 구성하는 좌표배열 입니다
+			strokeWeight : 5, // 선의 두께 입니다
+			strokeColor : '#FFAE00', // 선의 색깔입니다
+			strokeOpacity : 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+			strokeStyle : 'solid' // 선의 스타일입니다
+		});
+
+		// 지도에 선을 표시합니다 
+		polyline.setMap(map);
+		map.setBounds(bounds);
+	}
+
+	var repairmapContainer = document.getElementById('repair_map'), // 지도를 표시할 div 
+	repairmapOption = {
+		center : new kakao.maps.LatLng(35.8933601651954, 128.61959337978482), // 지도의 중심좌표
+		level : 3
+	// 지도의 확대 레벨
+	};
+
+	// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+	var repairmap = new kakao.maps.Map(repairmapContainer, repairmapOption);
+</script>
+<footer th:replace="footer2"></footer>

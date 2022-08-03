@@ -206,7 +206,7 @@ public class LoginAccess extends AppCompatActivity {
                 dir.mkdirs();
             }
 
-            String fileURL = "http://53.92.32.2:8080/app/getGPX/" + directory + "/" + url;
+            String fileURL = "http://192.168.162.13:8080/app/getGPX/" + directory + "/" + url;
             String LocalPath = Save_Path + "/" + url;
 
             if (new File(Save_Path + "/" + url).exists() == false) {

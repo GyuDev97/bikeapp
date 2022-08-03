@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="header"></head>
+<!-- kakaoAPI를 쓰기위한 KEY -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=75b139a908cf5a67ae5c093565896a18&libraries=services"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=dbb047c9e9b46e285f76df6669c00d7f&libraries=services"></script>
+<div id="back_img"></div>
+<!-- content 1 -->
+<div th:unless="${#authorization.expr('isAuthenticated()')}">
+<section id="content1">
+	안녕하세요!<br />산악 라이딩의 재미를 불어넣는 <br /><br />
+	<span id="f50">MTB CRAFT</span>입니다.
+</section>
+<!--  content 2 -->
+
+<section id="content2" class="left_txt">
+		산악라이딩 코스를 <br />잘 모르시나요?<br />
+		<br />
+		<b>MTB CRAFT에서 즐겨보세요!</b>
+	<div class="left_bt"><a href="/riding/course"><img src="/imgs/riding_bt.png" alt="riding" title="riding" /></a></div>
+	<div id="right_img"><img src="/imgs/map.png" alt="riding" title="riding" /></div>
+</section>
+<!--  content 3 -->
+<section id="content3" class="right_txt">
+		혼자 라이딩하니까<br />심심한가요?<br />
+			<br />
+			<b>다른 사람과 같이 라이딩을 즐겨보세요!</b>
+	<div class="right_bt"><a href="/comunity/club"><img src="/imgs/club_bt.png" alt="riding" title="riding" /></a></div>
+	<div id="left_img"><img src="/imgs/club.png" alt="club" title="club" /></div>
+</section>
+<!--  content 4 -->
+<section id="content4" class="left_txt">
+		라이딩하는데<br />문제가 생겼나요?<br />
+			<br />
+			<b>고품질과 섬세한 정비로 쾌적하게 라이딩하세요!</b>
+			<img src="file:///C:/Users/GYU-DESKTOP/Desktop/5476.PNG" alt="riding" title="riding" />
+	<div class="left_bt"><a href="/riding/course"><img src="/imgs/riding_bt.png" alt="riding" title="riding" /></a></div>
+	<div id="repair_img"><img src="/imgs/repair.png" alt="repair" title="repair" /></div>
+</section>
+<!-- content 5 -->
+<div id="app_banner">
+
+	<p id="f33">산악라이딩 대표 애플리케이션</p>
+	<b>MTB CRAFT</b> <br /> <br /> <br />
+	<p id="f25">애플리케이션으로 만나보세요</p>
+	<a href="#"><img src="/imgs/appdown.png" title="appdown"
+		alt="appdown" /></a>
+</div>
+</div>
+<!-- after user screen --->
+<div th:if="${#authorization.expr('isAuthenticated()')}">
+<!-- 내 서비스 버튼들 -->
+	<section id="select_section">
+		<p>나의 서비스</p>
+		<div id="m_riding_bt"><a href="#rec_riding"><img src="/imgs/m_riding_bt.png" alt="m_riding_bt" title="m_riding_bt" /></a></div>
+		<div id="m_comu_bt"><a href="#m_section2"><img src="/imgs/m_comu_bt.png" alt="m_comu_bt" title="m_comu_bt" /></a></div>
+		<div id="m_repair_bt"><a href="#m_section3"><img src="/imgs/m_repair_bt.png" alt="m_repair_bt" title="m_repair_bt" /></a></div>
+
+	</section>
+	<!-- 최근 라이딩 기록 -->
+	<section id="m_section1">
+		<div class="le_name">최근 라이딩 기록</div>
+		<div id="myRR"></div>
+		<div id="ri_more_bt">+더보기</div>
+	</section>
+	
+	<!-- 내 클럽 최신글 -->
+	<section id="m_section2">
+		<div id="m_club">
+		<div class="le_name">내 클럽 최신글</div>
+			<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img"><img src="/imgs/club_sample.png" alt="club_sample" title="club_sample" height="100" width="100" /></div>
+						<div class="my_club_name">MTBB Club</div>
+					</div>
+					<div class="my_club_writer">나랑께님</div>
+					<div class="my_club_title">밤에 흐르는~</div>
+					<div class="my_club_con">영진 냥냥이</div>
+					<div class="my_new_img"><img src="/imgs/teest_img.jpg" alt="" title=""/></div>
+				</div>
+				
+				<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img"><img src="/imgs/club_sample.png" alt="club_sample" title="club_sample" height="100" width="100" /></div>
+						<div class="my_club_name">MTBB Club</div>
+					</div>
+					<div class="my_club_writer">나랑께님</div>
+					<div class="my_club_title">밤에 흐르는~</div>
+					<div class="my_club_con">영진 냥냥이</div>
+					<div class="my_new_img"><img src="/imgs/teest_img.jpg" alt="" title=""/></div>
+				</div>
+				
+				<div class="community_list">
+				<div class="my_club_info">
+					<div class="my_club_img"><img src="/imgs/club_sample.png" alt="club_sample" title="club_sample" height="100" width="100" /></div>
+						<div class="my_club_name">MTBB Club</div>
+					</div>
+					<div class="my_club_writer">나랑께님</div>
+					<div class="my_club_title">밤에 흐르는~</div>
+					<div class="my_club_con">영진 냥냥이</div>
+					<div class="my_new_img"><img src="/imgs/teest_img.jpg" alt="" title=""/></div>
+				</div>
+				<div class="community_list">
+					<div id="commu_more"><a href="">+더보기</a></div>
+				</div>
+			</div>
+		</section>
+	
+	<!-- 정비소 추천  -->
+	<section id="m_section3">
+		<div class="le_name">정비소 찾기</div>
+			<div id="repair_sec">
+				<div id="select_area">
+				지역선택
+				<select >
+						<option value="선택">선택</option>
+						<option value=""></option>
+					</select>
+				</div>
+					
+				</div>
+			<div id="repair_map"><h1>MAP INPUT</h1></div>
+
+				</section>
+			</div>
+			<footer th:replace="footer"></footer>
+<script>
+	$(document).ready(function(){
+		var loginUser = $("#nav_t_login span").text();
+		$.ajax({
+			url : "/ridingrecordTop3", // 제이슨오브젝트값을 가져옴
+			data : {rr_rider : loginUser},
+			type : "GET",
+			dataType : "json", // 데이터 타입을 제이슨 꼭해야함, 다른방법도 2가지있음
+			cache : false, // 이걸 안쓰거나 true하면 수정해도 값반영이 잘안댐
+			success : function(data) {
+				if(data.length==0){
+					$("#myRR").html('<h4>최근 주행기록이 없습니다</h4>');
+					$("#ri_more_bt").hide();
+					return;
+				}
+				var rr_numlist = [];
+				part_ridingrecord = "";
+				for(var i=0;i<data.length;i++){
+					part_ridingrecord+="<div class='gal_box'><div id='myRR"+i+"' class='gal_img' width='400' height='300'></div>"
+						+"<div class='riding_name'>"+data[i].rr_area+"</div><div class='riding_date'>"+(data[i].rr_date).substring(0,10)+"</div></div>";
+						rr_numlist.push(data[i].rr_num);
+				}
+				$("#myRR").html(part_ridingrecord);
+				makeMyRR(rr_numlist);
+			}
+		});
+	});
+	function makeMyRR(rr_numlist){
+		var cnt = 0;
+		for(var i=0;i<rr_numlist.length;i++){
+			$.ajax({
+				url : "/getGpxByRR_Num", // 제이슨오브젝트값을 가져옴
+				data : {rr_num : rr_numlist[i]},
+				type : "GET",
+				dataType : "json", // 데이터 타입을 제이슨 꼭해야함, 다른방법도 2가지있음
+				cache : false, // 이걸 안쓰거나 true하면 수정해도 값반영이 잘안댐
+				success : function(data) {
+					var mapContainer = document.getElementById('myRR'+cnt), // 지도를 표시할 div 
+				    mapOption = { 
+				        center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+				        level: 3 // 지도의 확대 레벨
+				    };  
+					var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+					drawPolyline(map, data.infos);
+					cnt++;
+				}
+			});
+		}
+	}
+	function drawPolyline(map, infos){
+		// 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
+		var bounds = new kakao.maps.LatLngBounds();
+		var linePath = [];
+		for(var i=0;i<infos.length;i++){
+			linePath.push(new kakao.maps.LatLng(infos[i].lat, infos[i].lon));
+			bounds.extend(linePath[i]);
+		}
+		// 지도에 표시할 선을 생성합니다
+		var polyline = new kakao.maps.Polyline({
+		    path: linePath, // 선을 구성하는 좌표배열 입니다
+		    strokeWeight: 5, // 선의 두께 입니다
+		    strokeColor: '#FFAE00', // 선의 색깔입니다
+		    strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+		    strokeStyle: 'solid' // 선의 스타일입니다
+		});
+
+		// 지도에 선을 표시합니다 
+		polyline.setMap(map);
+		map.setBounds(bounds);
+	}
+	
+	var repairmapContainer = document.getElementById('repair_map'), // 지도를 표시할 div 
+	repairmapOption = { 
+        center: new kakao.maps.LatLng(35.8933601651954, 128.61959337978482), // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
+    };
+
+	// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+	var repairmap = new kakao.maps.Map(repairmapContainer, repairmapOption); 
+</script>

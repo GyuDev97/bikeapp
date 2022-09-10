@@ -68,6 +68,7 @@ public class CourseViewFragment extends BaseFragment {
         getCourseList.enqueue(new Callback<List<RidingRecord>>() {
             @Override
             public void onResponse(Call<List<RidingRecord>> call, Response<List<RidingRecord>> response) {
+
                 List<RidingRecord> body = response.body();
 
                 ArrayList<Integer> likeCount = new ArrayList<Integer>();

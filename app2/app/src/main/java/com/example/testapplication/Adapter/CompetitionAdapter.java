@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.testapplication.MainViewModel;
 import com.example.testapplication.dto.Competition;
 import com.example.testapplication.R;
-import com.example.testapplication.net.NetworkAddr;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -29,7 +28,6 @@ public class CompetitionAdapter extends RecyclerView.Adapter<CompetitionAdapter.
     String Save_Path;
     public NavController controller;
     public MainViewModel model;
-    protected NetworkAddr networkAddr;
 
     public CompetitionAdapter(Context mContext, ArrayList<Competition> itemList, String Save_Path, NavController controller, MainViewModel model) {
         this.mContext = mContext;
@@ -69,7 +67,7 @@ public class CompetitionAdapter extends RecyclerView.Adapter<CompetitionAdapter.
 
         holder.textView1.setText(itemList.get(position).getComp_name());
 
-        Picasso.get().load(networkAddr.getIp_addr()+"/app/getGPX/comp/" + itemList.get(position).getComp_image())
+        Picasso.get().load("/app/getGPX/comp/" + itemList.get(position).getComp_image())
                 .into(holder.imageView);
 
         holder.mView.setOnClickListener( v -> {

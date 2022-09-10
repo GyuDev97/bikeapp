@@ -2,10 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bike.webapp.mapper.AndroidMapper">
 <select id="insertRecord" resultType="com.bike.webapp.dto.RidingRecord">
-	{call
-		declare
-		begin
-
 		insert into riding_record
 		(rr_rider, rr_distance, rr_topspeed, rr_avgspeed, rr_high, rr_gpx, rr_open, rr_breaktime, rr_time, rr_area, rr_name)
 		values
@@ -21,11 +17,9 @@
 		#{rr_time},
 		#{rr_area},
 		#{rr_name}		
-		);
+		)
 
-		update rider set r_point = r_point + #{rr_distance} where r_id = #{rr_rider};
-	end
-	}
+
 	</select>
 	
 
@@ -61,24 +55,21 @@
 		select r_id, r_pw from rider where r_id = #{r_id} and r_pw = #{r_pw}
 	</select>
 	
-	<!-- 내 기록 가져오기 -->
-	<select id="readRecord" parameterType="String" resultType="com.bike.webapp.dto.App_RidingRecord">
-	select * from riding_record where rr_rider = #{rr_rider} order by rr_date desc
-		
+	<!-- 로그인 정보 -->
+	<select id="getLoginInfo" parameterType="String" resultType="com.bike.webapp.dto.LoginInfo">
+		select r_id 
+		where r_id = #{LoginId}
 	</select>
 	
-	<select id="getLoginInfo" parameterType="String" resultType="com.bike.webapp.dto.LoginInfo">
-		select cb_name, cj_club, r_nickname, r_image 
-		from club_join, rider, club 
-		where r_id = #{LoginId}
-		and cj_rider = #{LoginId} 
-		and cj_withdraw is null
-		and cj_club = cb_num
+	<!-- 내 기록 가져오기 -->
+	<select id="readRecord" parameterType="String" resultType="com.bike.webapp.dto.App_RidingRecord">
+	select * from riding_record where rr_rider = #{rr_rider} order by rr_create_time desc
+		
 	</select>
 	
 	<!-- 내 기록 상세보기 -->
 	<select id="getRidingRecordDetail" parameterType="String" resultType="com.bike.webapp.dto.RidingRecord">
-		select * from riding_record where rr_rider = #{rr_rider} and rr_num = #{rr_num}
+		select * fro m riding_record where rr_rider = #{rr_rider} and rr_idx = #{rr_num}
 	</select>
 	
 	<!-- 내 기록 상세보기 공개여부 업데이트 -->

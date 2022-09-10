@@ -111,21 +111,6 @@ public class AndroidController {
 		}
 		else
 			androidService.insertRecord(record);
-		// 안드로이드로부터 받은 데이터
-		System.out.println("rr_rider " + request.getParameter("rr_rider")); // 회원아이디
-		System.out.println("rr_distance " + request.getParameter("rr_distance")); // 오늘날짜
-		System.out.println("rr_topspeed " + request.getParameter("rr_topspeed")); // 소요시간
-		System.out.println("rr_avgspeed " + request.getParameter("rr_avgspeed")); // 이동거리
-		System.out.println("rr_high " + request.getParameter("rr_high")); // 최대속도
-		System.out.println("rr_gpx " + request.getParameter("rr_gpx")); // 평균속도
-		System.out.println("rr_open " + request.getParameter("rr_open")); // 획득고도
-		System.out.println("rr_breaktime " + request.getParameter("rr_breaktime")); // gpx
-		System.out.println("rr_time " + request.getParameter("rr_time")); // 공개여부
-		System.out.println("rr_area " + request.getParameter("rr_area")); // 획득고도
-		System.out.println("rr_name"+request.getParameter("rr_name"));
-		System.out.println("rr_comp "+request.getParameter("rr_comp"));
-
-		// 안드로이드에게 전달하는 데이터
 		Map<String, String> result = new HashMap<String, String>();
 		result.put("data1", request.getParameter("rr_rider"));
 
@@ -133,17 +118,16 @@ public class AndroidController {
 	}
 
 	// 주행기록 가져오기
-	@RequestMapping(value = "get/{rr_rider}")
-	public @ResponseBody List<App_RidingRecord> getRidingRecord(@PathVariable String rr_rider) throws Exception {
-		return androidService.readRecord(rr_rider);
+	@RequestMapping(value = "get/admin")
+	public @ResponseBody List<App_RidingRecord> getRidingRecord() throws Exception {
+		return androidService.readRecord("admin");
 	}
 
 	// 주행기록 상세보기
-	@RequestMapping(value = "get/detail/{rr_num}")
-	public @ResponseBody List<RidingRecord> getRidingRecordDetail(@PathVariable String rr_rider,
-			@PathVariable String rr_num) throws Exception {
+	@RequestMapping(value = "get/detail/1")
+	public @ResponseBody List<RidingRecord> getRidingRecordDetail() throws Exception {
 		RidingRecord record = new RidingRecord();
-		return androidService.getRidingRecordDetail(rr_rider, rr_num);
+		return androidService.getRidingRecordDetail("admin", "1");
 	}
 	
 	//주행기록 상세보기(공개여부설정)

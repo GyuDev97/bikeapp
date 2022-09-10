@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.testapplication.MainViewModel;
 import com.example.testapplication.R;
 import com.example.testapplication.dto.CompClub;
-import com.example.testapplication.net.NetworkAddr;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ public class CompClubAdapter extends RecyclerView.Adapter<CompClubAdapter.CompCl
     String Save_Path;
     public NavController controller;
     public MainViewModel model;
-    protected NetworkAddr networkAddr;
 
     public CompClubAdapter(Context mContext, ArrayList<CompClub> itemList, String save_path, NavController controller, MainViewModel model) {
         this.mContext = mContext;
@@ -53,7 +51,7 @@ public class CompClubAdapter extends RecyclerView.Adapter<CompClubAdapter.CompCl
         int score = itemList.get(position).getCs_score();
         String Club_image = itemList.get(position).getCb_image();
 
-        Picasso.get().load(networkAddr.getIp_addr()+"/app/getGPX/club/" + Club_image)
+        Picasso.get().load("/app/getGPX/club/" + Club_image)
                 .into(holder.imageView);
 
         //holder.imageView.setImageBitmap(myBitmap);

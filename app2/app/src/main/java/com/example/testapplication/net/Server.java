@@ -7,15 +7,17 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class Server{
     private static Server instance;
     private ServerApi api;
-    protected NetworkAddr networkAddr;
+
 
     private Server(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.162.13:8080/")
+                .baseUrl("http://192.168.162.16:8080/")
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         api = retrofit.create(ServerApi.class);

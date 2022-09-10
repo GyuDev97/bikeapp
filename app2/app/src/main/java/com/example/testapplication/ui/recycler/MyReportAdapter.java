@@ -81,18 +81,18 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
                 .into(testViewHolder.my_image);
 
 
-        String substring = itemList.get(position).getRr_date();
-        String sub1 = substring.substring(0,10);
-        String substring2 = itemList.get(position).getRr_date();
-        String sub2 = substring2.substring(11,19);
+      //  String substring = itemList.get(position).getRr_date();
+      //  String sub1 = substring.substring(0,10);
+      //  String substring2 = itemList.get(position).getRr_date();
+      //  String sub2 = substring2.substring(11,19);
 
 
         testViewHolder.my_rec_name.setText(itemList.get(position).getRr_name());
-        testViewHolder.my_rec_date.setText(sub1+" " +sub2);
+      //  testViewHolder.my_rec_date.setText(sub1+" " +sub2);
         testViewHolder.my_rec_adress.setText(itemList.get(position).getRr_area());
         testViewHolder.my_rec_dis.setText(total);
         testViewHolder.my_rec_get.setText(itemList.get(position).getRr_high() +"m");
-        testViewHolder.my_rec_time.setText(hour_s+"시간 "+min+"분 "+ sec+"초");
+       // testViewHolder.my_rec_time.setText(hour_s+"시간 "+min+"분 "+ sec+"초");
 
         int finalMin = min;
         int finalSec = sec;

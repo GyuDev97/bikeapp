@@ -66,7 +66,7 @@ public class HomeFragment extends BaseFragment {
         mainKm = (TextView) view.findViewById(R.id.main_km);
         rider = (TextView) view.findViewById(R.id.idinfo);
         main_dis = (TextView) view.findViewById(R.id.main_dis);
-        rider.setText(model.r_Nickname.getValue()+"님 저희와 함께");
+        rider.setText(model.r_Id.getValue()+"님 저희와 함께");
         ridingstart.setOnClickListener(v->{
            Intent intent = new Intent(getActivity(), StartActivity.class);
            startActivity(intent);

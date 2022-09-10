@@ -7,22 +7,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.testapplication.net.NetworkAddr;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.internal.NavigationMenuItemView;
-import com.google.android.material.snackbar.Snackbar;
+import com.example.testapplication.dto.Server;
 import com.google.android.material.navigation.NavigationView;
 import com.squareup.picasso.Picasso;
 
@@ -35,7 +27,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -48,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private View view;
     private ImageView userImage;
     private SharedPreferences auto;
-    protected NetworkAddr networkAddr;
+
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,9 +72,11 @@ public class MainActivity extends AppCompatActivity {
         model.r_Image.setValue(auto.getString("r_image", ""));
         model.r_Nickname.setValue(auto.getString("r_nickname", ""));
         model.r_ClubName.setValue(auto.getString("r_clubname", ""));
-        lay.setText(model.r_Nickname.getValue() + "님 환영합니다");
+        lay.setText(model.r_Id.getValue() + "님 환영합니다");
 
-        Picasso.get().load("http://192.168.162.13:8080/app/getGPX/rider/" + model.r_Image.getValue())
+        Server server = new Server();
+        String test = server.getIP();
+        Picasso.get().load(test+"/app/getGPX/rider/" + model.r_Image.getValue())
                 .into(userImage);
 
         navigationView.setNavigationItemSelectedListener(menuItem -> {

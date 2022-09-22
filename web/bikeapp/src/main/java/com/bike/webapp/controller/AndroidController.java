@@ -22,6 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -51,8 +53,9 @@ import com.bike.webapp.service.*;
 
 @Controller
 @RequestMapping(value = "/app/")
-public class AndroidController {
 
+public class AndroidController {
+	private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	@Autowired
 	MemberService memberService;
 
@@ -148,13 +151,14 @@ public class AndroidController {
 	
 
 		@RequestMapping(value = "fileUpload/{dir}/{fileName}", method = RequestMethod.POST)
-		public String upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
+		public void upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
 				@PathVariable(value="fileName") String fileName) {
+			log.debug("업로드 파일 명 "+fileName+" "+"업로드 경로 "+dir);
 			try {
-
+				
 				// String path =
 				// "/home/ec2-user/apps/mtbcraft/spring/mtbcraft/src/main/resources/static/gpx";
-				String path = "/home/ec2-user/data/" + dir;
+				String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/" + dir;
 
 				if (!file1.isEmpty()) { // 첨부파일이 존재?
 					System.out.println(file1.getSize());
@@ -172,7 +176,6 @@ public class AndroidController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return "redirect:/";
 		}
 
 	// 코스 조회
@@ -580,8 +583,10 @@ public class AndroidController {
 		return ridingService.getUserDangerousArea(rr_rider);
 	}
 	
+	//위험지역 등록하기
 	@RequestMapping(value = "insertDanger")
 	public void insertDanger(@RequestBody DangerousArea d_area) throws Exception{
+		
 		androidService.insertDanger(d_area);
 	}
 

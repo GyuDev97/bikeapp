@@ -150,12 +150,8 @@ public class HttpClient {
                 method = "GET";
             }
             this.method = method;
-            this.url = "http://13.209.229.237:8080/"+url;
+            this.url = "http://192.168.162.18:8080/"+url;
             this.parameters = new HashMap<String, Object>();
-
-            Log.d("주소는",this.url );
-
-
         }
 
         public void addOrReplace(String key, String value) {

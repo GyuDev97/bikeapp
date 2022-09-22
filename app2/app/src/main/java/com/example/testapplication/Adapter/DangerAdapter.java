@@ -48,7 +48,7 @@ public class DangerAdapter extends RecyclerView.Adapter<DangerAdapter.DangerHold
 
             MarkerOptions mOptions = new MarkerOptions();
             // 마커 타이틀
-            mOptions.title("마커 좌표");
+            mOptions.title(itemList.get(position).getDa_addr());
 
             mOptions.position(new LatLng(Double.parseDouble(itemList.get(position).getDa_latitude()), Double.parseDouble(itemList.get(position).getDa_longitude())));
 

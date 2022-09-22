@@ -525,14 +525,6 @@
             android:orientation="horizontal"
             android:layout_marginTop="10dp">
 
-
-            <Button
-                android:id="@+id/sos_sound"
-                android:layout_width="50dp"
-                android:layout_height="55dp"
-                android:background="@drawable/sos_sound"
-                tools:ignore="MissingConstraints" />
-
             <Spinner
                 android:id="@+id/help"
                 android:layout_width="50dp"

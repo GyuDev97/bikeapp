@@ -255,20 +255,6 @@ public class StartActivity extends AppCompatActivity
             }
         });
 
-        soundPool = new SoundPool.Builder().build();
-        soundManager = new SoundManager(this, soundPool);
-        soundManager.addSound(0, R.raw.sos);
-
-        //긴급알림
-        Button sns_sound = (Button) findViewById(R.id.sos_sound);
-        sns_sound.setOnClickListener(v -> {
-            if (!play) {
-                play = true;
-            } else {
-                soundManager.playSound(0);
-                play = false;
-            }
-        });
 
         timeThread = new Thread(new timeThread());
         timeThread.start();

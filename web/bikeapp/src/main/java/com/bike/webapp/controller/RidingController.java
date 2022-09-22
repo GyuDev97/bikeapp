@@ -93,7 +93,9 @@ public class RidingController {
 		}
 		makeGpx(gpx, gpxFile);
 		gpx.setRr_num(rr_num);
+		System.out.println("adfasdfasd");
 		return gpx;
+		
 	}
 	
 	//RR_NUM으로 RIDINGRECORD 조회

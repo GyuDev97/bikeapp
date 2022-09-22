@@ -318,16 +318,16 @@ select ss_rider, rr_rider, rr_date,  rr_name, ss_rnum, rr_avgspeed, rr_distance,
 	</select>
 	
 	<select id="insertDanger" parameterType="com.bike.webapp.dto.DangerousArea">
-		insert into dangerous_area values
-		(
-		seq_dangerousarea.nextval,
-		#{da_rider},
-		#{da_latitude},
-		#{da_addr},
-		#{da_image},
-		0,
-		#{da_content},
-		#{da_longitude}
-		)
+		INSERT INTO dangerous_area (da_rider, da_latitude, da_longitude, da_addr, da_image, da_content, create_date, da_status) VALUES
+		(	
+			 #{da_rider},
+			 #{da_latitude},
+			 #{da_longitude},
+			 #{da_addr},
+			 #{da_image},
+			 #{da_content},
+			 now(),
+			 '0'
+		);		
 	</select>
 </mapper>

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="header2"></head>
 <section class="home-slider owl-carousel js-fullheight">
 	<div class="slider-item js-fullheight"
@@ -156,11 +155,11 @@
 			<img src="/imgs/repair.png" alt="repair" title="repair" />
 		</div>
 	</section>
-</div>
 
 
 
-	<input type="hidden" id="hidden_userId">
+
+	<input type="hidden" id="hidden_userId" >
 	<!-- 내 서비스 버튼들 -->
 	<section id="select_section">
 		<p>나의 서비스</p>
@@ -182,7 +181,7 @@
 	<section id="m_section1">
 		<div class="le_name">최근 라이딩 기록</div>
 		<div id="myRR"></div>
-	
+		<div id="ri_more_bt">+더보기</div>
 	</section>
 
 	<!-- 내 클럽 최신글 -->

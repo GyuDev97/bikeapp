@@ -56,6 +56,8 @@ public class RecordFragment extends BaseFragment{
                     recyclerView.setLayoutManager(new LinearLayoutManager(requireContext().getApplicationContext(), LinearLayoutManager.VERTICAL, false));
                     recyclerView.setAdapter(adapter);
 
+                }else{
+                    Log.d("안됨","안댐");
                 }
             }
 

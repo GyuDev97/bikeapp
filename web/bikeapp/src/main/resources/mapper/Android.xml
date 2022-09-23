@@ -63,7 +63,7 @@
 	
 	<!-- 내 기록 가져오기 -->
 	<select id="readRecord" parameterType="String" resultType="com.bike.webapp.dto.App_RidingRecord">
-	select * from riding_record where rr_rider = #{rr_rider} order by rr_create_time desc
+	select * from riding_record where rr_rider = #{rr_rider} order by RR_TIME desc
 		
 	</select>
 	
@@ -189,10 +189,7 @@ select ss_rider, rr_rider, rr_date,  rr_name, ss_rnum, rr_avgspeed, rr_distance,
 	}
 	</select>
 	
-	<select id="getCompAllScore" parameterType="Integer" resultType="com.bike.webapp.dto.Competition_Status">
-		select * from competition_status where cs_comp = #{comp_num}
-	</select>
-	
+
 	<select id="updateRank" parameterType="hashMap">
 		update competition_status set cs_rank = #{rank} where cs_comp = #{rr_comp} and cs_club = #{r_club}
 	</select>
@@ -318,16 +315,17 @@ select ss_rider, rr_rider, rr_date,  rr_name, ss_rnum, rr_avgspeed, rr_distance,
 	</select>
 	
 	<select id="insertDanger" parameterType="com.bike.webapp.dto.DangerousArea">
-		INSERT INTO dangerous_area (da_rider, da_latitude, da_longitude, da_addr, da_image, da_content, create_date, da_status) VALUES
+		INSERT INTO dangerous_area (da_idx, da_rider, da_latitude, da_longitude, da_addr, da_image, da_content, create_date, da_status) VALUES
 		(	
+			 (SELECT TO_NUMBER(NVL(MAX(DA_IDX), '0')) + 1  FROM dangerous_area),
 			 #{da_rider},
 			 #{da_latitude},
 			 #{da_longitude},
 			 #{da_addr},
 			 #{da_image},
 			 #{da_content},
-			 now(),
+			SYSDATE,
 			 '0'
-		);		
+		)
 	</select>
 </mapper>

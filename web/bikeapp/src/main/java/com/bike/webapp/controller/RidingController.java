@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -93,7 +94,6 @@ public class RidingController {
 		}
 		makeGpx(gpx, gpxFile);
 		gpx.setRr_num(rr_num);
-		System.out.println("adfasdfasd");
 		return gpx;
 		
 	}
@@ -170,8 +170,10 @@ public class RidingController {
 	
 	// 코스 조회
 	@RequestMapping(value = "/riding/course/list", method = RequestMethod.GET)
-	public @ResponseBody List<RidingRecord> getCourse() throws Exception {
-		return ridingService.getCourses(); 
+	public @ResponseBody List<RidingRecord> getCourse(@RequestParam Map<String, Object> test) throws Exception {
+		String keyword = (String) test.get("keyword");
+		List<RidingRecord> data = ridingService.getCourses(keyword);
+		return data; 
 	}
 
 	// 사용자 스크랩 코스 조회
@@ -463,7 +465,7 @@ public class RidingController {
 	}
 	
 	private void makeGpx(Gpx gpx, String gpxFile) throws Exception {
-		String path = "/home/ec2-user/data/gpx/"+gpxFile;
+		String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/riding/gpx/"+gpxFile;
 		//String path = "C:\\Users\\woolu\\Desktop\\workspace\\data\\gpx\\"+gpxFile;
 		File file = new File(path);
 		String txt = "";

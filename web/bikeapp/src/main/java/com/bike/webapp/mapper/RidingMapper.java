@@ -37,7 +37,7 @@ public interface RidingMapper {
 	
 	//현재는 주행기록을 조회하기에 최종결정시에 수정필요함
 	//등록된 코스 조회
-	public List<RidingRecord> getCourses() throws Exception;
+	public List<RidingRecord> getCourses(String keyword) throws Exception;
 	
 	//사용자 스크랩 코스 조회
 	public List<RidingRecord> getScrapCourse(String rr_rider) throws Exception;

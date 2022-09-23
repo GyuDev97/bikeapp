@@ -1,21 +1,15 @@
 package com.bike.webapp.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
-@Entity
-@Table(name="NO_DANGER")
+
 public class No_Danger {
-	@Id
-	@Column
+
 	private int nd_num;
-	@Column
+	
 	private String nd_rider;
-	@Column
+	
 	private String nd_image;
-	@Column
+
 	private String nd_content;
 	public int getNd_num() {
 		return nd_num;

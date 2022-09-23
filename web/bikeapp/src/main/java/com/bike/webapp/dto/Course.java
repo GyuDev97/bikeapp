@@ -1,10 +1,5 @@
 package com.bike.webapp.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 
 public class Course {
 	private int c_num;

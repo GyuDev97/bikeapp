@@ -179,21 +179,31 @@
 	//장소 검색 시 등록된 코스들 로드
 	function loadCourse(){
 		var rr_nums = [];
+		var keyword = document.getElementById('keyword').value;
 		var cnt = 0;
 		$.ajax({
 			url : "/riding/course/list",
 			type : "get",
-			dataType : "json",
+			data : {keyword : keyword},
+			dataType: "JSON",
 			cache : false,
 			success : function(data) {
 				for(var i=0;i<data.length;i++){
-					rr_nums.push(data[i].rr_num);
+					var searchIndex = str.indexOf(searchValue[keyword, data[i].rr_start_area])
+					var searchIndex2 = str.indexOf(searchValue[keyword, data[i].rr_end_area])
+					alert(i);
+					console.log(searchIndex+""+searchIndex);
+					if(searchIndex == 1 || searchIndex2 == 1){
+						
+						
+						rr_nums.push(data[i].rr_num);
 					$.ajax({
 						url : "/getGpxByRR_Num",
 						type : "GET",
 						data : {rr_num : data[i].rr_num},
 						dataType : "json",
 						cache : false,
+						async:true,
 						success : function(data) {
 							var point = data.infos;
 							var linePath = [];
@@ -219,8 +229,13 @@
 						    });
 							// 지도에 선을 표시합니다 
 							polyline.setMap(map);
-						}
+							}
+						
+						
 					});
+					
+					}
+					
 				}
 				
 			}

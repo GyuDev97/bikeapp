@@ -1,18 +1,11 @@
 package com.bike.webapp.dto;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
-@Entity
-@Table(name="rider")
 public class Login  {
-	@Id
-	@Column(name="r_id")
+
    private String userId;
-	@Column(name="r_pw")
+
    private String userPw;
 	
 	public String getUserId() {

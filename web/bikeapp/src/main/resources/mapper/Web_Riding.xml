@@ -78,7 +78,7 @@
 	<!-- 현재는 코스가 아닌 주행기록을 조회하기에 협의 후 최종결정 --> 
 	<!-- 등록된 코스 조회 -->
 	<select id="getCourses" resultType="com.bike.webapp.dto.RidingRecord">
-		SELECT * FROM RIDING_RECORD WHERE RR_OPEN=1
+		SELECT * FROM RIDING_RECORD WHERE RR_OPEN=1 AND RR_START_AREA LIKE '%${keyword}%' OR RR_END_AREA LIKE '%${keyword}%'
 	</select>
 	
 	<!-- 사용자 스크랩 코스 추가 -->
@@ -120,7 +120,7 @@
 	
 	<!-- 코스 추천수 조회 -->
 	<select id="getRR_Like" parameterType="int" resultType="int">
-		SELECT COUNT(*) FROM LIKE_STATUS WHERE LS_RNUM=#{ls_rnum}
+		SELECT COUNT(*) FROM LIKE_STATUS WHERE LIKE_NUM=#{ls_rnum}
 	</select>
 	
 	<!-- 코스 추천 취소 -->

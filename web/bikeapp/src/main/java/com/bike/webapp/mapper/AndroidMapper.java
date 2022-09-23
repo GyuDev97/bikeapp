@@ -84,8 +84,6 @@ public interface AndroidMapper {
 	public void updateCompScore( @Param("avg_speed") int avg_speed, @Param("rr_comp") int rr_comp,
 								@Param("r_club") int r_club, @Param("LoginId") String LoginId) throws Exception;
 	
-	//경쟁전 모든 점수 가져오기
-	public List<Competition_Status> getCompAllScore(int comp_num) throws Exception;
 	
 	public void updateRank( @Param("rr_comp") int rr_comp, @Param("r_club") int r_club,
 							@Param("score") int score, @Param("rank") int rank) throws Exception;

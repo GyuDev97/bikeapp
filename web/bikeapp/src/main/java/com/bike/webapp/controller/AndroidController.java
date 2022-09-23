@@ -55,7 +55,7 @@ import com.bike.webapp.service.*;
 @RequestMapping(value = "/app/")
 
 public class AndroidController {
-	private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	@Autowired
 	MemberService memberService;
 
@@ -151,7 +151,7 @@ public class AndroidController {
 	
 
 		@RequestMapping(value = "fileUpload/{dir}/{fileName}", method = RequestMethod.POST)
-		public void upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
+		public @ResponseBody void upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
 				@PathVariable(value="fileName") String fileName) {
 			log.debug("업로드 파일 명 "+fileName+" "+"업로드 경로 "+dir);
 			try {
@@ -161,8 +161,6 @@ public class AndroidController {
 				String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/" + dir;
 
 				if (!file1.isEmpty()) { // 첨부파일이 존재?
-					System.out.println(file1.getSize());
-					System.out.println(path);
 					try {
 						// 디렉토리 생성
 						if ( !new File(path).exists())
@@ -358,10 +356,7 @@ public class AndroidController {
 		androidService.updateCompScore(avg_speed, rr_comp, r_club, LoginId);
 	}
 	
-	@RequestMapping(value = "getCompAllScore/{comp_num}")
-	public @ResponseBody List<Competition_Status> getCompAllScore( @PathVariable(value="comp_num") int comp_num ) throws Exception {
-		return androidService.getCompAllScore(comp_num);
-	}
+
 	
 	@RequestMapping(value = "updateRank", method = RequestMethod.PUT)
 	@ResponseBody
@@ -585,7 +580,7 @@ public class AndroidController {
 	
 	//위험지역 등록하기
 	@RequestMapping(value = "insertDanger")
-	public void insertDanger(@RequestBody DangerousArea d_area) throws Exception{
+	public @ResponseBody void insertDanger(@RequestBody DangerousArea d_area) throws Exception{
 		
 		androidService.insertDanger(d_area);
 	}

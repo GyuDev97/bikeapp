@@ -130,10 +130,7 @@ public class AndroidService {
 		androidMapper.updateCompScore(avg_speed, rr_comp, r_club, LoginId);
 	}
 	
-	//경쟁전 모든 점수 가져오기
-	public List<Competition_Status> getCompAllScore(int comp_num) throws Exception{
-		return androidMapper.getCompAllScore(comp_num);
-	}
+
 	
 	public void updateRank(int rr_comp, int r_club, int score, int rank) throws Exception{
 		androidMapper.updateRank(rr_comp, r_club, score, rank);

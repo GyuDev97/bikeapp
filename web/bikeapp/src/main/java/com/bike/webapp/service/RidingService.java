@@ -64,8 +64,8 @@ public class RidingService {
 	}
 	
 	//등록된 코스 조회
-	public List<RidingRecord> getCourses() throws Exception{
-		return ridingMapper.getCourses();
+	public List<RidingRecord> getCourses(String keyword) throws Exception{
+		return ridingMapper.getCourses(keyword);
 	}
 	
 	//코스스크랩 조회

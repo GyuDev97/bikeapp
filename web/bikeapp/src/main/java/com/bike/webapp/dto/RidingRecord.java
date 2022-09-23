@@ -22,6 +22,35 @@ public class RidingRecord {
 	private String rr_name;
 	private String rr_tag;
 	private String rr_foname;
+	private String keyword;
+	private String rr_start_area;
+	private String rr_end_area;
+	
+	
+
+	public String getRr_start_area() {
+		return rr_start_area;
+	}
+
+	public void setRr_start_area(String rr_start_area) {
+		this.rr_start_area = rr_start_area;
+	}
+
+	public String getRr_end_area() {
+		return rr_end_area;
+	}
+
+	public void setRr_end_area(String rr_end_area) {
+		this.rr_end_area = rr_end_area;
+	}
+
+	public String getKeyword() {
+		return keyword;
+	}
+
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
+	}
 
 	public String getRr_foname() {
 		return rr_foname;

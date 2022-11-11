@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bike.webapp.mapper.AndroidMapper">
-<select id="insertRecord" resultType="com.bike.webapp.dto.RidingRecord">
+
+<!-- 안드로이드 주행기록 저장 -->
+	<insert id="insertRecord">
 		insert into riding_record
 		(rr_rider, rr_distance, rr_topspeed, rr_avgspeed, rr_high, rr_gpx, rr_open, rr_breaktime, rr_time, rr_area, rr_name)
 		values
@@ -18,37 +20,7 @@
 		#{rr_area},
 		#{rr_name}		
 		)
-
-
-	</select>
-	
-
-	<select id="insertRecordWithComp" resultType="com.bike.webapp.dto.RidingRecord">
-	{call
-		declare
-		begin
-		insert into riding_record
-		(rr_rider, rr_distance, rr_topspeed, rr_avgspeed, rr_high, rr_gpx, rr_open, rr_breaktime, rr_time, rr_area, rr_name, rr_like, rr_comp)
-		values
-		(
-		#{rr_rider},
-		#{rr_distance},
-		#{rr_topspeed},
-		#{rr_avgspeed},
-		#{rr_high},
-		#{rr_gpx},
-		#{rr_open},
-		#{rr_breaktime},
-		#{rr_time},
-		#{rr_area},
-		#{rr_name},
-		#{rr_like},
-		#{rr_comp}
-		
-		update rider set r_point = r_point + #{rr_distance} where r_id = #{rr_rider};
-	end
-	}
-	</select>
+	</insert>
 
 <!-- 안드로이드 로그인 -->
 	<select id="LoginProcess" parameterType="hashMap" resultType="com.bike.webapp.dto.AnLogin">

@@ -16,7 +16,7 @@ public class Server{
 
     private Server(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.162.18:8080/")
+                .baseUrl("http://gyudrive.ipdisk.co.kr:8080/bike/")
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();

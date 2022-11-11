@@ -20,11 +20,8 @@ public interface AndroidMapper {
 	public LoginInfo getLoginInfo(String LoginId) throws Exception;
 	
 	//안드로이드 앱에서 라이딩 기록 저장
-	public String insertRecord(RidingRecord record) throws Exception;
+	public void insertRecord(RidingRecord record) throws Exception;
 	
-	//안드로이드 앱에서 라이딩 기록 저장 ( 경쟁전 포함 )
-	public RidingRecord insertRecordWithComp(RidingRecord record) throws Exception;
-
 	//주행기록 전체보기
 	public List<RidingRecord> getRidingRecordAll();
 		

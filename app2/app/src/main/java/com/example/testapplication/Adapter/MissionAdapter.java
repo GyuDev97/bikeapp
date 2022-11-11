@@ -47,7 +47,7 @@ public class MissionAdapter extends RecyclerView.Adapter<MissionAdapter.MissionH
     @Override
     public void onBindViewHolder(@NonNull MissionHolder holder, int position) {
 
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/mission/" + itemList.get(position).getBg_image())
+        Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/mission/" + itemList.get(position).getBg_image())
                 .into(holder.imageView);
 
         holder.textView1.setText(itemList.get(position).getM_name());

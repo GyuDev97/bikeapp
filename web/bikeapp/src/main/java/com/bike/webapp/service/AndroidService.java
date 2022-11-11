@@ -29,14 +29,12 @@ public class AndroidService {
 	public LoginInfo getLoginInfo(String LoginId) throws Exception{
 		return androidMapper.getLoginInfo(LoginId);
 	}
+	
 	//라이딩기록 저장
-	public String insertRecord(RidingRecord record) throws Exception{
-		return androidMapper.insertRecord(record);
+	public void insertRecord(RidingRecord record) throws Exception{
+		androidMapper.insertRecord(record);
 	}
 	
-	public RidingRecord insertRecordWithComp(RidingRecord record) throws Exception{
-		return androidMapper.insertRecordWithComp(record);
-	}
 	
 	//라이딩 기록 전체보기
 	public List<RidingRecord> getRidingRecordAll() {
@@ -129,8 +127,6 @@ public class AndroidService {
 	public void updateCompScore(int avg_speed, int rr_comp, int r_club, String LoginId) throws Exception{
 		androidMapper.updateCompScore(avg_speed, rr_comp, r_club, LoginId);
 	}
-	
-
 	
 	public void updateRank(int rr_comp, int r_club, int score, int rank) throws Exception{
 		androidMapper.updateRank(rr_comp, r_club, score, rank);

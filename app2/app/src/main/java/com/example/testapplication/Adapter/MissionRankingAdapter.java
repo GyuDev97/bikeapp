@@ -44,10 +44,10 @@ public class MissionRankingAdapter extends RecyclerView.Adapter<MissionRankingAd
     public void onBindViewHolder(@NonNull MissionRankingHolder holder, int position) {
 
         if ( itemList.get(position).getR_image() == null)
-            Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/image.jpg")
+            Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/image.jpg")
                     .into(holder.imageView);
         else
-            Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + itemList.get(position).getR_image())
+            Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/getGPX/rider/" + itemList.get(position).getR_image())
                     .into(holder.imageView);
 
 

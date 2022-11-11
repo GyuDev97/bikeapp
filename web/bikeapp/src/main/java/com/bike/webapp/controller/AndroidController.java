@@ -108,12 +108,8 @@ public class AndroidController {
 		record.setRr_time(Integer.parseInt(request.getParameter("rr_time")));
 		record.setRr_area(request.getParameter("rr_area"));
 		record.setRr_name(request.getParameter("rr_name"));
-		if ( !request.getParameter("rr_comp").equals("null")) {
-			record.setRr_comp(Integer.parseInt(request.getParameter("rr_comp")));
-			androidService.insertRecordWithComp(record);
-		}
-		else
-			androidService.insertRecord(record);
+		androidService.insertRecord(record);
+		
 		Map<String, String> result = new HashMap<String, String>();
 		result.put("data1", request.getParameter("rr_rider"));
 

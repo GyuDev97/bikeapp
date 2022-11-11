@@ -23,8 +23,8 @@
 	</insert>
 
 <!-- 안드로이드 로그인 -->
-	<select id="LoginProcess" parameterType="hashMap" resultType="com.bike.webapp.dto.AnLogin">
-		select r_id, r_pw from rider where r_id = #{r_id} and r_pw = #{r_pw}
+	<select id="LoginProcess" parameterType="hashMap" resultType="int">
+		select count(*) from rider where r_id = #{r_id} and r_pw = #{r_pw}
 	</select>
 	
 	<!-- 로그인 정보 -->

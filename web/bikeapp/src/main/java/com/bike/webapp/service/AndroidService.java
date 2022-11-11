@@ -22,7 +22,7 @@ public class AndroidService {
 	private AndroidMapper androidMapper;
 	
 	//로그인
-	public AnLogin LoginProcess(AnLogin login) throws Exception{
+	public int LoginProcess(AnLogin login) throws Exception{
 		return androidMapper.LoginProcess(login);
 	}
 	

@@ -69,15 +69,15 @@ public class AndroidController {
 	@RequestMapping(value = "login")
 	public @ResponseBody AnLogin login(@RequestBody AnLogin login) throws Exception {
 
-		AnLogin list = androidService.LoginProcess(login);
-		
-		if(list.toString() == "[]") {
-			list.setStatus("로그인실패");
+		int list = androidService.LoginProcess(login);
+		log.info("로그인결과카운트",list);
+		if(list == 0) {
+			login.setStatus("로그인실패");
 		}
 		else {
-			list.setStatus("Ok");
+			login.setStatus("Ok");
 		}
-		return list;
+		return login;
 	}
 	
 	//안드로이드 로그인 후 유저 정보 가져오기

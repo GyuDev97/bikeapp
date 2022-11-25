@@ -43,7 +43,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.member.LoginActivity" />
-        <activity android:name=".net.LoginAccess" />
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar"/>

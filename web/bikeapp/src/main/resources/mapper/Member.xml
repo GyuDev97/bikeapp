@@ -51,12 +51,12 @@
 		where DA_STATUS=1 로 수정해야함 -->
 	<select id="getUserDangerousArea" parameterType="String"
 		resultType="com.bike.webapp.dto.DangerousArea">
-		select * from DANGEROUS_AREA where DA_RIDER = #{rr_rider}
+		select * from dangerous_area where DA_RIDER = #{rr_rider}
 	</select>
 
 	<delete id="deleteDangerousArea" parameterType="Integer">
 		DELETE
-		DANGEROUS_AREA WHERE DA_NUM=#{da_num}
+		dangerous_area WHERE DA_NUM=#{da_num}
 	</delete>
 
 	<insert id="postNoDanger"

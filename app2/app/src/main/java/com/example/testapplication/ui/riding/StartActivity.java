@@ -290,7 +290,7 @@ public class StartActivity extends AppCompatActivity
                         polyline.setTag(1000);
                         polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline 컬러 지정.
                         //서버에 올려둔 이미지 URL
-                        URL url = new URL("http://13.209.229.237:8080/app/getGPX/gpx/"+gpx_name);
+                        URL url = new URL("http://gyudrive.ipdisk.co.kr:8080/app/getGPX/gpx/"+gpx_name);
                         //Web에서 이미지 가져온 후 ImageView에 지정할 Bitmap 만들기
                     /* URLConnection 생성자가 protected로 선언되어 있으므로
                      개발자가 직접 HttpURLConnection 객체 생성 불가 */
@@ -499,8 +499,6 @@ public class StartActivity extends AppCompatActivity
                 //재개, 정지 버튼
 
                 public void myOnClick(View v) {
-
-
                     Log.d("현재상태", String.valueOf(cur_status));
 
                     switch (v.getId()) {
@@ -1017,7 +1015,7 @@ public class StartActivity extends AppCompatActivity
                         switch (a) {
                             case "위치전송":
                                 String sms = "" +
-                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://13.209.229.237:8080/app/dangergps/35.896599/128.621009";
+                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
                                 smsManager.sendTextMessage(number, null, sms, null, null);
                                 Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
                                 break;
@@ -1026,7 +1024,7 @@ public class StartActivity extends AppCompatActivity
                                 break;
                             case "지인에게 문자":
                                 String sms2 = "" +
-                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://13.209.229.237:8080/app/dangergps/35.896599/128.621009";
+                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
                                 smsManager.sendTextMessage(number, null, sms2, null, null);
                                 break;
                             case "지인에게 통화":

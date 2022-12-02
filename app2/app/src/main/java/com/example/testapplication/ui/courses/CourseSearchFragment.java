@@ -24,7 +24,7 @@ import com.example.testapplication.ui.BaseFragment;
 
 public class CourseSearchFragment extends BaseFragment {
     WebView webview;
-    private static final String ENTRY_URL = "http://192.168.162.18:8080/app/riding/CourseSearch";
+    private static final String ENTRY_URL = "http://gyudrive.ipdisk.co.kr:8080/bike/app/riding/CourseSearch";
     String LoginId, Nickname, r_image;
     ImageView userImage;
     SharedPreferences auto;

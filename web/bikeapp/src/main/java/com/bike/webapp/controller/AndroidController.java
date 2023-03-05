@@ -152,10 +152,10 @@ public class AndroidController {
 			log.debug("업로드 파일 명 "+fileName+" "+"업로드 경로 "+dir);
 			try {
 				
-				// String path =
-				// "/home/ec2-user/apps/mtbcraft/spring/mtbcraft/src/main/resources/static/gpx";
-				String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/" + dir;
-
+				//로컬에선
+				//String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/" + dir;
+				//운영에선
+				String path = "/volume1/Develop/bikeapp/uploads" + dir;
 				if (!file1.isEmpty()) { // 첨부파일이 존재?
 					try {
 						// 디렉토리 생성
@@ -300,7 +300,8 @@ public class AndroidController {
 	}
 	
 	private void makeGpx(Gpx gpx, String gpxFile) throws Exception {
-		String path = "/home/ec2-user/data/gpx/"+gpxFile;
+	
+		String path = "/volume1/Develop/bikeapp/uploads/data/gpx/" + gpxFile;
 		File file = new File(path);
 		String txt = "";
 		FileInputStream fis = new FileInputStream(file); 

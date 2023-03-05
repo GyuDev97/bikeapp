@@ -150,7 +150,7 @@ public class HttpClient {
                 method = "GET";
             }
             this.method = method;
-            this.url = "http://gyudrive.ipdisk.co.kr:8080/bike/"+url;
+            this.url = "http://gyudrive.ipdisk.co.kr:8080"+url;
             this.parameters = new HashMap<String, Object>();
         }
 

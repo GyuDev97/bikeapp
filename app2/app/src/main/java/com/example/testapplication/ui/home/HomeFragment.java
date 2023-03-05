@@ -96,7 +96,7 @@ public class HomeFragment extends BaseFragment {
                             date = test.getRr_date();
                             total_dis += test.getRr_distance();
                             //오늘 주행한거
-                            Log.d("내용확인",oTime+" "+ date.substring(0,10));
+
                             if(oTime.equals(date.substring(0,10))) {
                                 Log.d("if문임","if문임");
                                 int hour;

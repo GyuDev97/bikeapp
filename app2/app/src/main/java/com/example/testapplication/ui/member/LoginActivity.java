@@ -17,16 +17,23 @@ import androidx.core.content.ContextCompat;
 
 import com.example.testapplication.MainActivity;
 import com.example.testapplication.R;
-import com.example.testapplication.net.LoginAccess;
+import com.example.testapplication.dto.AnLogin;
+import com.example.testapplication.net.Server;
+import com.example.testapplication.net.ServerApi;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
     // 멀티 퍼미션 지정
     private static final int MULTIPLE_PERMISSIONS = 101;
 
+    //권한 체크
     private String[] permissions = {
             Manifest.permission.INTERNET, //인터넷
             Manifest.permission.ACCESS_NETWORK_STATE, //네트워크
@@ -38,6 +45,10 @@ public class LoginActivity extends AppCompatActivity {
             Manifest.permission.SEND_SMS, //내장메모리
             Manifest.permission.CALL_PHONE
     };
+    
+    protected ServerApi serverApi;//서버 호출
+    private Call<AnLogin> request; //서버요청 콜
+    String Save_Path, rider;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,10 +58,11 @@ public class LoginActivity extends AppCompatActivity {
             checkPermissions();
         }
 
-        //자동로그인을 위한 앱 내부 저장
+        //현재 로그인상태인지 체크
         SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor autoLogin = auto.edit();
         String LoginId = auto.getString("LoginId",null);
+        
+        //로그인이 되어있지 않다면 로그인 진행
         if(LoginId==null){
             Button loginbt = (Button)findViewById(R.id.login_bt);
             TextView userid = (TextView)findViewById(R.id.userid);
@@ -59,11 +71,57 @@ public class LoginActivity extends AppCompatActivity {
 
 
             loginbt.setOnClickListener(v -> {
-                Intent intent=new Intent(getApplicationContext(), LoginAccess.class);
-                intent.putExtra("UserId",userid.getText().toString());
-                intent.putExtra("UserPw", userpw.getText().toString());
-                startActivity(intent);
-                finish();
+
+                //저장경로
+                Save_Path = getFilesDir().getPath();
+                //레트로핏
+                serverApi = Server.getInstance().getApi();
+
+                AnLogin login = new AnLogin();
+                login.setR_id(userid.getText().toString());
+                login.setR_pw(userpw.getText().toString());
+
+
+                request = serverApi.Login(login);
+                request.enqueue(new Callback<AnLogin>() {
+                    @Override
+                    public void onResponse(Call<AnLogin> call, Response<AnLogin> response) {
+                        //JSON BODY가져옴
+                        AnLogin body = response.body();
+                        //로그인 데이터 체크
+                        String status = body.getStatus();
+                        try {
+                            if (status.equals("Ok")) {
+                                //자동로그인을 위한 앱 내부 저장
+                                SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
+                                SharedPreferences.Editor autoLogin = auto.edit();
+                                autoLogin.putString("LoginId", userid.getText().toString());
+                                autoLogin.commit();
+
+                                //Toast toast = Toast.makeText(getApplicationContext(), rider + "님 로그인했습니다.", Toast.LENGTH_SHORT);
+                                //toast.show();
+                                //새 인텐트실행
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }else{
+                                //로그인 실패시 toast값 표시
+                                Toast toast = Toast.makeText(getApplicationContext(), "아이디와 비밀번호를 확인해주세요", Toast.LENGTH_SHORT);
+                                toast.show();
+                                return;
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AnLogin> call, Throwable t) {
+                        Toast toast = Toast.makeText(getApplicationContext(), "서버와 통신에 실패하였습니다.", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                });
             });
 
             registerbt.setOnClickListener( v -> {

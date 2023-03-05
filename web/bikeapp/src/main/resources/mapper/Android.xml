@@ -140,7 +140,7 @@ select ss_rider, rr_rider, rr_date,  rr_name, ss_rnum, rr_avgspeed, rr_distance,
 	</select>
 	
 	<select id="getDanger" parameterType="String" resultType="com.bike.webapp.dto.DangerousArea">
-		select * from DANGEROUS_AREA
+		select * from dangerous_area
 	</select>
 	
 	<select id="getCompBadge" parameterType="Integer" resultType="com.bike.webapp.dto.Badge">
@@ -287,16 +287,14 @@ select ss_rider, rr_rider, rr_date,  rr_name, ss_rnum, rr_avgspeed, rr_distance,
 	</select>
 	
 	<select id="insertDanger" parameterType="com.bike.webapp.dto.DangerousArea">
-		INSERT INTO dangerous_area (da_idx, da_rider, da_latitude, da_longitude, da_addr, da_image, da_content, create_date, da_status) VALUES
+		INSERT INTO dangerous_area (da_rider, da_latitude, da_longitude, da_addr, da_image, da_content, da_status) VALUES
 		(	
-			 (SELECT TO_NUMBER(NVL(MAX(DA_IDX), '0')) + 1  FROM dangerous_area),
 			 #{da_rider},
 			 #{da_latitude},
 			 #{da_longitude},
 			 #{da_addr},
 			 #{da_image},
 			 #{da_content},
-			SYSDATE,
 			 '0'
 		)
 	</select>

@@ -9523,12 +9523,9 @@ textarea.form-control {
     stroke-dashoffset: -136px; } }
 
 #content1 {
-    width: 100%;
-    height: 450px;
-    text-align: right;
-    font: 40px 'malgun gothic';
-    padding-top: 100px;
-    padding-right: 50px;
+    width:100%;
+	height:300px;
+	border:solid 1px red;
 }
 
 #f50 {

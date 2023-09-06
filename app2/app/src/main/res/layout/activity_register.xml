@@ -50,32 +50,23 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="32dp"
                     android:layout_marginTop="30dp"
-                    android:text="아이디"
+                    android:text="이메일"
                     android:textSize="15sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
 
                 <EditText
                     android:id="@+id/editText2"
                     android:layout_width="200dp"
                     android:layout_height="30dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="25dp"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="80dp"
                     android:background="@drawable/rec_button"
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:paddingLeft="10dp"
                     app:layout_constraintStart_toEndOf="@+id/textView21"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <Button
-                    android:id="@+id/button2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="16dp"
-                    android:text="중복확인"
-                    app:layout_constraintStart_toEndOf="@+id/editText2"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
@@ -89,11 +80,12 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView21" />
 
+
                 <EditText
                     android:id="@+id/editText3"
                     android:layout_width="295dp"
                     android:layout_height="30dp"
-                    android:layout_marginStart="24dp"
+                    android:layout_marginStart="36dp"
                     android:layout_marginTop="11dp"
                     android:background="@drawable/rec_button"
                     android:ems="10"
@@ -102,67 +94,27 @@
                     app:layout_constraintStart_toEndOf="@+id/textView24"
                     app:layout_constraintTop_toBottomOf="@+id/button2" />
 
-                <EditText
-                    android:id="@+id/editText5"
-                    android:layout_width="295dp"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="97dp"
-                    android:layout_marginTop="21dp"
-                    android:background="@drawable/rec_button"
-                    android:ems="10"
-                    android:hint="비밀번호 재확인"
-                    android:inputType="textPassword"
-                    android:paddingLeft="10dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/editText3" />
-
-                <TextView
-                    android:id="@+id/textView27"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="45dp"
-                    android:layout_marginTop="81dp"
-                    android:text="이름"
-                    android:textSize="15sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView24" />
-
-                <EditText
-                    android:id="@+id/editText8"
-                    android:layout_width="295dp"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/rec_button"
-                    android:ems="10"
-                    android:inputType="textPersonName"
-                    android:paddingLeft="10dp"
-                    app:layout_constraintStart_toEndOf="@+id/textView27"
-                    app:layout_constraintTop_toBottomOf="@+id/editText5" />
-
                 <TextView
                     android:id="@+id/textView28"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="32dp"
-                    android:layout_marginTop="28dp"
                     android:text="닉네임"
                     android:textSize="15sp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView27" />
+                    tools:layout_editor_absoluteY="236dp" />
 
                 <EditText
                     android:id="@+id/editText9"
                     android:layout_width="295dp"
                     android:layout_height="30dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="19dp"
+                    android:layout_marginStart="32dp"
                     android:background="@drawable/rec_button"
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:paddingLeft="10dp"
                     app:layout_constraintStart_toEndOf="@+id/textView28"
-                    app:layout_constraintTop_toBottomOf="@+id/editText8" />
+                    tools:layout_editor_absoluteY="234dp" />
 
                 <TextView
                     android:id="@+id/textView29"
@@ -258,86 +210,6 @@
                     android:paddingLeft="10dp"
                     app:layout_constraintStart_toEndOf="@+id/editText14"
                     app:layout_constraintTop_toBottomOf="@+id/editText12" />
-
-                <TextView
-                    android:id="@+id/textView31"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="45dp"
-                    android:layout_marginTop="26dp"
-                    android:text="성별"
-                    android:textSize="15sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView30" />
-
-                <RadioGroup
-                    android:id="@+id/radioGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginTop="15dp"
-                    android:orientation="horizontal"
-                    app:layout_constraintStart_toEndOf="@+id/textView31"
-                    app:layout_constraintTop_toBottomOf="@+id/spinner">
-
-                    <RadioButton
-                        android:id="@+id/radioButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="남성" />
-
-                    <RadioButton
-                        android:id="@+id/radioButton3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:text="여성" />
-
-                </RadioGroup>
-
-                <TextView
-                    android:id="@+id/textView33"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="18dp"
-                    android:layout_marginTop="100dp"
-                    android:text="생년월일"
-                    android:textSize="15sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView31" />
-
-                <DatePicker
-                    android:id="@+id/datePicker"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="24dp"
-                    android:calendarViewShown="false"
-                    android:datePickerMode="spinner"
-                    app:layout_constraintStart_toEndOf="@+id/textView33"
-                    app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
-
-                <TextView
-                    android:id="@+id/textView23"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginTop="110dp"
-                    android:text="이미지"
-                    android:textSize="15sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/datePicker" />
-
-                <ImageView
-                    android:id="@+id/imageView8"
-                    android:layout_width="230dp"
-                    android:layout_height="230dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:scaleType="fitXY"
-                    app:layout_constraintStart_toStartOf="@id/datePicker"
-                    app:layout_constraintTop_toBottomOf="@id/datePicker"
-                    app:srcCompat="@drawable/image_plus" />
 
                 <Button
                     android:id="@+id/button5"

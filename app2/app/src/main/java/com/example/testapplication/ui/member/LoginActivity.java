@@ -91,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
                         //로그인 데이터 체크
                         String status = body.getStatus();
                         try {
-                            if (status.equals("Ok")) {
+                            if (status.equals("true")) {
                                 //자동로그인을 위한 앱 내부 저장
                                 SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
                                 SharedPreferences.Editor autoLogin = auto.edit();

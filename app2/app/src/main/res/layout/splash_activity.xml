@@ -17,7 +17,7 @@
             android:id="@+id/textView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="산악라이더들의 \n즐거운 공간\n MTBCRAFT"
+            android:text="라이더들의 공간 \n R Space "
             android:textColor="#fff"
             android:textSize="40dp"
             android:textStyle="bold"

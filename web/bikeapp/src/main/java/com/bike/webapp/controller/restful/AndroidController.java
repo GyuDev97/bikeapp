@@ -1,4 +1,4 @@
-package com.bike.webapp.controller;
+package com.bike.webapp.controller.restful;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,83 +53,79 @@ import com.bike.webapp.service.*;
 
 @Controller
 @RequestMapping(value = "/app/")
-
 public class AndroidController {
+	
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	//회원 Service객체
 	@Autowired
 	MemberService memberService;
 
+	//앱 Service객체
 	@Autowired
 	AndroidService androidService;
 
+	//라이딩 Service객체
 	@Autowired
 	private RidingService ridingService;
 	
-	// 안드로이드 세션로그인
+	//로그인
 	@RequestMapping(value = "login")
 	public @ResponseBody AnLogin login(@RequestBody AnLogin login) throws Exception {
-
+		
 		int list = androidService.LoginProcess(login);
+		
 		log.info("로그인결과카운트",list);
 		if(list == 0) {
-			login.setStatus("로그인실패");
+			login.setStatus("false");
 		}
 		else {
-			login.setStatus("Ok");
+			login.setStatus("true");
 		}
 		return login;
 	}
 	
-	//안드로이드 로그인 후 유저 정보 가져오기
+	//사용자 정보 가져오기
 	@RequestMapping(value = "getLoginInfo/{LoginId}")
 	public @ResponseBody LoginInfo getLoginInfo(@PathVariable String LoginId) throws Exception{
+		
 		return null;
 	}
 
 	// 주행기록 등록(안드로이드)
 	@RequestMapping(value = "riding/upload")
 	@ResponseBody
-	public Map<String, String> insertriding(HttpServletRequest request) throws Exception {
-		RidingRecord record = new RidingRecord();
-
-		// 현재날짜 timestamp
-		Date today = new java.util.Date();
-		Timestamp timestamp = new Timestamp(today.getTime());
-
-		record.setRr_rider(request.getParameter("rr_rider"));
-		record.setRr_date(timestamp);
-		record.setRr_distance(Integer.parseInt(request.getParameter("rr_distance")));
-		record.setRr_topspeed(Integer.parseInt(request.getParameter("rr_topspeed")));
-		record.setRr_avgspeed(Integer.parseInt(request.getParameter("rr_avgspeed")));
-		record.setRr_high(Integer.parseInt(request.getParameter("rr_high")));
-		record.setRr_gpx(request.getParameter("rr_gpx"));
-		record.setRr_open(Integer.parseInt(request.getParameter("rr_open")));
-		record.setRr_breaktime(Integer.parseInt(request.getParameter("rr_breaktime")));
-		record.setRr_time(Integer.parseInt(request.getParameter("rr_time")));
-		record.setRr_area(request.getParameter("rr_area"));
-		record.setRr_name(request.getParameter("rr_name"));
-		androidService.insertRecord(record);
+	public Map<String, String> insertriding(@RequestBody RidingRecord record , HttpServletRequest request) throws Exception {
 		
 		Map<String, String> result = new HashMap<String, String>();
-		result.put("data1", request.getParameter("rr_rider"));
-
+		
+		log.info("=========upload=======", "");
+		log.info("", record.toString());
+		log.info("=========end=======", record.toString());
+		
+		try {
+			androidService.insertRecord(record); //기록저장
+			result.put("data1", request.getParameter("rr_rider"));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 
-	// 주행기록 가져오기
+	//메인화면 라이딩 기록 가져오기
 	@RequestMapping(value = "get/admin")
 	public @ResponseBody List<App_RidingRecord> getRidingRecord() throws Exception {
 		return androidService.readRecord("admin");
 	}
 
-	// 주행기록 상세보기
+	//주행기록 상세보기
 	@RequestMapping(value = "get/detail/1")
 	public @ResponseBody List<RidingRecord> getRidingRecordDetail() throws Exception {
 		RidingRecord record = new RidingRecord();
 		return androidService.getRidingRecordDetail("admin", "1");
 	}
 	
-	//주행기록 상세보기(공개여부설정)
+	//주행기록 공개여부 설정
 		@RequestMapping(value = "recordset/open")
 		public @ResponseBody Map<String, String> RidingOpenSet(HttpServletRequest request) throws Exception {
 			RidingRecord record = new RidingRecord();
@@ -145,7 +141,7 @@ public class AndroidController {
 			return result;
 		}
 	
-
+		//GPX파일 저장
 		@RequestMapping(value = "fileUpload/{dir}/{fileName}", method = RequestMethod.POST)
 		public @ResponseBody void upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
 				@PathVariable(value="fileName") String fileName) {
@@ -194,8 +190,6 @@ public class AndroidController {
 		
 		androidService.insertScrap(scrap);
 
-		System.out.println(request.getParameter("c_num"));
-		System.out.println(request.getParameter("ss_rider"));
 		Map<String, String> result = new HashMap<String, String>();
 		result.put("Status", "Ok");
 

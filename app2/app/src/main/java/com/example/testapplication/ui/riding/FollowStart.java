@@ -214,7 +214,7 @@ public class FollowStart extends AppCompatActivity
 
         //using ArrayAdapter
         ArrayAdapter spinnerAdapter;
-        spinnerAdapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, list);
+        spinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, list);
         spinner.setAdapter(spinnerAdapter);
 
         //event listener

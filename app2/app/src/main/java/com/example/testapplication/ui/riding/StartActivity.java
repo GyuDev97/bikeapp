@@ -48,6 +48,11 @@ import com.example.testapplication.gpx.TrackPoint;
 import com.example.testapplication.gpx.TrackSegment;
 import com.example.testapplication.net.Server;
 import com.example.testapplication.net.ServerApi;
+import com.kakao.vectormap.KakaoMap;
+import com.kakao.vectormap.KakaoMapReadyCallback;
+import com.kakao.vectormap.LatLng;
+import com.kakao.vectormap.MapLifeCycleCallback;
+import com.kakao.vectormap.GestureType;
 import com.google.android.material.tabs.TabLayout;
 import net.daum.mf.map.api.CalloutBalloonAdapter;
 import net.daum.mf.map.api.CameraUpdateFactory;
@@ -81,6 +86,7 @@ public class StartActivity extends AppCompatActivity
     private boolean play;
     private ActivityRidingStartBinding binding;
     private MapView mMapView;
+    private com.kakao.vectormap.MapView kakaoV2MapView;
     private MapPOIItem mCustomMarker;
     private LocationManager locationManager;
     private Location mLastlocation = null;
@@ -90,7 +96,7 @@ public class StartActivity extends AppCompatActivity
     private int cnt=0;
 
     private String getDalat, getDalon, getDacon, address_dong;
-    //각종 변수
+    //??醫딆┣??????⑤슢堉???
     private double latitude, lonngitude, getSpeed = 0, hap = 0, avg = 0, maX = 0, maxLat = 0, maxLon = 0, minLat = 1000, minLon = 1000;
     private int getgodo, getgodoval = 0;
     private int  total_time=0, rest=0;
@@ -99,13 +105,13 @@ public class StartActivity extends AppCompatActivity
     private ArrayList<Double> ele = new ArrayList<>();
     private ArrayList<Float> godoArray = new ArrayList<>();
     private String a;
-    //형변환용변수
+    //?癲?????볥궙獒??⑤슢堉???
     private String cha_dis = "0", cha_max = "0", cha_avg = "0", adress_value = "";
 
     private List<Address> addr = null;
     private Geocoder gCoder;
 
-    //이동시간 핸들러
+    //???????????癲ル슢??蹂좊쨨??
     long BaseTime;
     final static int Init = 0;
     final static int Run = 1;
@@ -125,10 +131,10 @@ public class StartActivity extends AppCompatActivity
     private String gpx_name;
     private String c_name;
 
-    //gpx관련
+    //gpx???援온??
     Gpx parsedGpx = null;
     GPXParser mParser = new GPXParser();
-    //레트로핏
+    //?????놁뎽?汝??吏????
     private ServerApi serverApi = Server.getInstance().getApi();
     private Call<List<DangerousArea>> DangerGet;
     private List<DangerousArea> getDanger;
@@ -136,7 +142,7 @@ public class StartActivity extends AppCompatActivity
     public StartActivity() {
     }
 
-    // CalloutBalloonAdapter 인터페이스 구현
+    // CalloutBalloonAdapter ?癲ル슢?뤸뤃?????볥궙????????닻뇦?
         class CustomCalloutBalloonAdapter implements CalloutBalloonAdapter {
             private final View mCalloutBalloon;
 
@@ -168,7 +174,7 @@ public class StartActivity extends AppCompatActivity
         number = phone.getString("sosphone", "");
 
         smsManager = SmsManager.getDefault();
-        //음성인식
+        //?????癲ル슢???彛?
         intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
@@ -179,15 +185,15 @@ public class StartActivity extends AppCompatActivity
         //id refernece for wizet
         spinner = (Spinner) findViewById(R.id.help);
 
-        if (a == "전화") {
+        if ("\uC804\uD654".equals(a)) {
             try {
                 SmsManager smsManager = SmsManager.getDefault();
                 String sms = "" +
-                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://13.209.229.237:8080/app/dangergps/+"+latitude+"/"+lonngitude;
+                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://13.209.229.237:8080/app/dangergps/" + latitude + "/" + lonngitude;
                 smsManager.sendTextMessage(number, null, sms, null, null);
-                Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "\uC804\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
         }
@@ -195,25 +201,25 @@ public class StartActivity extends AppCompatActivity
         //input array data
         list = new ArrayList<>();
         list.add("");
-        list.add("119에 전화");
-        list.add("119에 위치전송");
-        list.add("지정번호에 전화" + "(" + number + ")");
-        list.add("지정번호에 위치전송" + "(" + number + ")");
+        list.add("119\uC5D0 \uC804\uD654");
+        list.add("119\uC5D0 \uC704\uCE58\uC804\uC1A1");
+        list.add("\uC9C0\uC815\uBC88\uD638\uC5D0 \uC804\uD654" + "(" + number + ")");
+        list.add("\uC9C0\uC815\uBC88\uD638\uC5D0 \uC704\uCE58\uC804\uC1A1" + "(" + number + ")");
 
 
         //using ArrayAdapter
         ArrayAdapter spinnerAdapter;
-        spinnerAdapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, list);
+        spinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, list);
         spinner.setAdapter(spinnerAdapter);
 
         //event listener
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Toast.makeText(getApplicationContext(),"선택된 아이템 : "+position+spinner.getItemAtPosition(position),Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getApplicationContext(),"????ｋ???????썹땟?㈑??: "+position+spinner.getItemAtPosition(position),Toast.LENGTH_SHORT).show();
                 tel = "tel:01047527613";
                 tel2 = "tel:" + number;
-                Log.d("전화번호", tel2);
+                Log.d("PhoneNumber", tel2);
                 switch (position) {
                     case 1:
                         startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
@@ -222,11 +228,11 @@ public class StartActivity extends AppCompatActivity
                         try {
                             SmsManager smsManager = SmsManager.getDefault();
                             String sms = "" +
-                                    "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude;
+                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude;
                             smsManager.sendTextMessage("010-4752-7613", null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "????썹땟戮щ빝???????곌숯????????? ????ㅼ굣亦????꾣뤃??嚥싲갭큔?源띿춻??뽯뮋?????꾣뤃???嶺뚮ㅎ????", Toast.LENGTH_LONG).show();
                             e.printStackTrace();
                         }
 
@@ -238,11 +244,11 @@ public class StartActivity extends AppCompatActivity
                         try {
                             SmsManager smsManager = SmsManager.getDefault();
                             String sms = "" +
-                                    "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude+"";
+                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude+"";
                             smsManager.sendTextMessage(number, null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "????썹땟戮щ빝???????곌숯????????? ????ㅼ굣亦????꾣뤃??嚥싲갭큔?源띿춻??뽯뮋?????꾣뤃???嶺뚮ㅎ????", Toast.LENGTH_LONG).show();
                             e.printStackTrace();
                         }
                         break;
@@ -260,18 +266,10 @@ public class StartActivity extends AppCompatActivity
         timeThread.start();
 
         isRunning = !isRunning;
-        mMapView = new MapView(this);
         ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
-        mapViewContainer.addView(mMapView);
-        mMapView.setCurrentLocationEventListener(this);
-        mMapView.setShowCurrentLocationMarker(true);
-        mMapView.setMapViewEventListener(this);
-        mMapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+        startKakaoV2Map(mapViewContainer);
 
-        // 구현한 CalloutBalloonAdapter 등록
-        mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
-
-        //코스 따라가기 값 가져오기
+        //??ш끽維驪??????산뭐??쀪쑬夷???쎛??????醫딆쓧??癲ル슢???몄쒜嚥▲룗??
         Intent course_get = new Intent(this.getIntent());
         c_name = course_get.getStringExtra("c_name");
         gpx_name = course_get.getStringExtra("gpx");
@@ -288,21 +286,21 @@ public class StartActivity extends AppCompatActivity
                     try {
                         MapPolyline polyline = new MapPolyline();
                         polyline.setTag(1000);
-                        polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline 컬러 지정.
-                        //서버에 올려둔 이미지 URL
+                        polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline ??嚥▲꺂????꿔꺂?????
+                        //??嶺뚮Ĳ?됭짆????????????꿔꺂??? URL
                         URL url = new URL("http://gyudrive.ipdisk.co.kr:8080/app/getGPX/gpx/"+gpx_name);
-                        //Web에서 이미지 가져온 후 ImageView에 지정할 Bitmap 만들기
-                    /* URLConnection 생성자가 protected로 선언되어 있으므로
-                     개발자가 직접 HttpURLConnection 객체 생성 불가 */
+                        //Web??????????꿔꺂??? ??醫딆쓧??癲ル슢???몄쒜???ImageView???꿔꺂????癲ル슢怡??뱀떫 Bitmap ?꿔꺂??????筌뚯솃?
+                    // Open the GPX file from the server.
+
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    /* openConnection()메서드가 리턴하는 urlConnection 객체는
-                    HttpURLConnection의 인스턴스가 될 수 있으므로 캐스팅해서 사용한다*/
-
-                        conn.setDoInput(true); //Server 통신에서 입력 가능한 상태로 만듦
-                        conn.connect(); //연결된 곳에 접속할 때 (connect() 호출해야 실제 통신 가능함)
+                    // Configure and open the HTTP connection.
 
 
-                        InputStream is = conn.getInputStream(); //inputStream 값 가져오기
+                        conn.setDoInput(true); //Server ???嶺?????????怨몄７ ??醫딆쓧??嚥싳쇎紐??????븐뻤??쒖몱???꿔꺂??????
+                        conn.connect(); //????쇰뮚???????곗숯???????????(connect() ?癲ル슢???????ㅿ폑?????繹먮냱議????嶺???醫딆쓧??嚥싳쇎紐??
+
+
+                        InputStream is = conn.getInputStream(); //inputStream ????醫딆쓧??癲ル슢???몄쒜嚥▲룗??
                         // InputStream in = getAssets().open("and.gpx");
                         parsedGpx = mParser.parse(is);
 
@@ -323,13 +321,17 @@ public class StartActivity extends AppCompatActivity
                                     }
                                 }
                             }
-                            // Polyline 지도에 올리기.
-                            mMapView.addPolyline(polyline);
+                            // Polyline ?꿔꺂???????썹땟????????틓楹?
+                            if (mMapView != null) {
+                                mMapView.addPolyline(polyline);
+                            }
 
-                            // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
+                            // ?꿔꺂???????썹땟????嚥싳쉶瑗??꾧틡?嶺?????ㅽ떝椰?? 嚥싳쉶瑗??裕???⑤즾逾???묆궘?Polyline???꿔꺂??袁ㅻ븶?癲?????볥궖?????썹땟怨⒲뀋???됰슦????
                             MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
                             int padding = 100; // px
-                            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+                            if (mMapView != null) {
+                                mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+                            }
                         } else {
                             Log.e("error","Error parsing gpx track!");
                         }
@@ -346,15 +348,15 @@ public class StartActivity extends AppCompatActivity
         }
 
 
-        //이동시간 핸들러
+        //???????????癲ル슢??蹂좊쨨??
         BaseTime = SystemClock.elapsedRealtime();
         RidingTimer.sendEmptyMessage(0);
 
         //send_sms = (Button) findViewById(R.id.help);
-        cur_status = Run; //현재상태를 런상태로 변경
-        binding.mapLayout.setVisibility(View.VISIBLE); //지도
-        binding.speedPre.setVisibility(View.VISIBLE); //지도탭에서 보여지는거
-        binding.speedTap.setVisibility(View.GONE); //속도계
+        cur_status = Run; //????썹땟?????븐뻤??????????????嶺뚮Ĳ?됲걫 ??⑤슢堉???
+        binding.mapLayout.setVisibility(View.VISIBLE); //?꿔꺂?????
+        binding.speedPre.setVisibility(View.VISIBLE); //?꿔꺂???????꾣뤃????????⑤슢??????鶯????됰Ŧ???
+        binding.speedTap.setVisibility(View.GONE); //????戮?덫??
         binding.statusLayout.setVisibility(View.GONE);
         binding.resumeBt.setVisibility(View.GONE);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -379,46 +381,46 @@ public class StartActivity extends AppCompatActivity
 
 
         binding.endriding.setOnClickListener(v -> {
-            //형변환한거
+            //?癲?????쑩?怨ㅼカ?
             if (hap == 0) {
-                /*이동거리가 0이면 라이딩 기록 종료시키면 액티비티 종료 */
+                /*?????룸????좎돦???쎈뼔??낅젃筌???쎛 0???????濚밸Ŧ???????뚯????덈춣?????띻샴癲?????씸?묅뵾???????즰?????????띻샴癲?*/
                 AlertDialog.Builder alert_confirm = new AlertDialog.Builder(this);
-                alert_confirm.setMessage("수집 데이터가 너무 적어 저장하지 않습니다");
-                alert_confirm.setPositiveButton("예", new DialogInterface.OnClickListener() {
+                alert_confirm.setMessage("\uC8FC\uD589 \uAC70\uB9AC\uAC00 \uB108\uBB34 \uC9E7\uC5B4 \uC800\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
+                alert_confirm.setPositiveButton("\uD655\uC778", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
                     }
                 });
-                alert_confirm.setNegativeButton("아니오", null);
+                alert_confirm.setNegativeButton("\uC544\uB2C8\uC624", null);
                 AlertDialog alert = alert_confirm.create();
-                alert.setTitle("라이딩 기록 실패");
+                alert.setTitle("\uB77C\uC774\uB529 \uAE30\uB85D \uC2E4\uD328");
                 alert.show();
 
             } else {
 
                 Intent intent = new Intent(StartActivity.this, EndActivity.class);
-                intent.putExtra("ingtime", total_time); //경과시간
-                intent.putExtra("distence", (int) hap); //이동거리
-                intent.putExtra("maxspeed", (int) maX); //최대속도
-                intent.putExtra("avgspeed", (int) avg); //평균속도
-                intent.putExtra("getgodo", getgodo); //획득고도
-                intent.putExtra("resttime", rest); //휴식시간
+                intent.putExtra("ingtime", total_time); //?嚥▲굧?????????
+                intent.putExtra("distence", (int) hap); //?????룸????좎돦???쎈뼔??
+                intent.putExtra("maxspeed", (int) maX); //?꿔꺂????쭍?????戮?덫
+                intent.putExtra("avgspeed", (int) avg); //????????戮?덫
+                intent.putExtra("getgodo", getgodo); //????蹂λ쑋???쒙쭫??
+                intent.putExtra("resttime", rest); //????ㅿ폍筌??????
                 intent.putExtra("addr", adress_value);
-                intent.putExtra("witch_lat", witch_lat); //위도
-                intent.putExtra("witch_lon", witch_lon); //경도
+                intent.putExtra("witch_lat", witch_lat); //????썹땟?嶺?
+                intent.putExtra("witch_lon", witch_lon); //?嚥▲굧??嶸??
                 intent.putExtra("address_dong", address_dong);
                 intent.putExtra("godoarray", godoArray);
-                intent.putExtra("ele", ele); //고도
-                intent.putExtra("maxLat", maxLat); //최대위도
-                intent.putExtra("minLat", minLat); //최소위도
-                intent.putExtra("maxLon", maxLon); //최대경도
-                intent.putExtra("minLon", minLon); //최소경도
-                intent.putExtra("wido", witch_lat); //위도(지도보여줄거
-                intent.putExtra("kyun", witch_lon); //경도(지도보여줄거)
+                intent.putExtra("ele", ele); //???쒙쭫??
+                intent.putExtra("maxLat", maxLat); //?꿔꺂????쭍?????썹땟?嶺?
+                intent.putExtra("minLat", minLat); //?꿔꺂????쭍?????썹땟?嶺?
+                intent.putExtra("maxLon", maxLon); //?꿔꺂????쭍??嚥▲굧??嶸??
+                intent.putExtra("minLon", minLon); //?꿔꺂????쭍???븐슜窺????ㅻ덫
+                intent.putExtra("wido", witch_lat); //????썹땟?嶺??꿔꺂???????썹땟?雅???뉗떜吏끾뤃??뙕?
+                intent.putExtra("kyun", witch_lon); //?嚥▲굧??嶸???꿔꺂???????썹땟?雅???뉗떜吏끾뤃??뙕?
                 intent.putExtra("rr_comp", "null");
 
-                Log.d("로그랑", total_time + " " + hap + " " + maX + " " + avg + " " + getgodo + " " + rest + " " + adress_value + " ");
+                Log.d("RideEnd", "time=" + total_time + ", distance=" + hap + ", max=" + maX + ", avg=" + avg + ", high=" + getgodo + ", rest=" + rest + ", addr=" + adress_value);
                 startActivity(intent);
                 finish();
                 mapViewContainer.removeAllViews();
@@ -439,19 +441,20 @@ public class StartActivity extends AppCompatActivity
                             getDacon = danger.getDa_content();
 
 
-                            mCustomMarker = new MapPOIItem();
-                            String name = "Custom Marker";
-                            mCustomMarker.setItemName(getDacon);
-                            mCustomMarker.setTag(1);
-                            mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(getDalat), Double.parseDouble(getDalon)));
+                            if (mMapView != null) {
+                                mCustomMarker = new MapPOIItem();
+                                mCustomMarker.setItemName(getDacon);
+                                mCustomMarker.setTag(1);
+                                mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(getDalat), Double.parseDouble(getDalon)));
 
-                            mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
+                                mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
 
-                            mCustomMarker.setCustomImageResourceId(R.drawable.custom_marker_red);
-                            mCustomMarker.setCustomImageAutoscale(false);
-                            mCustomMarker.setCustomImageAnchor(0.5f, 1.0f);
+                                mCustomMarker.setCustomImageResourceId(R.drawable.custom_marker_red);
+                                mCustomMarker.setCustomImageAutoscale(false);
+                                mCustomMarker.setCustomImageAnchor(0.5f, 1.0f);
 
-                            mMapView.addPOIItem(mCustomMarker);
+                                mMapView.addPOIItem(mCustomMarker);
+                            }
                         }
                     }
                 }
@@ -463,19 +466,59 @@ public class StartActivity extends AppCompatActivity
             });
 
     }
+
+    private void startKakaoV2Map(ViewGroup mapViewContainer) {
+        kakaoV2MapView = new com.kakao.vectormap.MapView(this);
+        kakaoV2MapView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+        mapViewContainer.addView(kakaoV2MapView);
+        kakaoV2MapView.bringToFront();
+        kakaoV2MapView.start(new MapLifeCycleCallback() {
+            @Override
+            public void onMapDestroy() {
+                Log.d("KakaoMapV2", "Map destroyed");
+            }
+
+            @Override
+            public void onMapError(Exception error) {
+                Log.e("KakaoMapV2", "Map error", error);
+            }
+        }, new KakaoMapReadyCallback() {
+            @Override
+            public void onMapReady(KakaoMap kakaoMap) {
+                kakaoMap.setGestureEnable(GestureType.Pan, true);
+                kakaoMap.setGestureEnable(GestureType.Zoom, true);
+                kakaoMap.setGestureEnable(GestureType.RotateZoom, true);
+                kakaoMap.setGestureEnable(GestureType.OneFingerZoom, true);
+                Log.d("KakaoMapV2", "Map ready");
+            }
+
+            @Override
+            public LatLng getPosition() {
+                return LatLng.from(35.89617906303501, 128.62171907592318);
+            }
+
+            @Override
+            public int getZoomLevel() {
+                return 15;
+            }
+        });
+    }
                 private void changeView(int index) {
                     switch (index) {
                         case 0:
                             binding.mapLayout.setVisibility(View.VISIBLE);
                             binding.speedPre.setVisibility(View.VISIBLE);
                             binding.speedTap.setVisibility(View.GONE);
-                            binding.defaultLayout.setBackgroundColor(0xdddddd);
+                            binding.defaultLayout.setBackgroundColor(0xFFF7F8F7);
                             break;
                         case 1:
                             binding.mapLayout.setVisibility(View.GONE);
                             binding.speedPre.setVisibility(View.GONE);
                             binding.speedTap.setVisibility(View.VISIBLE);
-                            binding.defaultLayout.setBackgroundColor(0xf0f0f0);
+                            binding.defaultLayout.setBackgroundColor(0xFFF7F8F7);
                             break;
                     }
 
@@ -496,37 +539,37 @@ public class StartActivity extends AppCompatActivity
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, this);
                 }
 
-                //재개, 정지 버튼
+                //???? ?癲? ?筌?????
 
                 public void myOnClick(View v) {
-                    Log.d("현재상태", String.valueOf(cur_status));
+                    Log.d("RideStatus", String.valueOf(cur_status));
 
                     switch (v.getId()) {
-                        case R.id.pausebt: //정지버튼 활성
+                        case R.id.pausebt: //?癲??筌???????嶺???
 
 
                         case R.id.resume_bt:
-                            //재개 활성
+                            //??????嶺???
 
 
                             switch (cur_status) {
                                 case Init:
                                     BaseTime = SystemClock.elapsedRealtime();
-                                    cur_status = Run; //현재상태를 런상태로 변경
+                                    cur_status = Run; //????썹땟?????븐뻤??????????????嶺뚮Ĳ?됲걫 ??⑤슢堉???
                                     Log.d("cur_status", "1");
 
                                     break;
 
                                 case Run:
                                     PauseTime = SystemClock.elapsedRealtime();
-                                    RidingTimer.removeMessages(0); //라이딩시간
+                                    RidingTimer.removeMessages(0); //??濚밸Ŧ?????꾩룆梨띰쭛??
 
                                     isRunning = !isRunning;
 
                                     cur_status = Pause;
                                     binding.resumeBt.setVisibility(View.VISIBLE);
                                     binding.pausebt.setVisibility(View.GONE);
-                                    Log.d("cur_status", "실행");
+                                    Log.d("cur_status", "?????덊떀");
                                     break;
                                 case Pause:
                                     long now2 = SystemClock.elapsedRealtime();
@@ -535,7 +578,7 @@ public class StartActivity extends AppCompatActivity
                                     cur_status = Run;
                                     binding.resumeBt.setVisibility(View.GONE);
                                     binding.pausebt.setVisibility(View.VISIBLE);
-                                    Log.d("cur_status", "중지");
+                                    Log.d("cur_status", "嚥싳쉶瑗??꾧틡?");
                                     isRunning = false;
                                     break;
                             }
@@ -549,24 +592,24 @@ public class StartActivity extends AppCompatActivity
                         binding.mTime.setText(getTimeout());
                         total_time = getTimeout2();
 
-                        //sendEmptyMessage는 비어있는 메세제를 핸들러에게 전송함
+                        //sendEmptyMessage??????猷뱀쟼?????됲닓 ?꿔꺂???熬곊삳튉??? ?癲ル슢??蹂좊쨨????怨뺤췅??????썹땟戮щ빝??
                         RidingTimer.sendEmptyMessage(0);
                     }
 
 
-                    //현재시간을 계속구해서 출력하는 메소드
+                    //????썹땟??????????影??낟??筌뤾퍔커???????Β?ы닍????β뼯爰귨㎘??꿔꺂??????
                     int getTimeout2() {
-                        long now = SystemClock.elapsedRealtime(); //애플리케이션이 실행되고나서 실제로 경과된 시간(??)^^;
+                        long now = SystemClock.elapsedRealtime(); //????ｋ????????ㅼ젾????????덊떀???野껊뿈???嶺뚮슣堉?쭕????繹먮냱議???嚥▲굧?????????????)^^;
                         long outTime = now - BaseTime;
 
                         int easy_outTime2 = (int) outTime / 1000;
-                        // Log.d("로그", String.valueOf(easy_outTime2));
+                        // Log.d("?汝??吏??, String.valueOf(easy_outTime2));
                         return easy_outTime2;
                     }
 
-                    //현재시간을 계속구해서 출력하는 메소드
+                    //????썹땟??????????影??낟??筌뤾퍔커???????Β?ы닍????β뼯爰귨㎘??꿔꺂??????
                     String getTimeout() {
-                        long now = SystemClock.elapsedRealtime(); //애플리케이션이 실행되고나서 실제로 경과된 시간(??)^^;
+                        long now = SystemClock.elapsedRealtime(); //????ｋ????????ㅼ젾????????덊떀???野껊뿈???嶺뚮슣堉?쭕????繹먮냱議???嚥▲굧?????????????)^^;
                         long outTime = now - BaseTime;
 
                         int sec = (int) ((outTime / 1000) % 60);
@@ -575,7 +618,7 @@ public class StartActivity extends AppCompatActivity
 
 
                         String easy_outTime = String.format("%02d:%02d:%02d", hour, min, sec);
-                        //Log.d("로그", String.valueOf(outTime / 1000));
+                        //Log.d("?汝??吏??, String.valueOf(outTime / 1000));
                         return easy_outTime;
                     }
                 };
@@ -589,7 +632,7 @@ public class StartActivity extends AppCompatActivity
                         int sec = (msg.arg1 / 100) % 60;
                         int min = (msg.arg1 / 100) / 60;
                         int hour = (msg.arg1 / 100) / 360;
-                        //1000이 1초 1000*60 은 1분 1000*60*10은 10분 1000*60*60은 한시간
+                        //1000??1??1000*60 ?? 1??1000*60*10?? 10??1000*60*60?? ??嶺?筌??
 
                         @SuppressLint("DefaultLocale") String result = String.format("%02d:%02d:%02d", hour, min, sec);
 
@@ -604,7 +647,7 @@ public class StartActivity extends AppCompatActivity
                         int i = 0;
 
                         while (true) {
-                            while (isRunning) { //일시정지를 누르면 멈춤
+                            while (isRunning) { //??濚밸Ŧ援앾쭛?癲???????썼キ?????꿔꺂?????
                                 Message msg = new Message();
                                 msg.arg1 = i++;
                                 handler.sendMessage(msg);
@@ -617,7 +660,7 @@ public class StartActivity extends AppCompatActivity
                                         binding.resttime.setText("");
                                         binding.resttime.setText("00:00:00");
                                     });
-                                    return; // 인터럽트 받을 경우 return
+                                    return; // ?癲ル슢?뤸뤃???????熬곣뫖利????嚥▲굧????return
                                 }
                             }
                         }
@@ -705,18 +748,18 @@ public class StartActivity extends AppCompatActivity
                             getDalat = danger.getDa_latitude();
                             getDalon = danger.getDa_longitude();
                             getDacon = danger.getDa_content();
-                            //Log.d("위험지역", test + " " + test2 + test3);
+                            //Log.d("????꾣뤃?????됱삩???, test + " " + test2 + test3);
 
                             Location B = new Location("pointA");
                             B.setLatitude(Double.parseDouble(getDalat));
                             B.setLongitude(Double.parseDouble(getDalon));
                             distance = A.distanceTo(B);
-                            // Log.d(test3 + "거리는", String.valueOf(distance));
-                            //float를 정수로
+                            // Log.d(test3 + "?꿸쑨??????, String.valueOf(distance));
+                            //float???癲ル슢캉????용뮋?
                             int a = (int) distance;
-                            //정수로바꾼거를 문자열로
+                            //?癲ル슢캉????용뮋????닍??辱??影?삳춦?????戮?뜪????濚?
                             String cut_format = String.valueOf(a);
-                            //문자열의 길이를 구한다
+                            //???戮?뜪?????ㅼ굡?????궰?嶺???る옖??????????
                             int leget = cut_format.length();
                             //
 
@@ -724,18 +767,18 @@ public class StartActivity extends AppCompatActivity
                                 String get = cut_format.substring(cut_format.length() - 2);
                                 String get2 = get.substring(0, 1);
                                 if (get2.equals("7")) {
-                                    value = getDacon + "위험구간이 " + get + "미터 앞입니다. 주의하세요";
+                                    value = getDacon + "m ahead, danger area near " + get + "m. Please be careful.";
                                     textToSpeech = new TextToSpeech(this, this);
-                                    // Log.d("십의자리숫자", "70m 전방에 주의구간입니동");
+                                    // Log.d("????????????, "70m ????쏙쭗?ㅒ?????녿뮝???筌뤾퍔커???????뉖뤁??);
                                 }
                             }
                             if (leget == 3) {
                                 String get = cut_format.substring(cut_format.length() - 3);
                                 String get2 = get.substring(0, 1);
                                 if (get2.equals("3")) {
-                                    value = "300m앞에 위험구간입니다";
+                                    value = "Danger area within 300m. Please be careful.";
                                     textToSpeech = new TextToSpeech(this, this);
-                                    // Log.d("십의자리숫자", "300m 전방에 주의구간입니동");
+                                    // Log.d("????????????, "300m ????쏙쭗?ㅒ?????녿뮝???筌뤾퍔커???????뉖뤁??);
                                 }
                             }
                         }
@@ -744,21 +787,21 @@ public class StartActivity extends AppCompatActivity
                         e.printStackTrace();
                     }
 
-                    // 위도 경도 정보 배열 저장
+                    // ????썹땟?嶺??嚥▲굧??嶸???癲ル슢???ъ쒜??熬곣뫖利?影?뉖뜦?????
                     witch_lat.add(latitude);
                     witch_lon.add(lonngitude);
                     godoArray.add((float) location.getAltitude());
 
-                    // 최대 최소 위도 경도 계산
+                    // ?꿔꺂????쭍? ?꿔꺂????쭍??????썹땟?嶺??嚥▲굧??嶸????影??낟??
                     if (maxLat < latitude) maxLat = latitude;
                     if (minLat > latitude) minLat = latitude;
                     if (maxLon < lonngitude) maxLon = lonngitude;
                     if (minLon > lonngitude) minLon = lonngitude;
 
-                    // 고도 정보 저장
+                    // ???쒙쭫???癲ル슢???ъ쒜?????
                     ele.add(location.getAltitude());
 
-                    //현재속도
+                    //????썹땟?????戮?덫
                     getSpeed = Double.parseDouble(String.format("%.1f", location.getSpeed() * 3600 / 1000));
                     binding.nowspeed.setText(String.format("%.1f", getSpeed));  //Get Speed
                     binding.mSpeed.setText(String.format("%.1f", getSpeed) + "km/h");
@@ -767,13 +810,17 @@ public class StartActivity extends AppCompatActivity
                     polyline.setLineColor(Color.argb(128, 255, 51, 0));
 
                     polyline.addPoint(MapPoint.mapPointWithGeoCoord(latitude, lonngitude));
-                    mMapView.addPolyline(polyline);
-                    mMapView.isShowingCurrentLocationMarker();
+                    if (mMapView != null) {
+                        mMapView.addPolyline(polyline);
+                        mMapView.isShowingCurrentLocationMarker();
+                    }
 
-                    // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
+                    // ?꿔꺂???????썹땟????嚥싳쉶瑗??꾧틡?嶺?????ㅽ떝椰?? 嚥싳쉶瑗??裕???⑤즾逾???묆궘?Polyline???꿔꺂??袁ㅻ븶?癲?????볥궖?????썹땟怨⒲뀋???됰슦????
                     MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
                     int padding = 50; // px
-                    mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding, 2, 3));
+                    if (mMapView != null) {
+                        mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding, 2, 3));
+                    }
 
                     gCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                     try {
@@ -789,22 +836,26 @@ public class StartActivity extends AppCompatActivity
                     }
 
                     if (mLastlocation != null) {
-                        /*폴리라인 그리기 */
+                        /*??????濚밸Ŧ??????녾컯嶺????틓楹?*/
                         MapPolyline polyline2 = new MapPolyline();
                         polyline.setLineColor(Color.argb(128, 255, 51, 0));
                         polyline.addPoint(MapPoint.mapPointWithGeoCoord(mLastlocation.getLatitude(), mLastlocation.getLongitude()));
-                        mMapView.addPolyline(polyline);
+                        if (mMapView != null) {
+                            mMapView.addPolyline(polyline);
+                        }
 
-                        // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
+                        // ?꿔꺂???????썹땟????嚥싳쉶瑗??꾧틡?嶺?????ㅽ떝椰?? 嚥싳쉶瑗??裕???⑤즾逾???묆궘?Polyline???꿔꺂??袁ㅻ븶?癲?????볥궖?????썹땟怨⒲뀋???됰슦????
                         MapPointBounds mapPointBounds2 = new MapPointBounds(polyline.getMapPoints());
-                        mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds2, padding, 2, 3));
+                        if (mMapView != null) {
+                            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds2, padding, 2, 3));
+                        }
 
                         if (getSpeed > maX) {
                             maX = getSpeed;
                             binding.maxspeed.setText(String.format("%.1f", maX));
                             cha_max = String.format("%.0f", maX);
                         }
-                        //이동거리
+                        //?????룸????좎돦???쎈뼔??
                         hap = hap + mLastlocation.distanceTo(location);
                         cha_dis = String.format("%.0f", hap);
 
@@ -818,23 +869,23 @@ public class StartActivity extends AppCompatActivity
                             binding.mDistance.setText(String.format("%.1f", killlo) + "km");
                         }
 
-                        //평균속도
+                        //????????戮?덫
                         avg = hap / total_time;
                         binding.avgspeed.setText(String.format("%.1f", Double.parseDouble(String.valueOf(avg))));
                         cha_avg = String.format("%.0f", (avg));
 
-                        //획득고도
-                        //획득고도
+                        //????蹂λ쑋???쒙쭫??
+                        //????蹂λ쑋???쒙쭫??
                         getgodoval = (int) (location.getAltitude() - mLastlocation.getAltitude());
                         if (getgodoval > 0) {
                             getgodo += getgodoval;
                             binding.getgodo.setText(String.valueOf(getgodo));
                         }
 
-                        //고도
+                        //???쒙쭫??
                         binding.Nowgodo.setText(String.format("%.0f", location.getAltitude()) + "m");
                     }
-                    // 현재위치를 지난 위치로 변경
+                    // ????썹땟?????썹땟????꿔꺂?????????썹땟?熬?????⑤슢堉???
                     mLastlocation = location;
                 }
 
@@ -857,7 +908,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 public void onProviderEnabled(String provider) {
-                // 위치정보 업데이트
+                // ????썹땟??癲ル슢???ъ쒜??????욍걛???ш끽維??
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
@@ -916,12 +967,18 @@ public class StartActivity extends AppCompatActivity
                 @Override
                 protected void onPause() {
                     super.onPause();
+                    if (kakaoV2MapView != null) {
+                        kakaoV2MapView.pause();
+                    }
                     Log.d("onPause", "onPause");
                 }
 
                 @Override
                 protected void onResume() {
                     super.onResume();
+                    if (kakaoV2MapView != null) {
+                        kakaoV2MapView.resume();
+                    }
                     Log.d("onResume", "OnResume");
                 }
 
@@ -937,13 +994,13 @@ public class StartActivity extends AppCompatActivity
                         textToSpeech.stop();
                         textToSpeech.shutdown();
                     }
-                    Log.d("다른화면임", "다른화면임");
+                    Log.d("SpeechRecognizer", "stopped");
                 }
 
                 private RecognitionListener listener = new RecognitionListener() {
                     @Override
                     public void onReadyForSpeech(Bundle params) {
-                        //Toast.makeText(getApplicationContext(), "음성인식을 시작합니다.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "?????癲ル슢???彛????嶺뚮??ｆ뤃??嶺뚮ㅎ????", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -968,66 +1025,66 @@ public class StartActivity extends AppCompatActivity
 
                         switch (error) {
                             case SpeechRecognizer.ERROR_AUDIO:
-                                message = "오디오 에러";
+                                message = "Audio error";
                                 break;
                             case SpeechRecognizer.ERROR_CLIENT:
-                                message = "클라이언트 에러";
+                                message = "Client error";
                                 break;
                             case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                                message = "퍼미션 없음";
+                                message = "Permission error";
                                 break;
                             case SpeechRecognizer.ERROR_NETWORK:
-                                message = "네트워크 에러";
+                                message = "Network error";
                                 break;
                             case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-                                message = "네트웍 타임아웃";
+                                message = "Network timeout";
                                 break;
                             case SpeechRecognizer.ERROR_NO_MATCH:
-                                message = "찾을 수 없음";
+                                message = "No match";
                                 break;
                             case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                                message = "RECOGNIZER가 바쁨";
+                                message = "Recognizer busy";
                                 break;
                             case SpeechRecognizer.ERROR_SERVER:
-                                message = "서버가 이상함";
+                                message = "Server error";
                                 break;
                             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                                message = "말하는 시간초과";
+                                message = "Speech timeout";
                                 break;
                             default:
-                                message = "알 수 없는 오류임";
+                                message = "Unknown error";
                                 break;
                         }
 
-                       // Toast.makeText(getApplicationContext(), "에러가 발생하였습니다. : " + message, Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(getApplicationContext(), "????嚥?夷???쎛 ?熬곣뫖利든뜏類ｋ렱?????????? : " + message, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onResults(Bundle results) {
-                        // 말을 하면 ArrayList에 단어를 넣고 textView에 단어를 이어줍니다.
+                        // ?꿔꺂????????????ArrayList????潁????鶯ㅺ동????궰?textView????潁???????ㅿ폎?묐쵈?딂린?곌땀????
                         ArrayList<String> matches =
                                 results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
                         for (int i = 0; i < matches.size(); i++) {
                             a = matches.get(i);
-                            Log.d("a의값은", a);
+                            Log.d("a????????", a);
                         }
                         switch (a) {
-                            case "위치전송":
+                            case "\uC704\uCE58\uC804\uC1A1":
                                 String sms = "" +
-                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
+                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
                                 smsManager.sendTextMessage(number, null, sms, null, null);
-                                Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
                                 break;
-                            case "119에 전화":
+                            case "119\uC5D0 \uC804\uD654":
                                 startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
                                 break;
-                            case "지인에게 문자":
+                            case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC704\uCE58\uC804\uC1A1":
                                 String sms2 = "" +
-                                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
+                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
                                 smsManager.sendTextMessage(number, null, sms2, null, null);
                                 break;
-                            case "지인에게 통화":
+                            case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC804\uD654":
                                 startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel2)));
                                 break;
                             default:

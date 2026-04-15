@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
+    namespace 'com.example.testapplication'
 
     buildFeatures{
         viewBinding = true
@@ -27,7 +28,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    namespace 'com.example.testapplication'
 }
 
 dependencies {
@@ -46,7 +46,8 @@ dependencies {
     implementation 'com.github.PhilJay:MpAndroidChart:v3.0.1'
     implementation files('src/main/jniLibs/simple-xml-2.7.1.jar')
     implementation 'net.danlew:android.joda:2.9.9.3'
-    implementation 'com.google.android:flexbox:2.0.1'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation 'com.kakao.maps.open:android:2.13.1'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'commons-io:commons-io:2.6'

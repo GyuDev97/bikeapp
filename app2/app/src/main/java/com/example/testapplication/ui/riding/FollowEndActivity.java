@@ -57,7 +57,7 @@ import java.util.Map;
 public class FollowEndActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener{
     private FragmentRidingEndBinding binding;
 
-    //스타트 액티비티에서 가져오는 String형변수
+    //?????????ロ룂???????????좊읈??嶺뚮ㅎ?닸쾮??String?嶺???
     int MaxSpeed=0;
     int AvgSpeed=0;
     int Getgodo=0;
@@ -70,16 +70,16 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     String address_dong="";
     String course_name="";
     String comp_point="";
-    //스타트 액티비티에서 가져온 값들을 텍스트로 설정
+    //?????????ロ룂???????????좊읈??嶺뚮ㅎ?닸쾮???좊즴????????몄릇?嶺뚮ㅎ?붷ㅇ????源놁젳
 
 
     int check, clearCount=0, riding_point=0;
 
     MapView mapView;
-    //DB로 전송하기 위한 변수
+    //DB????ш끽維뽬땻????꾨탿 ??ш낄援η뵳??怨뚮뼚???
     String open;
 
-    //로그인정보 받아오기
+    //?棺??짆??嶺뚮ㅎ???륁녃??袁⑸즵?룸돁????됰씚逾?
     SharedPreferences auto;
     String LoginId;
     int[] typeScore;
@@ -87,7 +87,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     int r_club;
     int dis;
 
-    //형 변환
+    //???怨뚮뼚???
     String comp_name, adress_value;
 
     Intent intent;
@@ -104,22 +104,22 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         View view = binding.getRoot();
         setContentView(view);
 
-        //로그인정보 받아오기
+        //?棺??짆??嶺뚮ㅎ???륁녃??袁⑸즵?룸돁????됰씚逾?
         auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
         LoginId  = auto.getString("LoginId","");
         r_club = auto.getInt("r_club", 0);
 
         endActivity = this;
 
-        //넘어온 intent값 넣기
+        //??筌뚯슦苑??intent???壤굿??몃탿
         intent = new Intent(this.getIntent());
 
-        Distence = intent.getIntExtra("distence",0); //이동거리
-        MaxSpeed = intent.getIntExtra("maxspeed",0); //최대속도
-        AvgSpeed = intent.getIntExtra("avgspeed",0); //평균속도
-        Getgodo = intent.getIntExtra("getgodo",0); //획득고도
-        RestTime = intent.getIntExtra("resttime",0); //휴식시간
-        IngTime = intent.getIntExtra("ingtime",0); //라이딩시간(시분초)
+        Distence = intent.getIntExtra("distence",0); //????猷뱀돥?얠쉪??ㅽ떜??
+        MaxSpeed = intent.getIntExtra("maxspeed",0); //癲ル슔?됭짆?????뽦뵣
+        AvgSpeed = intent.getIntExtra("avgspeed",0); //????????뽦뵣
+        Getgodo = intent.getIntExtra("getgodo",0); //????볥뜪??關履??
+        RestTime = intent.getIntExtra("resttime",0); //???⑤８六??癰???
+        IngTime = intent.getIntExtra("ingtime",0); //??繹먮끏???獄쏅챶六????筌먐뼘??
         check = intent.getIntExtra("check", 0);
         rr_comp = intent.getStringExtra("rr_comp");
         comp_name = intent.getStringExtra("comp_name");
@@ -135,7 +135,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         ArrayList<Double> witch_lon = (ArrayList<Double>)intent.getSerializableExtra("witch_lon");
         ArrayList<Double> ele = (ArrayList<Double>)intent.getSerializableExtra("ele");
 
-        //그래프 그리기 위한 변수
+        //??숆강筌?????숆강筌??ⓦ꺂糾???ш낄援η뵳??怨뚮뼚???
         ArrayList<Float> godolist = (ArrayList<Float>)intent.getSerializableExtra("godoarray");
         double maxLat = intent.getExtras().getDouble("maxLat",0);
         double maxLon = intent.getExtras().getDouble("maxLon", 0);
@@ -143,17 +143,17 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         double minLon = intent.getExtras().getDouble("minLon", 0);
 
 
-        //선 그래프
+        //????숆강筌???
         ArrayList<Entry> entry_chart = new ArrayList<>();
-        lineChart = (LineChart) findViewById(R.id.chart);//layout의 id
+        lineChart = (LineChart) findViewById(R.id.chart);//layout??id
         LineData chartData = new LineData();
         for(int g=0; g<godolist.size(); g++){
             entry_chart.add(new Entry(g, godolist.get(g)));
         }
 
-            /* 만약 (2, 3) add하고 (2, 5)한다고해서
-            기존 (2, 3)이 사라지는게 아니라 x가 2인곳에 y가 3, 5의 점이 찍힘 */
-        LineDataSet lineDataSet = new LineDataSet(entry_chart, "고도상승");
+            /* 癲ル슢??節됰쑏?(2, 3) add???寃뗏?(2, 5)??筌먲퐢???關履???
+            ??れ삀???(2, 3)??????瑜????釉먮윪????ш끽維???x??좊읈? 2?嶺뚮∥梨뜻쾮??y??좊읈? 3, 5???????癲ル슔?蹂?엥??*/
+        LineDataSet lineDataSet = new LineDataSet(entry_chart, "Elevation");
         chartData.addDataSet(lineDataSet);
 
         lineChart.setData(chartData);
@@ -166,17 +166,17 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOff);
         MapPolyline polyline = new MapPolyline();
         polyline.setTag(1000);
-        polyline.setLineColor(Color.argb(128, 255, 51, 0)); // Polyline 컬러 지정.
+        polyline.setLineColor(Color.argb(128, 255, 51, 0)); // Polyline ??濡ル㎥??癲ル슣????
 
-        // Polyline 좌표 지정.
+        // Polyline ???щ뮡嶺?癲ル슣????
         for(int i=0; i<witch_lat.size(); i++){
             polyline.addPoint(MapPoint.mapPointWithGeoCoord(witch_lat.get(i), witch_lon.get(i)));
         }
 
-        // Polyline 지도에 올리기.
+        // Polyline 癲ル슣????ш끽維??????ⓦ꺂糾?
         mapView.addPolyline(polyline);
 
-        // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
+        // 癲ル슣????ш끽維???濚욌꼬?댄꺍?筌?苑??⑤틳嫄?? 濚욌꼬?대뮛??怨룐뵛??쒑キ?Polyline??癲ル슢?꾤땟?嶺????쒓낫???ш끽維곩ㅇ??釉뚰???
         MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
         int padding = 100; // px
         mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
@@ -185,16 +185,16 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         Button save = (Button) findViewById(R.id.saveriding);
         RadioGroup openselect = (RadioGroup)findViewById(R.id.selectgroup);
 
-        //앞에서 받아온값들을 텍스트로 설정
-        binding.endavg.setText(String.valueOf(AvgSpeed)+"km/h"); //평균속도
-        binding.endmax.setText(String.valueOf(MaxSpeed)+"km/h"); //최대속도
+        //??嚥▲꺆諭???袁⑸즵?룸돁???影??????源낃도 ????몄릇?嶺뚮ㅎ?붷ㅇ????源놁젳
+        binding.endavg.setText(String.valueOf(AvgSpeed)+"km/h"); //????????뽦뵣
+        binding.endmax.setText(String.valueOf(MaxSpeed)+"km/h"); //癲ル슔?됭짆?????뽦뵣
 
 
-        //주소 텍스트
-        String text=adress_value.replace("대한민국","");
+        //??낆뒩???????몄릇??
+        String text = adress_value == null ? "" : adress_value.replace("\uB300\uD55C\uBBFC\uAD6D", "").trim();
         binding.addr.setText(text);
 
-        //휴식시간 및 지속시간
+        //???⑤８六??癰?????癲ル슣??????몃빰??
         int hour;
         int min;
         int sec = IngTime;
@@ -224,8 +224,8 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         if(r_min==0){
             r_min=00;
         }
-        binding.ending.setText(String.valueOf(hour+"시간 "+min+"분 "+sec+"초")); //지속시간
-        binding.endresttime.setText(String.valueOf(r_hour+"시간 "+r_min+"분 "+r_sec+"초")); //휴식시간
+        binding.ending.setText(String.valueOf(hour + "\uC2DC\uAC04 " + min + "\uBD84 " + sec + "\uCD08"));
+        binding.endresttime.setText(String.valueOf(r_hour + "\uC2DC\uAC04 " + r_min + "\uBD84 " + r_sec + "\uCD08"));
 
         binding.endget.setText(String.valueOf(Getgodo)+"m");
         double killlo = 0;
@@ -239,7 +239,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         }
 
 
-        // gpx파일 제목을 위해 현재 시간 구하기
+        // gpx???????筌먯룄肄????ш낄援????ш끽維????癰???????엮??堉?
         long now = System.currentTimeMillis();
         Date date = new Date(now);
         SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -250,30 +250,32 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         NetworkTask2 networkTask = new NetworkTask2();
         final String select;
 
-        //공개여부 선택
+        //???????? ???ャ뀕??
         openselect.setOnCheckedChangeListener((RadioGroup.OnCheckedChangeListener) (group, checkedId) -> {
-            RadioGroup rg = (RadioGroup)findViewById(R.id.selectgroup); // 라디오그룹 객체 맵핑
-            RadioButton selectedRdo = (RadioButton)findViewById(rg.getCheckedRadioButtonId()); // rg 라디오그룹의 체크된(getCheckedRadioButtonId) 라디오버튼 객체 맵핑
+            RadioGroup rg = (RadioGroup)findViewById(R.id.selectgroup); // ???⑤벤爰???됰씮?????좊즵??꼯??癲ル슢??린琉삳눀?
+            RadioButton selectedRdo = (RadioButton)findViewById(rg.getCheckedRadioButtonId()); // rg ???⑤벤爰???됰씮??????癲ル슪???띿물??getCheckedRadioButtonId) ???⑤벤爰????곷츉????좊즵??꼯??癲ル슢??린琉삳눀?
             String selectedValue = selectedRdo.getText().toString();
             String value="";
             switch (selectedValue){
-                case "비공개":
+                case "\uBE44\uACF5\uAC1C":
                     value="0";
-                case "전체 공개":
+                    break;
+                case "\uACF5\uAC1C":
                     value="1";
+                    break;
             }
             open = value;
         });
 
 
-        // gpx 파일 생성
+        // gpx ???????獄쏅똻??
         GpxInfo gpxInfoObj = new GpxInfo();
-        gpxInfoObj.setCreator("MTBcraft");
+        gpxInfoObj.setCreator("Routain");
 
         GpxInfo.metadata metaObj = new GpxInfo.metadata();
         gpxInfoObj.setMetadata(metaObj);
 
-        metaObj.setDesc("MTBcraft");
+        metaObj.setDesc("Routain");
 
         GpxInfo.bounds boundsObj = new GpxInfo.bounds();
         metaObj.setBounds(boundsObj);
@@ -328,14 +330,14 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         }
 
         boolean b = gpxInfoObj.equals(gpxInfoObj2);
-        // 여기까지 gpx파일 생성
+        // ???源껉펾??? gpx???????獄쏅똻??
 
 
         save.setOnClickListener(v -> {
             try{
                 NetworkTask2 networkTask1 = new NetworkTask2();
+                Log.d("RideSave", "rider=" + LoginId + ", distance=" + Distence + ", max=" + MaxSpeed + ", avg=" + AvgSpeed + ", high=" + Getgodo + ", open=" + open + ", rest=" + RestTime + ", time=" + IngTime + ", name=" + binding.ridingNameinput.getText());
                 Map<String, String> params = new HashMap<String, String>();
-                Log.d("로그임","아이디"+LoginId+"거리"+Distence+"최대속도"+MaxSpeed+"평균속도"+AvgSpeed+"고도"+Getgodo+"공개"+open+"휴식"+RestTime+"시간"+IngTime+"이름"+binding.ridingNameinput.getText());
                 params.put("rr_rider", LoginId);
                 params.put("rr_distance", String.valueOf(Distence));
                 params.put("rr_topspeed", String.valueOf(MaxSpeed));
@@ -362,7 +364,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
 
 
 
-                //경쟁전 관련 업데이트
+                //?濡ろ뜑???????굿??????녿ぅ??熬곣뫀肄?
                 if (!rr_comp.equals("null")) {
                     new getCompAllScore().execute();
 
@@ -380,7 +382,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
                     updateCompScore.execute(params2);
                 }
 
-                // gpx 파일 보냄
+                // gpx ??????怨뚮옖?濚?
                 SendGPXFile sendObj = new SendGPXFile(getFilesDir().getPath() + "/", "gpx_" + nowTime + ".gpx");
                 sendObj.upload();
             }catch(Exception e){
@@ -392,18 +394,17 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     public class GetRecordTask extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected String doInBackground(Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("GET", "app/riding/getrecord");
 
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }
@@ -439,18 +440,17 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     public class TagInsert extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected String doInBackground(Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("POST", "app/riding/taginsert");
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
 
@@ -502,19 +502,18 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     public class NetworkTask2 extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected String doInBackground(Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("POST", "app/riding/foup");
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }
@@ -524,23 +523,22 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         }
     }
 
-    // 경쟁전 현황 점수, 횟수 업데이트
+    // ?濡ろ뜑??????ш낄援??????? ????낅묄 ????녿ぅ??熬곣뫀肄?
     public class UpdateCompScore extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected String doInBackground(Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("PUT", "app/updateCompScore");
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }
@@ -549,25 +547,24 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         }
     }
 
-    //경쟁전 모든 점수현황 가져오기
+    //?濡ろ뜑????癲ル슢?꾤땟?????????ш낄援????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
     public class getCompAllScore extends AsyncTask<Map<String, String>, Integer, String> {
 
         @Override
         protected String doInBackground(Map<String, String>... maps) {
 
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("GET", "app/getCompAllScore/" + rr_comp);
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
 
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
 
             return body;
@@ -594,7 +591,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
                     tempInt.add(itemList.get(j).getCs_score());
                 }
 
-                // 크기순 정렬
+                // ??????嶺뚮㉡?ｈ??
                 Collections.sort(tempInt);
                 Collections.reverse(tempInt);
 
@@ -628,23 +625,22 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         }
     }
 
-    // 순위 업데이트
+    // ??筌믨퀡彛?????녿ぅ??熬곣뫀肄?
     public class updateRank extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected synchronized String doInBackground( Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("PUT", "app/updateRank/");
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }
@@ -658,19 +654,18 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         @Override
         protected String doInBackground(Map<String, String>... maps) {
 
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("GET", "app/getMissionStatus/" + LoginId);
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
 
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
 
             return body;
@@ -693,9 +688,9 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
 
                 for ( int j = 0; j<itemList.size(); j++) {
                     if ( itemList.get(j).getMs_type() == 1)
-                        typeScore[0] = itemList.get(0).getMs_score() + Integer.parseInt(String.valueOf(Distence)); // 총 거리 계산
+                        typeScore[0] = itemList.get(0).getMs_score() + Integer.parseInt(String.valueOf(Distence)); // ??癲꾧퀗??????節뚮쳮雅?
                     else if ( itemList.get(j).getMs_type() == 2) {
-                        typeScore[1] = itemList.get(1).getMs_score(); // 경쟁전 참여 횟수 계산
+                        typeScore[1] = itemList.get(1).getMs_score(); // ?濡ろ뜑????癲ル슔?蹂?덫??????낅묄 ??節뚮쳮雅?
                         if (!rr_comp.equals("null"))
                             typeScore[1] += 1;
                     }
@@ -718,19 +713,18 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         @Override
         protected String doInBackground(Map<String, String>... maps) {
 
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("GET", "app/getNoClearMission/" + LoginId);
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
 
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
 
             return body;
@@ -821,40 +815,40 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
                     }
                 }
 
-                // 다이얼로그 바디
+                // ???源낇꼧???⑥????袁⑸즴????
                 AlertDialog.Builder alert_confirm = new AlertDialog.Builder((Context) endActivity);
-                // 메세지
-                String text = "라이딩 기록이 저장되었습니다";
+                // 癲ル슢??袁λ빝?壤?
+                String text = "??繹먮끏?????れ삀??쎈뭄?????潁뺛깾逾???怨?????덊렡";
                 String text1 = "";
                 String text2 = "";
-                String text3 = riding_point + " 라이딩 포인트 획득 !";
+                String text3 = riding_point + " ??繹먮끏????????????볥뜪 !";
 
                 alert_confirm.setMessage(text + "\n" + text3);
 
-                // 경쟁전 완료
+                // ?濡ろ뜑??????ш끽維??
                 if (!rr_comp.equals("null") && clearList.size() < 1) {
                     text1 = comp_name;
-                    alert_confirm.setMessage( text +"\n" + text1+"에 참가하셨습니다\n" + text3);
+                    alert_confirm.setMessage( text +"\n" + text1+"??癲ル슔?蹂앸듋???筌뚯삩???????n" + text3);
                 }
 
-                // 경쟁전X, 미션 완료
+                // ?濡ろ뜑????? 雅?퍔瑗띰㎖????ш끽維??
                 if ( rr_comp.equals("null") && clearList.size() >= 1 ){
                     for ( int l = 0; l < clearList.size(); l++){
-                        text2 += clearList.get(l).getM_name() + " 미션 성공\n";
+                        text2 += clearList.get(l).getM_name() + " 雅?퍔瑗띰㎖???濚밸Þ?볠쾮?n";
                     }
                     alert_confirm.setMessage( text + "\n" + text2 + "\n" + text3);
                 }
 
-                // 미션, 경쟁전 완료
+                // 雅?퍔瑗띰㎖?? ?濡ろ뜑??????ш끽維??
                 if ( !rr_comp.equals("null") || clearList.size() >= 1){
                     text1 = comp_name;
                     for ( int l = 0; l < clearList.size(); l++){
-                        text2 += clearList.get(l).getM_name() + " 미션 성공\n";
+                        text2 += clearList.get(l).getM_name() + " 雅?퍔瑗띰㎖???濚밸Þ?볠쾮?n";
                     }
-                    alert_confirm.setMessage( text +"\n" + text1+"에 참가하셨습니다\n" + text2 + "\n" + text3);
+                    alert_confirm.setMessage( text +"\n" + text1+"??癲ル슔?蹂앸듋???筌뚯삩???????n" + text2 + "\n" + text3);
                 }
-                // 확인 버튼 리스너
-               /* alert_confirm.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                // ?嶺뚮Ĳ?됮??類?????域밸Ŧ遊얕짆??
+               /* alert_confirm.setPositiveButton("?嶺뚮Ĳ?됮?, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent2 = new Intent(FollowEndActivity.this, SubActivity.class);
@@ -862,11 +856,11 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
                         finish();
                     }
                 });*/
-                // 다이얼로그 생성
+                // ???源낇꼧???⑥?????獄쏅똻??
                 AlertDialog alert = alert_confirm.create();
-                // 다이얼로그 타이틀
-                alert.setTitle("업데이트 로그");
-                // 다이얼로그 보기
+                // ???源낇꼧???⑥????????
+                alert.setTitle("\uB77C\uC774\uB529 \uC800\uC7A5 \uC644\uB8CC");
+                // ???源낇꼧???⑥????怨뚮옖??逾?
                 alert.show();
 
             }catch(Exception e){
@@ -878,19 +872,18 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     public class updateMissionStatus extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected synchronized String doInBackground( Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("PUT", "app/updateMissionStatus/");
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }
@@ -902,19 +895,18 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
     public class insertMissionCom extends AsyncTask<Map<String, String>, Integer, String> {
         @Override
         protected synchronized String doInBackground( Map<String, String>... maps) {
-            // Http 요청 준비 작업
-            //URL은 현재 자기 아이피번호를 입력해야합니다.
+            // Http ??釉먯뒜??濚욌꼬裕뼘????????
             HttpClient.Builder http = new HttpClient.Builder("PUT", "app/insertMissionCom/");
-            // Parameter 를 전송한다.
+            // Parameter ????ш끽維뽬땻??筌먲퐢??
             http.addAllParameters(maps[0]);
-            //Http 요청 전송
+            //Http ??釉먯뒜????ш끽維뽬땻?
             HttpClient post = http.create();
             post.request();
 
-            // 응답 상태코드 가져오기
+            // ???쑩?젆????ㅺ컼??熬곣뫀?????좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             int statusCode = post.getHttpStatusCode();
 
-            // 응답 본문 가져오기
+            // ???쑩?젆??怨뚮옖筌?쑜猷???좊읈??嶺뚮ㅎ?닸쾮濡㏓섀?
             String body = post.getBody();
             return body;
         }

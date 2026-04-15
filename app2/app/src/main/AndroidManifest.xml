@@ -17,14 +17,15 @@
         android:required="true" />
 
     <application
+        android:name=".MtbCraftApplication"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="MTBCRAFT"
+        android:label="Routain"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:hardwareAccelerated="false"
+        android:hardwareAccelerated="true"
         android:largeHeap="true">
         <meta-data
             android:name="com.kakao.sdk.AppKey"

@@ -69,6 +69,15 @@
                     app:layout_constraintStart_toEndOf="@+id/textView21"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <Button
+                    android:id="@+id/button2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Check"
+                    app:layout_constraintStart_toEndOf="@+id/editText2"
+                    app:layout_constraintTop_toTopOf="@+id/editText2" />
+
                 <TextView
                     android:id="@+id/textView24"
                     android:layout_width="wrap_content"
@@ -93,6 +102,34 @@
                     android:paddingLeft="10dp"
                     app:layout_constraintStart_toEndOf="@+id/textView24"
                     app:layout_constraintTop_toBottomOf="@+id/button2" />
+
+                <EditText
+                    android:id="@+id/editText5"
+                    android:layout_width="295dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="97dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rec_button"
+                    android:ems="10"
+                    android:hint="Password check"
+                    android:inputType="textPassword"
+                    android:paddingLeft="10dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/editText3" />
+
+                <EditText
+                    android:id="@+id/editText8"
+                    android:layout_width="295dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="97dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rec_button"
+                    android:ems="10"
+                    android:hint="Name"
+                    android:inputType="textPersonName"
+                    android:paddingLeft="10dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/editText5" />
 
                 <TextView
                     android:id="@+id/textView28"
@@ -210,6 +247,52 @@
                     android:paddingLeft="10dp"
                     app:layout_constraintStart_toEndOf="@+id/editText14"
                     app:layout_constraintTop_toBottomOf="@+id/editText12" />
+
+                <RadioGroup
+                    android:id="@+id/radioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="97dp"
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/editText15">
+
+                    <RadioButton
+                        android:id="@+id/radioMale"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Male" />
+
+                    <RadioButton
+                        android:id="@+id/radioFemale"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Female" />
+                </RadioGroup>
+
+                <DatePicker
+                    android:id="@+id/datePicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="97dp"
+                    android:layout_marginTop="12dp"
+                    android:calendarViewShown="false"
+                    android:datePickerMode="spinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
+
+                <ImageView
+                    android:id="@+id/imageView8"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginStart="97dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rec_button"
+                    android:contentDescription="@string/app_name"
+                    android:scaleType="centerCrop"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/datePicker" />
 
                 <Button
                     android:id="@+id/button5"

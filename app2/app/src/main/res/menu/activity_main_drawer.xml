@@ -3,38 +3,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/nav_main_group"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/nav_home"
-            android:title="홈"  />
+            android:title="&#xD648;" />
         <item
             android:id="@+id/nav_records"
             android:icon="@drawable/nav_report"
-            android:title="내 기록" />
+            android:title="&#xB0B4; &#xAE30;&#xB85D;" />
         <item
             android:id="@+id/nav_course_view"
             android:icon="@drawable/nav_course"
-            android:title="코스 보기" />
+            android:title="&#xCF54;&#xC2A4; &#xBCF4;&#xAE30;" />
         <item
             android:id="@+id/nav_course_search"
             android:icon="@drawable/nav_search"
-            android:title="코스 검색" />
+            android:title="&#xCF54;&#xC2A4; &#xAC80;&#xC0C9;" />
         <item
             android:id="@+id/nav_course_scrap"
             android:icon="@drawable/nav_scrap"
-            android:title="스크랩 보관함" />
+            android:title="&#xC2A4;&#xD06C;&#xB7A9; &#xBCF4;&#xAD00;&#xD568;" />
         <item
             android:id="@+id/nav_danger_view"
             android:icon="@drawable/nav_nomtb"
-            android:title="위험지역" />
+            android:title="&#xC704;&#xD5D8; &#xC9C0;&#xC5ED;" />
         <item
             android:id="@+id/friend_invite"
             android:icon="@drawable/nav_chodae"
-            android:title="친구초대하기" />
+            android:title="&#xCE5C;&#xAD6C;&#xCD08;&#xB300;&#xD558;&#xAE30;" />
         <item
             android:id="@+id/nav_sett"
             android:icon="@drawable/setting_icon"
-            android:title="설정" />
+            android:title="&#xC124;&#xC815;" />
     </group>
+
+    <item android:title="&#xAE30;&#xD0C0;">
+        <menu>
+            <item
+                android:id="@+id/nav_help"
+                android:icon="@drawable/help"
+                android:title="&#xB3C4;&#xC6C0;&#xB9D0;/FAQ" />
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/drawer_logout"
+                android:title="&#xB85C;&#xADF8;&#xC544;&#xC6C3;" />
+        </menu>
+    </item>
 </menu>

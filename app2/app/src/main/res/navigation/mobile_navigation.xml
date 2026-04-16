@@ -123,8 +123,8 @@
     <fragment
         android:id="@+id/setting"
         android:name="com.example.testapplication.setting.Setting"
-        android:label="fragment_setting"
-        tools:layout="@layout/fragment_setting" />
+        android:label="프로필 설정"
+        tools:layout="@layout/fragment_profile_setting" />
 
 
 </navigation>

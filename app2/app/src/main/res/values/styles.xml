@@ -38,4 +38,11 @@
         <item name="android:drawablePadding">8dp</item>
     </style>
 
+    <style name="ProfileDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginStart">54dp</item>
+        <item name="android:background">#EEF0EC</item>
+    </style>
+
 </resources>

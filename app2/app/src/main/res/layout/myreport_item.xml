@@ -1,160 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="20dp"
-    android:layout_marginBottom="8dp"
-    android:background="@android:color/white">
+    android:orientation="vertical"
+    android:paddingBottom="12dp">
 
-    <LinearLayout
-        android:id="@+id/viewClick"
+    <TextView
+        android:id="@+id/record_recent_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        tools:ignore="MissingConstraints">
+        android:layout_marginStart="6dp"
+        android:layout_marginBottom="10dp"
+        android:text="2020-07-16 09:17"
+        android:textColor="#646C67"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/record_section_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginBottom="10dp"
+        android:text="이전 기록"
+        android:textColor="#646C67"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/viewClick"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/record_card_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingStart="14dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/record_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="2020-07-16"
+            android:textColor="#202622"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/myimage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/record_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="09:17"
+            android:textColor="#6E756F"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@+id/myimage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/record_name" />
+
+        <TextView
+            android:id="@+id/my_dis"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="0.02 km"
+            android:textColor="#1B211E"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/myimage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/record_date" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
+            android:id="@+id/meta_row"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toStartOf="@+id/myimage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/my_dis">
 
             <ImageView
-                android:id="@+id/myimage"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                app:srcCompat="@drawable/end_bt" />
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/riding_ic_pin" />
 
             <TextView
-                android:id="@+id/record_name"
+                android:id="@+id/my_get"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="테스트 라이딩"
-                android:layout_marginLeft="10dp"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-    </LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="left"
-            android:layout_marginTop="-20dp"
-            android:layout_marginLeft="60dp">
+                android:layout_marginStart="4dp"
+                android:text="45 m"
+                android:textColor="#525B56"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="14dp"
+                android:src="@drawable/riding_ic_clock" />
+
             <TextView
-                android:id="@+id/record_date"
+                android:id="@+id/my_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="2020-07-16 09:17:00"
-                android:textColor="#000"
-                android:textSize="16sp" />
-            <TextView
-                android:id="@+id/record_adress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="대구광역시 북구 복현동"
-                android:textColor="#000"
-                android:textSize="16sp" />
+                android:layout_marginStart="4dp"
+                android:text="1시간 0분 4초"
+                android:textColor="#525B56"
+                android:textSize="13sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <GridLayout
-            android:id="@+id/speed_pre"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/record_adress"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:columnCount="4"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:verticalSpacing="30dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="60dp"
-            tools:ignore="MissingConstraints">
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/meta_row" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="left"
-                    android:text="거리"
-                    android:textColor="#000"
-                    android:textStyle="bold"
-                    android:textSize="16dp" />
+        <ImageView
+            android:id="@+id/myimage"
+            android:layout_width="116dp"
+            android:layout_height="92dp"
+            android:background="@drawable/record_thumb_bg"
+            android:scaleType="centerCrop"
+            android:src="@drawable/tap_map"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/my_dis"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="10km"
-                    android:textStyle="bold"
-                    android:textColor="#000"
-                    android:textSize="16dp" />
-            </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="left"
-                    android:text="획득고도"
-                    android:textColor="#000"
-                    android:textStyle="bold"
-                    android:textSize="16dp" />
-
-                <TextView
-                    android:id="@+id/my_get"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="right"
-                    android:text="40m"
-                    android:textStyle="bold"
-                    android:textColor="#000"
-                    android:textSize="16dp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="left"
-                    android:text="라이딩 시간"
-                    android:textStyle="bold"
-                    android:textColor="#000"
-                    android:textSize="16dp" />
-
-                <TextView
-                    android:id="@+id/my_time"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="right"
-                    android:textStyle="bold"
-                    android:text="1시간 0분 4초"
-                    android:textColor="#000"
-                    android:textSize="16dp" />
-            </LinearLayout>
-        </GridLayout>
 </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>

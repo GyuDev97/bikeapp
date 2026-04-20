@@ -16,6 +16,8 @@ import com.example.testapplication.ui.BaseFragment;
 import com.example.testapplication.ui.recycler.MyReportAdapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -51,6 +53,15 @@ public class RecordFragment extends BaseFragment{
                     for(RidingRecord item: items){
                         itemList.add(item);
                     }
+
+                    Collections.sort(itemList, new Comparator<RidingRecord>() {
+                        @Override
+                        public int compare(RidingRecord left, RidingRecord right) {
+                            String leftDate = left.getRr_date() == null ? "" : left.getRr_date();
+                            String rightDate = right.getRr_date() == null ? "" : right.getRr_date();
+                            return rightDate.compareTo(leftDate);
+                        }
+                    });
 
                     MyReportAdapter adapter = new MyReportAdapter(requireContext().getApplicationContext(), itemList, controller, model);
                     recyclerView.setLayoutManager(new LinearLayoutManager(requireContext().getApplicationContext(), LinearLayoutManager.VERTICAL, false));

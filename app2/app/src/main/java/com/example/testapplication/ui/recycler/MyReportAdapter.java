@@ -2,12 +2,10 @@ package com.example.testapplication.ui.recycler;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,10 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.testapplication.MainViewModel;
 import com.example.testapplication.R;
 import com.example.testapplication.dto.RidingRecord;
-import com.squareup.picasso.Picasso;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyRecordHolder>{
 
@@ -49,7 +46,6 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
     @SuppressLint("ResourceType")
     @Override
     public void onBindViewHolder(@NonNull final MyRecordHolder testViewHolder, final int position) {
-        //item = itemList.get(position);
         int hour;
         int min;
         int sec;
@@ -70,29 +66,26 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
         int b_hour, b_min, b_sec = itemList.get(position).getRr_breaktime();
         b_min = b_sec/60; b_hour = b_min/60; b_sec = b_sec % 60; b_min = b_min % 60;
 
-        int des = (itemList.get(position).getRr_distance());
-        float km = (float) (des/1000.0);
-        String total = km +"Km";
+        int des = itemList.get(position).getRr_distance();
+        float km = (float) (des / 1000.0);
+        String total = String.format(Locale.getDefault(), "%.2f km", km);
         String hour_s = String.valueOf(hour);
 
+        String rideDateTime = itemList.get(position).getRr_date() == null ? "" : itemList.get(position).getRr_date();
+        String titleDate = rideDateTime.length() >= 10 ? rideDateTime.substring(0, 10) : rideDateTime;
+        String titleTime = rideDateTime.length() >= 16 ? rideDateTime.substring(11, 16) : "";
+        String topLabel = rideDateTime.length() >= 16 ? rideDateTime.substring(0, 16) : rideDateTime;
 
-
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + model.r_Image.getValue())
-                .into(testViewHolder.my_image);
-
-
-      //  String substring = itemList.get(position).getRr_date();
-      //  String sub1 = substring.substring(0,10);
-      //  String substring2 = itemList.get(position).getRr_date();
-      //  String sub2 = substring2.substring(11,19);
-
-
-        testViewHolder.my_rec_name.setText(itemList.get(position).getRr_name());
-      //  testViewHolder.my_rec_date.setText(sub1+" " +sub2);
+        testViewHolder.recentLabel.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+        testViewHolder.sectionLabel.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
+        testViewHolder.recentLabel.setText(topLabel);
+        testViewHolder.my_rec_name.setText(titleDate);
+        testViewHolder.my_rec_date.setText(titleTime);
         testViewHolder.my_rec_adress.setText(itemList.get(position).getRr_area());
         testViewHolder.my_rec_dis.setText(total);
-        testViewHolder.my_rec_get.setText(itemList.get(position).getRr_high() +"m");
-       // testViewHolder.my_rec_time.setText(hour_s+"시간 "+min+"분 "+ sec+"초");
+        testViewHolder.my_rec_get.setText(itemList.get(position).getRr_high() + " m");
+        testViewHolder.my_rec_time.setText(hour_s + "시간 " + min + "분 " + sec + "초");
+        testViewHolder.my_image.setImageResource(R.drawable.tap_map);
 
         int finalMin = min;
         int finalSec = sec;
@@ -117,9 +110,9 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
 
 
     class MyRecordHolder extends RecyclerView.ViewHolder {
-        public TextView my_rec_name, my_rec_date,my_rec_adress, my_rec_dis, my_rec_get, my_rec_time;
+        public TextView my_rec_name, my_rec_date,my_rec_adress, my_rec_dis, my_rec_get, my_rec_time, recentLabel, sectionLabel;
         public ImageView my_image;
-        public LinearLayout viewClick;
+        public View viewClick;
         public final View mView;
         public MyRecordHolder( View itemView) {
             super(itemView);
@@ -132,6 +125,8 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
             my_rec_time = itemView.findViewById(R.id.my_time);
             my_image = itemView.findViewById(R.id.myimage);
             viewClick = itemView.findViewById(R.id.viewClick);
+            recentLabel = itemView.findViewById(R.id.record_recent_label);
+            sectionLabel = itemView.findViewById(R.id.record_section_label);
         }
 
     }

@@ -859,19 +859,19 @@ public class StartActivity extends AppCompatActivity
                         hap = hap + mLastlocation.distanceTo(location);
                         cha_dis = String.format("%.0f", hap);
 
-                        binding.dis.setText(String.format("%.1f", hap));
+                        binding.dis.setText(String.format("%.1f m", hap));
                         binding.mDistance.setText(String.format("%.1f", hap) + "m");
 
                         double killlo;
                         if (hap >= 1000) {
-                            killlo = hap / 0;
-                            binding.dis.setText(String.format("%.1f", killlo));
+                            killlo = hap / 1000.0;
+                            binding.dis.setText(String.format("%.1f km", killlo));
                             binding.mDistance.setText(String.format("%.1f", killlo) + "km");
                         }
 
                         //????????戮?덫
                         avg = hap / total_time;
-                        binding.avgspeed.setText(String.format("%.1f", Double.parseDouble(String.valueOf(avg))));
+                        binding.avgspeed.setText(String.format("%.1f km/h", Double.parseDouble(String.valueOf(avg))));
                         cha_avg = String.format("%.0f", (avg));
 
                         //????蹂λ쑋???쒙쭫??

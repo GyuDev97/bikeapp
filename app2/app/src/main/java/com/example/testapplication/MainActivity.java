@@ -26,7 +26,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.testapplication.dto.Server;
 import com.example.testapplication.ui.member.LoginActivity;
-import com.google.android.material.navigation.NavigationView;
 import com.squareup.picasso.Picasso;
 
 import java.security.MessageDigest;
@@ -37,9 +36,18 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private TextView lay;
     private TextView userMeta;
-    private View header;
     private ImageView userImage;
     private SharedPreferences auto;
+    private int[] drawerItemIds = {
+            R.id.nav_home,
+            R.id.nav_records,
+            R.id.nav_course_search,
+            R.id.nav_danger_view,
+            R.id.nav_course_scrap,
+            R.id.nav_sett,
+            R.id.nav_help,
+            R.id.nav_logout
+    };
 
     @SuppressLint("ResourceType")
     @Override
@@ -51,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_records, R.id.nav_course_view, R.id.nav_course_search, R.id.nav_course_scrap,
                 R.id.nav_competition_view, R.id.nav_mission_view, R.id.nav_danger_view, R.id.setting)
@@ -60,9 +67,11 @@ public class MainActivity extends AppCompatActivity {
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
-        toolbar.setTitle("Routain");
-        navController.addOnDestinationChangedListener((controller, destination, arguments) -> toolbar.setTitle("Routain"));
+        toolbar.setTitle("TrailGO");
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            toolbar.setTitle("TrailGO");
+            updateDrawerSelection(destination.getId());
+        });
 
         MainViewModel model = new ViewModelProvider(this).get(MainViewModel.class);
         auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
@@ -71,57 +80,11 @@ public class MainActivity extends AppCompatActivity {
         model.r_Nickname.setValue(auto.getString("r_nickname", ""));
         model.r_ClubName.setValue(auto.getString("r_clubname", ""));
 
-        header = navigationView.getHeaderView(0);
-        lay = header.findViewById(R.id.infouserid);
-        userMeta = header.findViewById(R.id.infousermeta);
-        userImage = header.findViewById(R.id.user_image);
+        lay = findViewById(R.id.infouserid);
+        userMeta = findViewById(R.id.infousermeta);
+        userImage = findViewById(R.id.user_image);
         bindDrawerHeader(model);
-
-        navigationView.setNavigationItemSelectedListener(menuItem -> {
-            menuItem.setChecked(true);
-            drawer.closeDrawers();
-
-            int id = menuItem.getItemId();
-            switch (id) {
-                case R.id.nav_home:
-                    navigateTo(navController, R.id.nav_home);
-                    break;
-                case R.id.nav_records:
-                    navigateTo(navController, R.id.nav_records);
-                    break;
-                case R.id.nav_course_view:
-                    navigateTo(navController, R.id.nav_course_view);
-                    break;
-                case R.id.nav_course_search:
-                    navigateTo(navController, R.id.nav_course_search);
-                    break;
-                case R.id.nav_course_scrap:
-                    navigateTo(navController, R.id.nav_course_scrap);
-                    break;
-                case R.id.nav_competition_view:
-                    navigateTo(navController, R.id.nav_competition_view);
-                    break;
-                case R.id.nav_mission_view:
-                    navigateTo(navController, R.id.nav_mission_view);
-                    break;
-                case R.id.nav_danger_view:
-                    navigateTo(navController, R.id.nav_danger_view);
-                    break;
-                case R.id.nav_sett:
-                    navigateTo(navController, R.id.setting);
-                    break;
-                case R.id.friend_invite:
-                    shareInvite(model);
-                    break;
-                case R.id.nav_help:
-                    Toast.makeText(this, "\uB3C4\uC6C0\uB9D0\uC740 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.", Toast.LENGTH_SHORT).show();
-                    break;
-                case R.id.nav_logout:
-                    logout();
-                    break;
-            }
-            return true;
-        });
+        setupDrawerClicks(drawer, navController);
 
         logKeyHash();
     }
@@ -129,9 +92,11 @@ public class MainActivity extends AppCompatActivity {
     private void bindDrawerHeader(MainViewModel model) {
         String riderId = valueOrDefault(model.r_Id.getValue(), "admin");
         String nickname = valueOrDefault(model.r_Nickname.getValue(), riderId);
-        String clubName = valueOrDefault(model.r_ClubName.getValue(), "Routain");
-        lay.setText("\uC548\uB155\uD558\uC138\uC694, " + riderId + "\uB2D8");
-        userMeta.setText("(" + nickname + ") " + clubName + " \uB77C\uC774\uB354");
+        lay.setText(nickname);
+        userMeta.setText("총 "
+                + valueOrDefault(auto.getString("ride_distance", ""), "128 km")
+                + " · 라이딩 "
+                + valueOrDefault(auto.getString("ride_count", ""), "12회"));
 
         String imageName = model.r_Image.getValue();
         if (imageName != null && imageName.length() > 0) {
@@ -139,6 +104,42 @@ public class MainActivity extends AppCompatActivity {
             Picasso.get().load(server.getIP() + "/app/getGPX/rider/" + imageName).into(userImage);
         } else {
             userImage.setImageResource(R.drawable.m_logo);
+        }
+    }
+
+    private void setupDrawerClicks(DrawerLayout drawer, NavController navController) {
+        setDrawerClick(R.id.nav_home, drawer, () -> navigateTo(navController, R.id.nav_home));
+        setDrawerClick(R.id.nav_records, drawer, () -> navigateTo(navController, R.id.nav_records));
+        setDrawerClick(R.id.nav_course_search, drawer, () -> navigateTo(navController, R.id.nav_course_search));
+        setDrawerClick(R.id.nav_danger_view, drawer, () -> navigateTo(navController, R.id.nav_danger_view));
+        setDrawerClick(R.id.nav_course_scrap, drawer, () -> navigateTo(navController, R.id.nav_course_scrap));
+        setDrawerClick(R.id.nav_sett, drawer, () -> navigateTo(navController, R.id.setting));
+        setDrawerClick(R.id.nav_help, drawer, () -> Toast.makeText(this, "도움말은 준비 중입니다.", Toast.LENGTH_SHORT).show());
+        setDrawerClick(R.id.nav_logout, drawer, this::logout);
+    }
+
+    private void setDrawerClick(int viewId, DrawerLayout drawer, Runnable action) {
+        View item = findViewById(viewId);
+        if (item == null) {
+            return;
+        }
+        item.setOnClickListener(v -> {
+            action.run();
+            drawer.closeDrawers();
+        });
+    }
+
+    private void updateDrawerSelection(int destinationId) {
+        for (int itemId : drawerItemIds) {
+            View item = findViewById(itemId);
+            if (item != null) {
+                item.setSelected(itemId == destinationId || (itemId == R.id.nav_sett && destinationId == R.id.setting));
+            }
+        }
+
+        View homeBar = findViewById(R.id.drawer_nav_home_bar);
+        if (homeBar != null) {
+            homeBar.setVisibility(destinationId == R.id.nav_home ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
@@ -156,12 +157,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shareInvite(MainViewModel model) {
-        String nickname = valueOrDefault(model.r_Nickname.getValue(), "Routain");
+        String nickname = valueOrDefault(model.r_Nickname.getValue(), "TrailGO");
         Intent friend = new Intent();
         friend.setAction(Intent.ACTION_SEND);
         friend.setType("text/plain");
-        friend.putExtra(Intent.EXTRA_SUBJECT, nickname + "\uB2D8\uC774 Routain\uC5D0 \uCD08\uB300\uD569\uB2C8\uB2E4");
-        friend.putExtra(Intent.EXTRA_TEXT, "Routain\uC5D0\uC11C \uD568\uAED8 \uB77C\uC774\uB529\uD574\uC694.");
+        friend.putExtra(Intent.EXTRA_SUBJECT, nickname + "\uB2D8\uC774 TrailGO\uC5D0 \uCD08\uB300\uD569\uB2C8\uB2E4");
+        friend.putExtra(Intent.EXTRA_TEXT, "TrailGO\uC5D0\uC11C \uD568\uAED8 \uB77C\uC774\uB529\uD574\uC694.");
         Intent chooser = Intent.createChooser(friend, "\uCE5C\uAD6C\uCD08\uB300\uD558\uAE30");
         startActivity(chooser);
     }

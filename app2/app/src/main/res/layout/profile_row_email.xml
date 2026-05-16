@@ -33,7 +33,7 @@
         android:ellipsize="end"
         android:maxWidth="150dp"
         android:maxLines="1"
-        android:text="chulso@email.com"
+        android:text="이메일 미등록"
         android:textColor="#747474"
         android:textSize="12sp" />
 

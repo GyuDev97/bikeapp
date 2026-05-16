@@ -33,7 +33,7 @@
         android:ellipsize="end"
         android:maxWidth="150dp"
         android:maxLines="1"
-        android:text="김철수"
+        android:text="admin"
         android:textColor="#747474"
         android:textSize="12sp" />
 

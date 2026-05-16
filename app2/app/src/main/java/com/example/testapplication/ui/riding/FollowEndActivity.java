@@ -270,12 +270,12 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
 
         // gpx ???????獄쏅똻??
         GpxInfo gpxInfoObj = new GpxInfo();
-        gpxInfoObj.setCreator("Routain");
+        gpxInfoObj.setCreator("TrailGO");
 
         GpxInfo.metadata metaObj = new GpxInfo.metadata();
         gpxInfoObj.setMetadata(metaObj);
 
-        metaObj.setDesc("Routain");
+        metaObj.setDesc("TrailGO");
 
         GpxInfo.bounds boundsObj = new GpxInfo.bounds();
         metaObj.setBounds(boundsObj);

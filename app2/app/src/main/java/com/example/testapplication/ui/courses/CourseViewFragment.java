@@ -70,6 +70,9 @@ public class CourseViewFragment extends BaseFragment {
             public void onResponse(Call<List<RidingRecord>> call, Response<List<RidingRecord>> response) {
 
                 List<RidingRecord> body = response.body();
+                if (!isAdded() || !response.isSuccessful() || body == null || body.size() < 2) {
+                    return;
+                }
 
                 ArrayList<Integer> likeCount = new ArrayList<Integer>();
                 ArrayList<Integer> highCount = new ArrayList<Integer>();

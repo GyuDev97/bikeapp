@@ -45,4 +45,29 @@
         <item name="android:background">#EEF0EC</item>
     </style>
 
+    <style name="DrawerCustomRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:background">@drawable/drawer_custom_item_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="DetailStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">74dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="DetailPhotoThumb">
+        <item name="android:layout_width">58dp</item>
+        <item name="android:layout_height">58dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/detail_photo_bg</item>
+        <item name="android:scaleType">centerCrop</item>
+    </style>
+
 </resources>

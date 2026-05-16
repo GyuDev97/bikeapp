@@ -25,11 +25,10 @@ public class BaseFragment extends Fragment {
     protected NavController controller;
     protected ServerApi serverApi;
     SharedPreferences auto;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.fragment_home, container, false);
-
     }
 
     @Override
@@ -40,7 +39,9 @@ public class BaseFragment extends Fragment {
         serverApi = Server.getInstance().getApi();
     }
 
-    protected void showServerFailure(){
-        Toast.makeText(requireContext(), "Server와 연결이 되지 않습니다", Toast.LENGTH_SHORT).show();
+    protected void showServerFailure() {
+        if (isAdded()) {
+            Toast.makeText(requireContext(), "서버에 연결할 수 없습니다.", Toast.LENGTH_SHORT).show();
+        }
     }
 }

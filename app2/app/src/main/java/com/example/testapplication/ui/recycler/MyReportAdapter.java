@@ -16,17 +16,18 @@ import com.example.testapplication.MainViewModel;
 import com.example.testapplication.R;
 import com.example.testapplication.dto.RidingRecord;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
-public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyRecordHolder>{
+public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyRecordHolder> {
 
     public Context mContext;
     public ArrayList<RidingRecord> itemList;
-    String Save_Path;
     public NavController controller;
     public MainViewModel model;
-
 
     public MyReportAdapter(Context mContext, ArrayList<RidingRecord> itemList, NavController controller, MainViewModel model) {
         this.mContext = mContext;
@@ -37,98 +38,139 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
 
     @Override
     public MyRecordHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.myreport_item , viewGroup,false);
-
+        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.myreport_item, viewGroup, false);
         return new MyRecordHolder(v);
     }
 
     @SuppressLint("ResourceType")
     @Override
-    public void onBindViewHolder(@NonNull final MyRecordHolder testViewHolder, final int position) {
-        int hour;
-        int min;
-        int sec;
-        sec = (itemList.get(position).getRr_time());
+    public void onBindViewHolder(@NonNull final MyRecordHolder holder, final int position) {
+        RidingRecord item = itemList.get(position);
 
-        min = sec/60;
-        hour = min/60;
-        sec = sec % 60;
-        min = min % 60;
-        if(hour == 0){
-            hour=00;
-        }
-        if(min==0){
-            min=00;
-        }
+        String totalDistance = formatDistance(item.getRr_distance());
+        String ridingDuration = formatDuration(item.getRr_time());
+        String breakDuration = formatDuration(item.getRr_breaktime());
 
-        //휴식시간 계산
-        int b_hour, b_min, b_sec = itemList.get(position).getRr_breaktime();
-        b_min = b_sec/60; b_hour = b_min/60; b_sec = b_sec % 60; b_min = b_min % 60;
+        holder.recordName.setText(formatTitle(item));
+        holder.recordDate.setText(formatDate(item.getRr_date()));
+        holder.recordTime.setText(formatClock(item.getRr_date()));
+        holder.recordAddress.setText(firstNotEmpty(item.getRr_area(), "라이딩 코스"));
+        holder.recordDistance.setText(totalDistance);
+        holder.recordHeight.setText(item.getRr_high() + " m");
+        holder.recordDuration.setText(ridingDuration);
+        holder.recordImage.setImageResource(R.drawable.tap_map);
+        holder.weatherIcon.setImageResource(position % 3 == 0 ? R.drawable.records_ic_sun : R.drawable.records_ic_cloud);
+        holder.bookmarkIcon.setImageResource(position == 1 ? R.drawable.records_ic_bookmark_filled : R.drawable.drawer_ic_bookmark_custom);
 
-        int des = itemList.get(position).getRr_distance();
-        float km = (float) (des / 1000.0);
-        String total = String.format(Locale.getDefault(), "%.2f km", km);
-        String hour_s = String.valueOf(hour);
-
-        String rideDateTime = itemList.get(position).getRr_date() == null ? "" : itemList.get(position).getRr_date();
-        String titleDate = rideDateTime.length() >= 10 ? rideDateTime.substring(0, 10) : rideDateTime;
-        String titleTime = rideDateTime.length() >= 16 ? rideDateTime.substring(11, 16) : "";
-        String topLabel = rideDateTime.length() >= 16 ? rideDateTime.substring(0, 16) : rideDateTime;
-
-        testViewHolder.recentLabel.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
-        testViewHolder.sectionLabel.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
-        testViewHolder.recentLabel.setText(topLabel);
-        testViewHolder.my_rec_name.setText(titleDate);
-        testViewHolder.my_rec_date.setText(titleTime);
-        testViewHolder.my_rec_adress.setText(itemList.get(position).getRr_area());
-        testViewHolder.my_rec_dis.setText(total);
-        testViewHolder.my_rec_get.setText(itemList.get(position).getRr_high() + " m");
-        testViewHolder.my_rec_time.setText(hour_s + "시간 " + min + "분 " + sec + "초");
-        testViewHolder.my_image.setImageResource(R.drawable.tap_map);
-
-        int finalMin = min;
-        int finalSec = sec;
-        int finalB_min = b_min;
-        int finalB_sec = b_sec;
-        testViewHolder.mView.setOnClickListener(v -> {
+        holder.mView.setOnClickListener(v -> {
             controller.navigate(R.id.action_nav_records_to_myDetailFragment);
-            model.r_num.setValue(String.valueOf(itemList.get(position).getRr_num()));
-            model.my_rec_name.setValue(itemList.get(position).getRr_name());
-            model.my_rec_date.setValue(itemList.get(position).getRr_date());
-            model.my_rec_adress.setValue(itemList.get(position).getRr_area());
-            model.my_rec_dis.setValue(total);
-            model.my_rec_get.setValue(itemList.get(position).getRr_high() +"m");
-            model.my_rec_time.setValue(hour_s+"시간 "+ finalMin +"분 "+ finalSec +"초");
-            model.my_rec_rest.setValue(b_hour+"시간 "+ finalB_min +"분 "+ finalB_sec +"초");
-            model.my_rec_open.setValue(itemList.get(position).getRr_open());
-            model.my_rec_max.setValue(itemList.get(position).getRr_topspeed() +"km/h");
-            model.my_rec_avg.setValue(itemList.get(position).getRr_avgspeed() +"km/h");
-            model.my_rec_gpx.setValue(itemList.get(position).getRr_gpx());
+            model.r_num.setValue(String.valueOf(item.getRr_num()));
+            model.my_rec_name.setValue(item.getRr_name());
+            model.my_rec_date.setValue(item.getRr_date());
+            model.my_rec_adress.setValue(item.getRr_area());
+            model.my_rec_dis.setValue(totalDistance);
+            model.my_rec_get.setValue(item.getRr_high() + "m");
+            model.my_rec_time.setValue(ridingDuration);
+            model.my_rec_rest.setValue(breakDuration);
+            model.my_rec_open.setValue(item.getRr_open());
+            model.my_rec_max.setValue(item.getRr_topspeed() + "km/h");
+            model.my_rec_avg.setValue(item.getRr_avgspeed() + "km/h");
+            model.my_rec_gpx.setValue(item.getRr_gpx());
         });
     }
 
-
-    class MyRecordHolder extends RecyclerView.ViewHolder {
-        public TextView my_rec_name, my_rec_date,my_rec_adress, my_rec_dis, my_rec_get, my_rec_time, recentLabel, sectionLabel;
-        public ImageView my_image;
-        public View viewClick;
-        public final View mView;
-        public MyRecordHolder( View itemView) {
-            super(itemView);
-            mView = itemView;
-            my_rec_name = itemView.findViewById(R.id.record_name);
-            my_rec_date = itemView.findViewById(R.id.record_date);
-            my_rec_adress = itemView.findViewById(R.id.record_adress);
-            my_rec_dis = itemView.findViewById(R.id.my_dis);
-            my_rec_get = itemView.findViewById(R.id.my_get);
-            my_rec_time = itemView.findViewById(R.id.my_time);
-            my_image = itemView.findViewById(R.id.myimage);
-            viewClick = itemView.findViewById(R.id.viewClick);
-            recentLabel = itemView.findViewById(R.id.record_recent_label);
-            sectionLabel = itemView.findViewById(R.id.record_section_label);
+    private String formatTitle(RidingRecord item) {
+        String name = firstNotEmpty(item.getRr_name(), "");
+        if (name.length() > 0) {
+            return name;
         }
 
+        String area = firstNotEmpty(item.getRr_area(), "");
+        if (area.length() > 0) {
+            return area + " 라이딩";
+        }
+
+        return "라이딩 기록";
+    }
+
+    private String formatDistance(int meters) {
+        return String.format(Locale.KOREA, "%.2f km", meters / 1000.0);
+    }
+
+    private String formatDuration(int seconds) {
+        int hours = seconds / 3600;
+        int minutes = (seconds % 3600) / 60;
+        if (hours > 0) {
+            return hours + "시간 " + minutes + "분";
+        }
+        return minutes + "분";
+    }
+
+    private String formatDate(String value) {
+        Date date = parseDate(value);
+        if (date != null) {
+            return new SimpleDateFormat("yyyy. MM. dd (E)", Locale.KOREA).format(date);
+        }
+        return value == null ? "-" : value;
+    }
+
+    private String formatClock(String value) {
+        Date date = parseDate(value);
+        if (date != null) {
+            return new SimpleDateFormat("a h:mm", Locale.KOREA).format(date);
+        }
+        if (value != null && value.length() >= 16) {
+            return value.substring(11, 16);
+        }
+        return "-";
+    }
+
+    private Date parseDate(String value) {
+        if (value == null || value.length() < 10) {
+            return null;
+        }
+
+        String normalized = value.length() >= 19 ? value.substring(0, 19) : value;
+        String[] patterns = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"};
+        for (String pattern : patterns) {
+            try {
+                return new SimpleDateFormat(pattern, Locale.KOREA).parse(normalized);
+            } catch (ParseException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private String firstNotEmpty(String... values) {
+        for (String value : values) {
+            if (value != null && value.trim().length() > 0) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
+
+    class MyRecordHolder extends RecyclerView.ViewHolder {
+        public TextView recordName, recordDate, recordTime, recordAddress, recordDistance, recordHeight, recordDuration;
+        public ImageView recordImage, weatherIcon, bookmarkIcon;
+        public View viewClick;
+        public final View mView;
+
+        public MyRecordHolder(View itemView) {
+            super(itemView);
+            mView = itemView;
+            recordName = itemView.findViewById(R.id.record_name);
+            recordDate = itemView.findViewById(R.id.record_date);
+            recordTime = itemView.findViewById(R.id.record_time);
+            recordAddress = itemView.findViewById(R.id.record_adress);
+            recordDistance = itemView.findViewById(R.id.my_dis);
+            recordHeight = itemView.findViewById(R.id.my_get);
+            recordDuration = itemView.findViewById(R.id.my_time);
+            recordImage = itemView.findViewById(R.id.myimage);
+            weatherIcon = itemView.findViewById(R.id.record_weather_icon);
+            bookmarkIcon = itemView.findViewById(R.id.record_bookmark_icon);
+            viewClick = itemView.findViewById(R.id.viewClick);
+        }
     }
 
     @Override

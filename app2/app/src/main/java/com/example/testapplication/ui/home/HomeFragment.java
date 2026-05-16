@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.Navigation;
 
 import com.example.testapplication.R;
@@ -19,6 +21,9 @@ import com.example.testapplication.ui.BaseFragment;
 import com.example.testapplication.ui.riding.StartActivity;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +39,13 @@ public class HomeFragment extends BaseFragment {
     private TextView mainKm;
     private TextView rider;
     private TextView mainDistance;
+    private TextView goalPercent;
+    private TextView recentDate;
+    private TextView recentDistance;
+    private TextView recentHeight;
+    private TextView recentDuration;
+    private TextView recentCourse;
+    private ProgressBar goalProgress;
 
     public static HomeFragment newInstance() {
         return new HomeFragment();
@@ -53,10 +65,18 @@ public class HomeFragment extends BaseFragment {
         mainKm = view.findViewById(R.id.main_km);
         rider = view.findViewById(R.id.idinfo);
         mainDistance = view.findViewById(R.id.main_dis);
+        goalPercent = view.findViewById(R.id.home_goal_percent);
+        goalProgress = view.findViewById(R.id.home_goal_progress);
+        recentDate = view.findViewById(R.id.home_recent_date);
+        recentDistance = view.findViewById(R.id.home_recent_distance);
+        recentHeight = view.findViewById(R.id.home_recent_height);
+        recentDuration = view.findViewById(R.id.home_recent_duration);
+        recentCourse = view.findViewById(R.id.home_recent_course);
 
         String riderId = getRiderId();
-        bindKoreanLabels(view, riderId);
+        bindKoreanLabels(view);
         bindNavigation(view);
+        bindHeader(view);
 
         ridingStart.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), StartActivity.class);
@@ -76,39 +96,50 @@ public class HomeFragment extends BaseFragment {
         return auto.getString("LoginId", "admin");
     }
 
-    private void bindKoreanLabels(View view, String riderId) {
-        setText(view, R.id.home_hello, "\uC548\uB155\uD558\uC138\uC694, " + riderId + "\uB2D8!");
-        setText(view, R.id.home_today_label, "\uC624\uB298 \uD65C\uB3D9:");
-        setText(view, R.id.home_goal_label, "\uC624\uB298\uC758 \uBAA9\uD45C \uB2EC\uC131\uB3C4");
-        setText(view, R.id.home_recent_title, "\uB098\uC758 \uCD5C\uADFC \uAE30\uB85D   >");
-        setText(view, R.id.home_recent_course, "\uB2E8\uBAA9 \u00B7 LS7\uAE38");
-        setText(view, R.id.home_recent_meta, "0.62 km / 12\uBD84 / 158 km");
-        setText(view, R.id.home_danger_label, "\uC704\uD5D8 \uBCF4\uC548");
-        setText(view, R.id.home_course_search_label, "\uCF54\uC2A4 \uAC80\uC0C9");
-        setText(view, R.id.home_scrap_label, "\uC2A4\uD06C\uB7A9");
+    private void bindKoreanLabels(View view) {
+        setText(view, R.id.home_today_label, "\uC624\uB298 \uD65C\uB3D9");
+        setText(view, R.id.home_goal_label, "\uBAA9\uD45C \uB2EC\uC131\uB3C4");
+        setText(view, R.id.home_recent_title, "\uCD5C\uADFC \uB77C\uC774\uB529");
+        setText(view, R.id.home_recent_more, "\uB354\uBCF4\uAE30");
+        setText(view, R.id.home_quick_title, "\uBE60\uB978 \uBA54\uB274");
+        setText(view, R.id.home_course_search_label, "\uCF54\uC2A4 \uD0D0\uC0C9");
+        setText(view, R.id.home_course_search_desc, "\uB2E4\uC591\uD55C \uCF54\uC2A4\uB97C\n\uAC80\uC0C9\uD574\uBCF4\uC138\uC694");
+        setText(view, R.id.home_danger_label, "\uAE34\uAE09 \uC54C\uB9BC");
+        setText(view, R.id.home_danger_desc, "\uC704\uAE09 \uC0C1\uD669 \uC2DC\n\uB3C4\uC6C0\uC744 \uC694\uCCAD\uD558\uC138\uC694");
         setText(view, R.id.home_setting_label, "\uC124\uC815");
-        setText(view, R.id.home_nav_home_label, "\uD648");
-        setText(view, R.id.home_nav_records_label, "\uAE30\uB85D");
-        setText(view, R.id.home_nav_course_label, "\uCF54\uC2A4");
-        setText(view, R.id.home_nav_community_label, "\uCEE4\uBBA4\uB2C8\uD2F0");
-        setText(view, R.id.home_nav_profile_label, "\uD504\uB85C\uD544");
+        setText(view, R.id.home_setting_desc, "\uC571 \uC124\uC815 \uBC0F\n\uACC4\uC815\uC744 \uAD00\uB9AC\uD558\uC138\uC694");
+        setText(view, R.id.home_goal_target, "\uBAA9\uD45C 10 km \u00B7 60 min");
         setText(view, R.id.ridingstart, "\uB77C\uC774\uB529 \uC2DC\uC791");
-        rider.setText(riderId + "\uB2D8 \uC800\uD76C\uC640 \uD568\uAED8\n\uB77C\uC774\uB529\uC744 \uC8FC\uD589\uD558\uC138\uC694");
     }
 
     private void setText(View root, int textViewId, String text) {
-        ((TextView) root.findViewById(textViewId)).setText(text);
+        TextView textView = root.findViewById(textViewId);
+        if (textView != null) {
+            textView.setText(text);
+        }
     }
 
     private void bindNavigation(View view) {
         view.findViewById(R.id.recent_record_card).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_records));
         view.findViewById(R.id.home_nav_records).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_records));
         view.findViewById(R.id.home_nav_course).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_course_view));
+        view.findViewById(R.id.home_nav_community).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_competition_view));
         view.findViewById(R.id.home_course_search).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_course_search));
-        view.findViewById(R.id.home_scrap).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_course_scrap));
         view.findViewById(R.id.home_danger).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_danger_view));
         view.findViewById(R.id.home_setting).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_setting));
         view.findViewById(R.id.home_nav_profile).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_setting));
+    }
+
+    private void bindHeader(View view) {
+        View menuButton = view.findViewById(R.id.home_menu_button);
+        if (menuButton != null) {
+            menuButton.setOnClickListener(v -> {
+                DrawerLayout drawerLayout = requireActivity().findViewById(R.id.drawer_layout);
+                if (drawerLayout != null) {
+                    drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
+                }
+            });
+        }
     }
 
     private void navigate(View view, int actionId) {
@@ -137,12 +168,22 @@ public class HomeFragment extends BaseFragment {
             return;
         }
 
+        ArrayList<RidingRecord> sorted = new ArrayList<>(records);
+        Collections.sort(sorted, new Comparator<RidingRecord>() {
+            @Override
+            public int compare(RidingRecord left, RidingRecord right) {
+                String leftDate = left.getRr_date() == null ? "" : left.getRr_date();
+                String rightDate = right.getRr_date() == null ? "" : right.getRr_date();
+                return rightDate.compareTo(leftDate);
+            }
+        });
+
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(new Date());
         int todayDistance = 0;
         int todaySeconds = 0;
         int totalDistance = 0;
 
-        for (RidingRecord record : records) {
+        for (RidingRecord record : sorted) {
             int distance = record.getRr_distance();
             totalDistance += distance;
 
@@ -153,9 +194,38 @@ public class HomeFragment extends BaseFragment {
             }
         }
 
-        mainKm.setText(formatDistance(todayDistance));
-        mainTime.setText(formatDuration(todaySeconds));
-        mainDistance.setText("\uB204\uC801: " + formatDistance(totalDistance));
+        setTextIfPresent(mainKm, formatDistance(todayDistance));
+        setTextIfPresent(mainTime, formatDuration(todaySeconds));
+        setTextIfPresent(mainDistance, "\uB204\uC801 " + formatDistance(totalDistance));
+
+        int distanceGoalMeters = 10000;
+        int goalPercentValue = Math.min(100, (int) Math.round((todayDistance / (double) distanceGoalMeters) * 100.0));
+        if (goalProgress != null) {
+            goalProgress.setProgress(goalPercentValue);
+        }
+        setTextIfPresent(goalPercent, goalPercentValue + "%");
+
+        if (!sorted.isEmpty()) {
+            bindRecentRecord(sorted.get(0));
+        }
+    }
+
+    private void bindRecentRecord(RidingRecord recentRecord) {
+        setTextIfPresent(recentDate, formatRecentDate(recentRecord.getRr_date()));
+        setTextIfPresent(recentDistance, formatDistance(recentRecord.getRr_distance()));
+        setTextIfPresent(recentHeight, recentRecord.getRr_high() + " m");
+        setTextIfPresent(recentDuration, formatDuration(recentRecord.getRr_time()));
+        String courseName = recentRecord.getRr_name();
+        if (courseName == null || courseName.trim().isEmpty()) {
+            courseName = recentRecord.getRr_area();
+        }
+        setTextIfPresent(recentCourse, courseName == null ? "-" : courseName);
+    }
+
+    private void setTextIfPresent(TextView textView, String text) {
+        if (textView != null) {
+            textView.setText(text);
+        }
     }
 
     private String formatDistance(int meters) {
@@ -176,5 +246,43 @@ public class HomeFragment extends BaseFragment {
             return minutes + "\uBD84";
         }
         return seconds + "\uCD08";
+    }
+
+    private String formatRecentDate(String rawDate) {
+        if (rawDate == null || rawDate.length() < 16) {
+            return rawDate == null ? "-" : rawDate;
+        }
+
+        String datePart = rawDate.substring(0, 10);
+        String timePart = rawDate.substring(11, 16);
+
+        try {
+            Date parsedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA).parse(datePart + " " + timePart);
+            if (parsedDate != null) {
+                return new SimpleDateFormat("yyyy년 M월 d일 · a h:mm", Locale.KOREA).format(parsedDate);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return rawDate;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setAppBarVisible(false);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        setAppBarVisible(true);
+    }
+
+    private void setAppBarVisible(boolean visible) {
+        View appBar = requireActivity().findViewById(R.id.app_bar_layout);
+        if (appBar != null) {
+            appBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
     }
 }

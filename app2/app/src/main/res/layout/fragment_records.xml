@@ -7,18 +7,272 @@
     android:background="#F7F8F7"
     tools:context=".ui.records.RecordFragment">
 
+    <LinearLayout
+        android:id="@+id/records_header"
+        android:layout_width="0dp"
+        android:layout_height="88dp"
+        android:background="@drawable/records_header_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="28dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="28dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/records_menu_button"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:src="@drawable/records_ic_menu_white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="22dp"
+            android:layout_weight="1"
+            android:text="TrailGO"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/records_search_button"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:padding="5dp"
+            android:src="@drawable/records_ic_search_white" />
+
+        <ImageView
+            android:id="@+id/records_filter_button"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="18dp"
+            android:padding="5dp"
+            android:src="@drawable/records_ic_filter" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/records_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="26dp"
+        android:layout_marginEnd="18dp"
+        android:text="내 기록"
+        android:textColor="#111111"
+        android:textSize="27sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/records_header" />
+
+    <TextView
+        android:id="@+id/records_count_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="18dp"
+        android:text="총 0개의 라이딩 기록"
+        android:textColor="#545D58"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/records_sort_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/records_title" />
+
+    <TextView
+        android:id="@+id/records_sort_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="22dp"
+        android:drawableEnd="@drawable/profile_ic_chevron"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="최신순"
+        android:textColor="#111111"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/records_count_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/records_count_text" />
+
+    <LinearLayout
+        android:id="@+id/records_summary_card"
+        android:layout_width="0dp"
+        android:layout_height="92dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginEnd="18dp"
+        android:background="@drawable/records_summary_card_bg"
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/records_count_text">
+
+        <FrameLayout
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:background="@drawable/records_summary_icon_bg">
+
+            <ImageView
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:src="@drawable/profile_ic_bicycle" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="24dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="총 거리"
+                android:textColor="#222222"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/records_total_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="0 km"
+                android:textColor="#075E2F"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="48dp"
+            android:background="#DCE3DF" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="총 상승고도"
+                android:textColor="#222222"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/records_total_height"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="0 m"
+                android:textColor="#075E2F"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="48dp"
+            android:background="#DCE3DF" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="총 시간"
+                android:textColor="#222222"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/records_total_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="0분"
+                android:textColor="#075E2F"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingStart="14dp"
-        android:paddingTop="14dp"
-        android:paddingEnd="14dp"
-        android:paddingBottom="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingStart="18dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="22dp"
+        app:layout_constraintBottom_toTopOf="@id/records_bottom_nav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/records_summary_card" />
 
+    <LinearLayout
+        android:id="@+id/records_bottom_nav"
+        android:layout_width="0dp"
+        android:layout_height="78dp"
+        android:background="@drawable/home_bottom_nav_bg"
+        android:elevation="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingTop="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/records_nav_home"
+            style="@style/HomeBottomNavItem"
+            android:drawableTop="@drawable/ic_menu_home"
+            android:text="홈" />
+
+        <TextView
+            android:id="@+id/records_nav_records"
+            style="@style/HomeBottomNavItem"
+            android:drawableTop="@drawable/nav_report"
+            android:text="기록"
+            android:textColor="#0B6B32"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/records_nav_course"
+            style="@style/HomeBottomNavItem"
+            android:drawableTop="@drawable/drawer_ic_map_custom"
+            android:text="코스" />
+
+        <TextView
+            android:id="@+id/records_nav_community"
+            style="@style/HomeBottomNavItem"
+            android:drawableTop="@drawable/ic_mountain_home"
+            android:text="커뮤니티" />
+
+        <TextView
+            android:id="@+id/records_nav_profile"
+            style="@style/HomeBottomNavItem"
+            android:drawableTop="@drawable/profile_ic_user"
+            android:text="프로필" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

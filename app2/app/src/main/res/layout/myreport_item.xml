@@ -1,148 +1,209 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/viewClick"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:layout_height="158dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/record_card_bg"
+    android:clickable="true"
+    android:elevation="3dp"
+    android:focusable="true"
+    android:paddingStart="12dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="14dp"
     android:paddingBottom="12dp">
 
-    <TextView
-        android:id="@+id/record_recent_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginBottom="10dp"
-        android:text="2020-07-16 09:17"
-        android:textColor="#646C67"
-        android:textSize="13sp"
-        android:visibility="gone"
-        tools:visibility="visible" />
+    <ImageView
+        android:id="@+id/myimage"
+        android:layout_width="112dp"
+        android:layout_height="116dp"
+        android:background="@drawable/home_map_preview_bg"
+        android:padding="1dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/tap_map"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/record_date_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/records_ic_calendar"
+        app:layout_constraintStart_toEndOf="@id/myimage"
+        app:layout_constraintTop_toTopOf="@id/myimage" />
 
     <TextView
-        android:id="@+id/record_section_label"
-        android:layout_width="wrap_content"
+        android:id="@+id/record_date"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginBottom="10dp"
-        android:text="이전 기록"
-        android:textColor="#646C67"
-        android:textSize="13sp"
+        android:layout_marginStart="7dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="2026. 05. 16 (금)"
+        android:textColor="#5E6462"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toStartOf="@id/record_time_icon"
+        app:layout_constraintStart_toEndOf="@id/record_date_icon"
+        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
+
+    <ImageView
+        android:id="@+id/record_time_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/riding_ic_clock"
+        app:layout_constraintEnd_toStartOf="@id/record_time"
+        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
+
+    <TextView
+        android:id="@+id/record_time"
+        android:layout_width="76dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="오후 3:43"
+        android:textColor="#5E6462"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toStartOf="@id/record_weather_icon"
+        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
+
+    <ImageView
+        android:id="@+id/record_weather_icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/records_ic_sun"
+        app:layout_constraintEnd_toStartOf="@id/record_more"
+        app:layout_constraintTop_toTopOf="@id/myimage" />
+
+    <TextView
+        android:id="@+id/record_more"
+        android:layout_width="18dp"
+        android:layout_height="28dp"
+        android:gravity="center"
+        android:text="⋮"
+        android:textColor="#222222"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/myimage" />
+
+    <TextView
+        android:id="@+id/record_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="44dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="대구 앞산 라이딩"
+        android:textColor="#111111"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/myimage"
+        app:layout_constraintTop_toBottomOf="@id/record_date_icon" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/viewClick"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/record_meta_row"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/record_card_bg"
-        android:clickable="true"
-        android:focusable="true"
-        android:paddingStart="14dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="12dp">
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="18dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toStartOf="@id/record_bookmark_icon"
+        app:layout_constraintStart_toEndOf="@id/myimage"
+        app:layout_constraintTop_toBottomOf="@id/record_name">
 
-        <TextView
-            android:id="@+id/record_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="2020-07-16"
-            android:textColor="#202622"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/myimage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/record_date"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="09:17"
-            android:textColor="#6E756F"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toStartOf="@+id/myimage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/record_name" />
+        <ImageView
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:src="@drawable/riding_ic_pin" />
 
         <TextView
             android:id="@+id/my_dis"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginStart="5dp"
             android:text="0.02 km"
-            android:textColor="#1B211E"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/myimage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/record_date" />
-
-        <LinearLayout
-            android:id="@+id/meta_row"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toStartOf="@+id/myimage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/my_dis">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/riding_ic_pin" />
-
-            <TextView
-                android:id="@+id/my_get"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="45 m"
-                android:textColor="#525B56"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginStart="14dp"
-                android:src="@drawable/riding_ic_clock" />
-
-            <TextView
-                android:id="@+id/my_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="1시간 0분 4초"
-                android:textColor="#525B56"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/record_adress"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/meta_row" />
+            android:textColor="#096631"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/myimage"
-            android:layout_width="116dp"
-            android:layout_height="92dp"
-            android:background="@drawable/record_thumb_bg"
-            android:scaleType="centerCrop"
-            android:src="@drawable/tap_map"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="22dp"
+            android:src="@drawable/ic_mountain_home" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/my_get"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="45 m"
+            android:textColor="#111111"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
-</LinearLayout>
+        <ImageView
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginStart="22dp"
+            android:src="@drawable/riding_ic_clock" />
+
+        <TextView
+            android:id="@+id/my_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="1시간 0분"
+            android:textColor="#111111"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/record_adress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="44dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="LS7길"
+        android:textColor="#646C67"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/myimage"
+        app:layout_constraintTop_toBottomOf="@id/record_meta_row" />
+
+    <ImageView
+        android:id="@+id/record_bookmark_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/drawer_ic_bookmark_custom"
+        app:layout_constraintBottom_toBottomOf="@id/myimage"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/record_recent_label"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone"
+        tools:visibility="gone" />
+
+    <TextView
+        android:id="@+id/record_section_label"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone"
+        tools:visibility="gone" />
+</androidx.constraintlayout.widget.ConstraintLayout>

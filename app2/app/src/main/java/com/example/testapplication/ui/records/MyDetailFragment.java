@@ -39,8 +39,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,6 +79,7 @@ public class MyDetailFragment extends BaseFragment implements MapView.CurrentLoc
     private Call<RidingRecord> record;
     List<Track> tracks;
     private TextView RidingTime, RidingRest, RidingDistance, RidingMax, RidingAvg, RidingGet, RidingAddr;
+    private TextView detailTitle, detailDate, detailTime, detailGraphHigh, detailAnalysisHeight, detailAnalysisAvg;
 
     public MyDetailFragment() {
         // Required empty public constructor
@@ -136,13 +141,31 @@ public class MyDetailFragment extends BaseFragment implements MapView.CurrentLoc
         RidingAvg = (TextView) view.findViewById(R.id.Riding_avg);
         RidingGet = (TextView) view.findViewById(R.id.Riding_godo);
         RidingAddr = (TextView) view.findViewById(R.id.Riding_addr);
-        RidingTime.setText(model.my_rec_time.getValue());
-        RidingRest.setText(model.my_rec_rest.getValue());
-        RidingDistance.setText(model.my_rec_dis.getValue());
-        RidingMax.setText(model.my_rec_max.getValue());
-        RidingAvg.setText(model.my_rec_avg.getValue());
-        RidingGet.setText(model.my_rec_get.getValue());
-        RidingAddr.setText(model.my_rec_adress.getValue());
+        detailTitle = view.findViewById(R.id.detail_title);
+        detailDate = view.findViewById(R.id.detail_date);
+        detailTime = view.findViewById(R.id.detail_time);
+        detailGraphHigh = view.findViewById(R.id.detail_graph_high);
+        detailAnalysisHeight = view.findViewById(R.id.detail_analysis_height);
+        detailAnalysisAvg = view.findViewById(R.id.detail_analysis_avg_text);
+
+        View back = view.findViewById(R.id.detail_back);
+        if (back != null) {
+            back.setOnClickListener(v -> controller.popBackStack());
+        }
+
+        setTextIfPresent(detailTitle, firstNotEmpty(model.my_rec_name.getValue(), model.my_rec_adress.getValue(), "라이딩 기록"));
+        setTextIfPresent(detailDate, formatDate(model.my_rec_date.getValue()));
+        setTextIfPresent(detailTime, formatClock(model.my_rec_date.getValue()));
+        setTextIfPresent(RidingTime, firstNotEmpty(model.my_rec_time.getValue(), "-"));
+        setTextIfPresent(RidingRest, estimateCalories(model.my_rec_dis.getValue()));
+        setTextIfPresent(RidingDistance, firstNotEmpty(model.my_rec_dis.getValue(), "-"));
+        setTextIfPresent(RidingMax, firstNotEmpty(model.my_rec_max.getValue(), "-"));
+        setTextIfPresent(RidingAvg, firstNotEmpty(model.my_rec_avg.getValue(), "-"));
+        setTextIfPresent(RidingGet, firstNotEmpty(model.my_rec_get.getValue(), "-"));
+        setTextIfPresent(RidingAddr, firstNotEmpty(model.my_rec_adress.getValue(), "-"));
+        setTextIfPresent(detailGraphHigh, "▲ 최고 " + model.my_rec_get.getValue());
+        setTextIfPresent(detailAnalysisHeight, "획득 고도 " + model.my_rec_get.getValue() + "를 달성했어요.");
+        setTextIfPresent(detailAnalysisAvg, "평균 속도 " + model.my_rec_avg.getValue() + "로 주행했어요.");
         set_open = (LinearLayout) view.findViewById(R.id.set_open);
         set_noopen = (LinearLayout) view.findViewById(R.id.set_noopen);
 
@@ -231,13 +254,15 @@ public class MyDetailFragment extends BaseFragment implements MapView.CurrentLoc
                             }
                         }
 
-                        // Polyline 지도에 올리기.
-                        mapView.addPolyline(polyline);
-
-                        // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
-                        MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
-                        int padding = 100; // px
-                        mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+                        requireActivity().runOnUiThread(() -> {
+                            if (!isAdded()) {
+                                return;
+                            }
+                            mapView.addPolyline(polyline);
+                            MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
+                            int padding = 100;
+                            mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+                        });
 
                     } else {
                         Log.e("error","Error parsing gpx track!");
@@ -251,6 +276,85 @@ public class MyDetailFragment extends BaseFragment implements MapView.CurrentLoc
         };
         uThread.start(); // 작업 Thread 실행
     }
+    private String firstNotEmpty(String... values) {
+        for (String value : values) {
+            if (value != null && value.trim().length() > 0) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
+
+    private void setTextIfPresent(TextView textView, String value) {
+        if (textView != null) {
+            textView.setText(value);
+        }
+    }
+
+    private String formatDate(String value) {
+        Date date = parseDate(value);
+        if (date != null) {
+            return new SimpleDateFormat("yyyy. MM. dd (E)", Locale.KOREA).format(date);
+        }
+        return value == null ? "-" : value;
+    }
+
+    private String formatClock(String value) {
+        Date date = parseDate(value);
+        if (date != null) {
+            return new SimpleDateFormat("a h:mm", Locale.KOREA).format(date);
+        }
+        return "-";
+    }
+
+    private Date parseDate(String value) {
+        if (value == null || value.length() < 10) {
+            return null;
+        }
+
+        String normalized = value.length() >= 19 ? value.substring(0, 19) : value;
+        String[] patterns = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"};
+        for (String pattern : patterns) {
+            try {
+                return new SimpleDateFormat(pattern, Locale.KOREA).parse(normalized);
+            } catch (ParseException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private String estimateCalories(String distanceText) {
+        if (distanceText == null) {
+            return "0 kcal";
+        }
+        try {
+            String number = distanceText.replace("km", "").trim();
+            double km = Double.parseDouble(number);
+            return Math.max(1, (int) Math.round(km * 50.0)) + " kcal";
+        } catch (NumberFormatException e) {
+            return "0 kcal";
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setAppBarVisible(false);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        setAppBarVisible(true);
+    }
+
+    private void setAppBarVisible(boolean visible) {
+        View appBar = requireActivity().findViewById(R.id.app_bar_layout);
+        if (appBar != null) {
+            appBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
     @Override
     public void onReverseGeoCoderFoundAddress(MapReverseGeoCoder mapReverseGeoCoder, String s) {
 

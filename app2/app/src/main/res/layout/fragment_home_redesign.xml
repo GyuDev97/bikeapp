@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F6F2"
+    android:background="#F6F7F4"
     tools:context=".ui.home.HomeFragment">
 
     <ScrollView
@@ -12,7 +12,8 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="18dp"
+        android:fillViewport="true"
+        android:paddingBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/home_bottom_nav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,72 +22,250 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/home_menu_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/home_header_icon_bg"
+                    android:clickable="true"
+                    android:contentDescription="menu"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_menu_home" />
+
+                <TextView
+                    android:id="@+id/home_brand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="TrailGO"
+                    android:textColor="#1E6A2B"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp">
+
+                    <ImageView
+                        android:id="@+id/home_notification_button"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/home_header_icon_bg"
+                        android:contentDescription="notification"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_bell_home" />
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/home_notification_dot" />
+                </FrameLayout>
+            </LinearLayout>
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="252dp">
+                android:layout_height="252dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/home_card"
+                android:clipToPadding="false">
 
                 <ImageView
+                    android:id="@+id/home_hero_image"
                     android:layout_width="match_parent"
-                    android:layout_height="188dp"
-                    android:contentDescription="@string/app_name"
+                    android:layout_height="match_parent"
+                    android:contentDescription="hero"
                     android:scaleType="centerCrop"
                     android:src="@drawable/main_img" />
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="188dp"
+                    android:layout_height="match_parent"
                     android:background="@drawable/home_hero_scrim" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="188dp"
-                    android:gravity="top"
-                    android:orientation="horizontal"
-                    android:paddingStart="20dp"
-                    android:paddingTop="18dp"
-                    android:paddingEnd="20dp">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="22dp">
 
                     <TextView
-                        android:id="@+id/home_hello"
+                        android:id="@+id/home_hero_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="오늘도&#10;한 번 달려볼까요?"
+                        android:textColor="#111111"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="36dp"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="14dp"
+                        android:background="#6EB82E" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/home_card"
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/home_today_label"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Hello, admin!"
-                        android:textColor="#F8FFF2"
-                        android:textSize="16sp"
+                        android:text="오늘 활동"
+                        android:textColor="#111111"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:contentDescription="@string/app_name"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/no_open_icon" />
+                    <TextView
+                        android:id="@+id/home_goal_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="목표 달성도"
+                        android:textColor="#7D8480"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="132dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/home_card"
-                    android:elevation="5dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp">
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/riding_ic_pin" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="거리"
+                                android:textColor="#555D58"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/main_km"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="0.00 km"
+                            android:textColor="#111111"
+                            android:textSize="22sp"
+                            android:maxLines="1"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="84dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="#EEF0EC" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/riding_ic_clock" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="시간"
+                                android:textColor="#555D58"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/main_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="0 min"
+                            android:textColor="#111111"
+                            android:textSize="22sp"
+                            android:maxLines="1"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="84dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="#EEF0EC" />
 
                     <FrameLayout
-                        android:layout_width="102dp"
-                        android:layout_height="102dp">
+                        android:layout_width="112dp"
+                        android:layout_height="112dp">
 
                         <ProgressBar
+                            android:id="@+id/home_goal_progress"
                             style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="102dp"
-                            android:layout_height="102dp"
+                            android:layout_width="112dp"
+                            android:layout_height="112dp"
                             android:indeterminate="false"
                             android:max="100"
                             android:progress="20"
@@ -94,311 +273,413 @@
                             android:rotation="-90" />
 
                         <TextView
+                            android:id="@+id/home_goal_percent"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="20%"
-                            android:textColor="#334238"
-                            android:textSize="18sp"
+                            android:textColor="#111111"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
                     </FrameLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/home_goal_target"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="목표 10 km · 60 min"
+                        android:textColor="#4A514D"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/profile_ic_chevron" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/recent_record_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/home_card"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/home_recent_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="최근 라이딩"
+                        android:textColor="#111111"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/home_recent_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="더보기"
+                        android:textColor="#7D8480"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/profile_ic_chevron" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/home_recent_map"
+                        android:layout_width="112dp"
+                        android:layout_height="90dp"
+                        android:background="@drawable/home_map_preview_bg"
+                        android:padding="2dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/tap_map" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="18dp"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
-                            android:id="@+id/home_today_label"
+                            android:id="@+id/home_recent_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Today"
-                            android:textColor="#334238"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
+                            android:text="2020년 7월 16일 · 오전 9:17"
+                            android:textColor="#737A76"
+                            android:textSize="14sp" />
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:gravity="bottom"
+                            android:layout_marginTop="14dp"
+                            android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <TextView
-                                android:id="@+id/main_km"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0 m"
-                                android:textColor="#0F1511"
-                                android:textSize="30sp"
-                                android:textStyle="bold" />
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/riding_ic_pin" />
 
                             <TextView
+                                android:id="@+id/home_recent_distance"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text=" / "
-                                android:textColor="#0F1511"
-                                android:textSize="24sp"
+                                android:layout_marginStart="6dp"
+                                android:text="0.02 km"
+                                android:textColor="#111111"
+                                android:textSize="17sp"
                                 android:textStyle="bold" />
 
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_marginStart="18dp"
+                                android:src="@drawable/ic_mountain_home" />
+
                             <TextView
-                                android:id="@+id/main_time"
+                                android:id="@+id/home_recent_height"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0 min"
-                                android:textColor="#0F1511"
-                                android:textSize="24sp"
+                                android:layout_marginStart="6dp"
+                                android:text="45 m"
+                                android:textColor="#111111"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/riding_ic_clock" />
+
+                            <TextView
+                                android:id="@+id/home_recent_duration"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="1시간 0분"
+                                android:textColor="#111111"
+                                android:textSize="17sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
-                            android:id="@+id/main_dis"
+                            android:id="@+id/home_recent_course"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Total: 0 m"
-                            android:textColor="#334238"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/home_goal_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="Goal"
-                            android:textColor="#708074"
-                            android:textSize="13sp" />
+                            android:layout_marginTop="12dp"
+                            android:text="LS7길"
+                            android:textColor="#737A76"
+                            android:textSize="15sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </FrameLayout>
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/idinfo"
-                android:layout_width="match_parent"
+                android:id="@+id/home_quick_title"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:paddingStart="28dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="28dp"
-                android:text="Ride with us"
-                android:textColor="#1F2822"
-                android:textSize="20sp"
+                android:layout_marginTop="20dp"
+                android:text="빠른 메뉴"
+                android:textColor="#111111"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:id="@+id/recent_record_card"
+                    android:id="@+id/home_course_search"
                     android:layout_width="0dp"
-                    android:layout_height="154dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="178dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:background="@drawable/home_card"
-                    android:elevation="4dp"
+                    android:clickable="true"
+                    android:elevation="3dp"
+                    android:focusable="true"
+                    android:gravity="top|center_horizontal"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:paddingStart="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="16dp">
+
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:background="@drawable/home_quick_green_bg">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_search_home" />
+                    </FrameLayout>
 
                     <TextView
-                        android:id="@+id/home_recent_title"
-                        android:layout_width="match_parent"
+                        android:id="@+id/home_course_search_label"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Recent record"
-                        android:textColor="#1F2822"
-                        android:textSize="15sp"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="코스 탐색"
+                        android:textColor="#111111"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/home_recent_course"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="MTB course"
-                        android:textColor="#7B8A80"
-                        android:textSize="12sp" />
-
-                    <ImageView
+                        android:id="@+id/home_course_search_desc"
                         android:layout_width="match_parent"
-                        android:layout_height="62dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/home_map_preview_bg"
-                        android:contentDescription="@string/app_name"
-                        android:padding="8dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/tap_map" />
-
-                    <TextView
-                        android:id="@+id/home_recent_meta"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="0.62 km / 12 min / 158 km"
-                        android:textColor="#3B493F"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:lineSpacingExtra="1dp"
+                        android:maxLines="4"
+                        android:text="다양한 코스를&#10;검색해보세요"
+                        android:textColor="#6C7470"
+                        android:textSize="9sp" />
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/home_danger"
                     android:layout_width="0dp"
-                    android:layout_height="154dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="178dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:background="@drawable/home_card"
-                    android:elevation="4dp"
+                    android:clickable="true"
+                    android:elevation="3dp"
+                    android:focusable="true"
+                    android:gravity="top|center_horizontal"
                     android:orientation="vertical"
-                    android:paddingStart="14dp"
-                    android:paddingTop="10dp"
-                    android:paddingEnd="14dp"
-                    android:paddingBottom="10dp">
+                    android:paddingStart="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="16dp">
 
-                    <LinearLayout
-                        android:id="@+id/home_danger"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:background="@drawable/home_quick_red_bg">
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="@string/app_name"
-                            android:scaleType="centerInside"
-                            android:src="@drawable/danger_icon" />
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_alarm_home" />
+                    </FrameLayout>
 
-                        <TextView
-                            android:id="@+id/home_danger_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Danger"
-                            android:textColor="#1F2822"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/home_danger_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="긴급 알림"
+                        android:textColor="#111111"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:id="@+id/home_course_search"
+                    <TextView
+                        android:id="@+id/home_danger_desc"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:lineSpacingExtra="1dp"
+                        android:maxLines="4"
+                        android:text="위급 상황 시&#10;도움을 요청하세요"
+                        android:textColor="#6C7470"
+                        android:textSize="9sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/home_setting"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="178dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/home_card"
+                    android:clickable="true"
+                    android:elevation="3dp"
+                    android:focusable="true"
+                    android:gravity="top|center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingStart="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="16dp">
+
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:background="@drawable/home_quick_gray_bg">
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="@string/app_name"
-                            android:scaleType="centerInside"
-                            android:src="@drawable/nav_search" />
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_setting_home" />
+                    </FrameLayout>
 
-                        <TextView
-                            android:id="@+id/home_course_search_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Course search"
-                            android:textColor="#1F2822"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/home_setting_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="설정"
+                        android:textColor="#111111"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:id="@+id/home_scrap"
+                    <TextView
+                        android:id="@+id/home_setting_desc"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="@string/app_name"
-                            android:scaleType="centerInside"
-                            android:src="@drawable/nav_scrap" />
-
-                        <TextView
-                            android:id="@+id/home_scrap_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Scrap"
-                            android:textColor="#1F2822"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/home_setting"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="@string/app_name"
-                            android:scaleType="centerInside"
-                            android:src="@drawable/setting_icon" />
-
-                        <TextView
-                            android:id="@+id/home_setting_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Settings"
-                            android:textColor="#1F2822"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:lineSpacingExtra="1dp"
+                        android:maxLines="4"
+                        android:text="앱 설정 및&#10;계정을 관리하세요"
+                        android:textColor="#6C7470"
+                        android:textSize="9sp" />
                 </LinearLayout>
             </LinearLayout>
 
             <TextView
                 android:id="@+id/ridingstart"
                 android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="28dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="26dp"
                 android:background="@drawable/home_start_button"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
-                android:text="Start riding"
+                android:text="라이딩 시작"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="22sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/idinfo"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 
     <LinearLayout
         android:id="@+id/home_bottom_nav"
         android:layout_width="0dp"
-        android:layout_height="64dp"
-        android:background="#FFFFFF"
-        android:elevation="8dp"
+        android:layout_height="78dp"
+        android:background="@drawable/home_bottom_nav_bg"
+        android:elevation="10dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -411,18 +692,17 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
                 android:src="@drawable/nav_home" />
 
             <TextView
                 android:id="@+id/home_nav_home_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Home"
-                android:textColor="#303A34"
-                android:textSize="11sp" />
+                android:layout_marginTop="4dp"
+                android:text="홈"
+                android:textColor="#509D26"
+                android:textSize="11sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -433,17 +713,15 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
                 android:src="@drawable/nav_report" />
 
             <TextView
                 android:id="@+id/home_nav_records_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Records"
-                android:textColor="#303A34"
+                android:layout_marginTop="4dp"
+                android:text="기록"
+                android:textColor="#111111"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -455,17 +733,15 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
                 android:src="@drawable/nav_course" />
 
             <TextView
                 android:id="@+id/home_nav_course_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Course"
-                android:textColor="#303A34"
+                android:layout_marginTop="4dp"
+                android:text="코스"
+                android:textColor="#111111"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -477,17 +753,15 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
                 android:src="@drawable/nav_chanl" />
 
             <TextView
                 android:id="@+id/home_nav_community_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Community"
-                android:textColor="#303A34"
+                android:layout_marginTop="4dp"
+                android:text="커뮤니티"
+                android:textColor="#111111"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -499,17 +773,15 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
                 android:src="@drawable/setting_icon" />
 
             <TextView
                 android:id="@+id/home_nav_profile_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Profile"
-                android:textColor="#303A34"
+                android:layout_marginTop="4dp"
+                android:text="프로필"
+                android:textColor="#111111"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

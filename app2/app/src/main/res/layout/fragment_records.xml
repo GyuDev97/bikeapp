@@ -1,278 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F8F7"
-    tools:context=".ui.records.RecordFragment">
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:id="@+id/records_header"
         android:layout_width="0dp"
-        android:layout_height="88dp"
-        android:background="@drawable/records_header_bg"
+        android:layout_height="62dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="28dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="28dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <TextView
             android:id="@+id/records_menu_button"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            android:padding="6dp"
-            android:src="@drawable/records_ic_menu_white" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            android:layout_weight="1"
-            android:text="TrailGO"
-            android:textColor="#FFFFFF"
-            android:textSize="28sp"
+            android:gravity="center_vertical"
+            android:text="기록"
+            android:textColor="#151A17"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/records_search_button"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:padding="5dp"
-            android:src="@drawable/records_ic_search_white" />
-
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_search_home" />
         <ImageView
-            android:id="@+id/records_filter_button"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_marginStart="18dp"
-            android:padding="5dp"
-            android:src="@drawable/records_ic_filter" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:src="@drawable/records_ic_filter"
+            android:tint="#202421" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/records_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="26dp"
-        android:layout_marginEnd="18dp"
-        android:text="내 기록"
-        android:textColor="#111111"
-        android:textSize="27sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/records_header" />
-
-    <TextView
-        android:id="@+id/records_count_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="18dp"
-        android:text="총 0개의 라이딩 기록"
-        android:textColor="#545D58"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@id/records_sort_text"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/records_title" />
-
-    <TextView
-        android:id="@+id/records_sort_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="22dp"
-        android:drawableEnd="@drawable/profile_ic_chevron"
-        android:drawablePadding="4dp"
-        android:gravity="center"
-        android:text="최신순"
-        android:textColor="#111111"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/records_count_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/records_count_text" />
 
     <LinearLayout
-        android:id="@+id/records_summary_card"
+        android:id="@+id/records_tabs"
         android:layout_width="0dp"
-        android:layout_height="92dp"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="22dp"
-        android:layout_marginEnd="18dp"
-        android:background="@drawable/records_summary_card_bg"
-        android:elevation="2dp"
-        android:gravity="center_vertical"
+        android:layout_height="48dp"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/records_count_text">
+        app:layout_constraintTop_toBottomOf="@id/records_header">
 
-        <FrameLayout
-            android:layout_width="58dp"
-            android:layout_height="58dp"
-            android:background="@drawable/records_summary_icon_bg">
-
-            <ImageView
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_gravity="center"
-                android:src="@drawable/profile_ic_bicycle" />
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="24dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="총 거리"
-                android:textColor="#222222"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/records_total_distance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="0 km"
-                android:textColor="#075E2F"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="48dp"
-            android:background="#DCE3DF" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="총 상승고도"
-                android:textColor="#222222"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/records_total_height"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="0 m"
-                android:textColor="#075E2F"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="48dp"
-            android:background="#DCE3DF" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="총 시간"
-                android:textColor="#222222"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/records_total_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="0분"
-                android:textColor="#075E2F"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+        <TextView style="@style/RecordTabActive" android:text="전체" />
+        <TextView style="@style/RecordTab" android:text="라이딩" />
+        <TextView style="@style/RecordTab" android:text="코스" />
+        <TextView style="@style/RecordTab" android:text="즐겨찾기" />
     </LinearLayout>
+
+    <View
+        android:id="@+id/records_divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E5E7E5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/records_tabs" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingStart="18dp"
-        android:paddingTop="18dp"
-        android:paddingEnd="18dp"
-        android:paddingBottom="22dp"
+        android:paddingBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/records_bottom_nav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/records_summary_card" />
+        app:layout_constraintTop_toBottomOf="@id/records_divider"
+        tools:listitem="@layout/myreport_item" />
 
     <LinearLayout
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone">
+        <TextView android:id="@+id/records_count_text" android:layout_width="1dp" android:layout_height="1dp" />
+        <TextView android:id="@+id/records_total_distance" android:layout_width="1dp" android:layout_height="1dp" />
+        <TextView android:id="@+id/records_total_height" android:layout_width="1dp" android:layout_height="1dp" />
+        <TextView android:id="@+id/records_total_time" android:layout_width="1dp" android:layout_height="1dp" />
+    </LinearLayout>
+
+    <include
         android:id="@+id/records_bottom_nav"
+        layout="@layout/trailgo_bottom_nav"
         android:layout_width="0dp"
-        android:layout_height="78dp"
-        android:background="@drawable/home_bottom_nav_bg"
-        android:elevation="10dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingTop="6dp"
+        android:layout_height="66dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/records_nav_home"
-            style="@style/HomeBottomNavItem"
-            android:drawableTop="@drawable/ic_menu_home"
-            android:text="홈" />
-
-        <TextView
-            android:id="@+id/records_nav_records"
-            style="@style/HomeBottomNavItem"
-            android:drawableTop="@drawable/nav_report"
-            android:text="기록"
-            android:textColor="#0B6B32"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/records_nav_course"
-            style="@style/HomeBottomNavItem"
-            android:drawableTop="@drawable/drawer_ic_map_custom"
-            android:text="코스" />
-
-        <TextView
-            android:id="@+id/records_nav_community"
-            style="@style/HomeBottomNavItem"
-            android:drawableTop="@drawable/ic_mountain_home"
-            android:text="커뮤니티" />
-
-        <TextView
-            android:id="@+id/records_nav_profile"
-            style="@style/HomeBottomNavItem"
-            android:drawableTop="@drawable/profile_ic_user"
-            android:text="프로필" />
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

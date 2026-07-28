@@ -29,7 +29,7 @@
         android:largeHeap="true">
         <meta-data
             android:name="com.kakao.sdk.AppKey"
-            android:value="aa39dcb513e87ee0fdea218920ba87be" />
+            android:value="0619e3c07c193137428169313e5f38c1" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBDek3jWvi_OJgo33xSeccnaaHxIqIlG_0" />
@@ -44,7 +44,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.member.LoginActivity" />
+        <activity
+            android:name=".ui.member.LoginActivity"
+            android:theme="@style/TrailGoAuthTheme" />
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar"/>

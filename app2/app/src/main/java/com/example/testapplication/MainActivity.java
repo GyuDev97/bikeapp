@@ -61,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_records, R.id.nav_course_view, R.id.nav_course_search, R.id.nav_course_scrap,
-                R.id.nav_competition_view, R.id.nav_mission_view, R.id.nav_danger_view, R.id.setting)
+                R.id.nav_competition_view, R.id.nav_mission_view, R.id.nav_danger_view,
+                R.id.setting, R.id.app_settings)
                 .setDrawerLayout(drawer)
                 .build();
 
@@ -71,6 +72,17 @@ public class MainActivity extends AppCompatActivity {
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             toolbar.setTitle("TrailGO");
             updateDrawerSelection(destination.getId());
+            int destinationId = destination.getId();
+            boolean useCustomHeader = destinationId == R.id.nav_home
+                    || destinationId == R.id.nav_records
+                    || destinationId == R.id.nav_course_view
+                    || destinationId == R.id.setting
+                    || destinationId == R.id.app_settings
+                    || destinationId == R.id.myDetailFragment;
+            View appBar = findViewById(R.id.app_bar_layout);
+            if (appBar != null) {
+                appBar.setVisibility(useCustomHeader ? View.GONE : View.VISIBLE);
+            }
         });
 
         MainViewModel model = new ViewModelProvider(this).get(MainViewModel.class);
@@ -110,10 +122,12 @@ public class MainActivity extends AppCompatActivity {
     private void setupDrawerClicks(DrawerLayout drawer, NavController navController) {
         setDrawerClick(R.id.nav_home, drawer, () -> navigateTo(navController, R.id.nav_home));
         setDrawerClick(R.id.nav_records, drawer, () -> navigateTo(navController, R.id.nav_records));
-        setDrawerClick(R.id.nav_course_search, drawer, () -> navigateTo(navController, R.id.nav_course_search));
+        // The drawer's "코스" row used to open the legacy WebView search page.
+        // Route it to the native course screen so the redesigned UI is actually shown.
+        setDrawerClick(R.id.nav_course_search, drawer, () -> navigateTo(navController, R.id.nav_course_view));
         setDrawerClick(R.id.nav_danger_view, drawer, () -> navigateTo(navController, R.id.nav_danger_view));
         setDrawerClick(R.id.nav_course_scrap, drawer, () -> navigateTo(navController, R.id.nav_course_scrap));
-        setDrawerClick(R.id.nav_sett, drawer, () -> navigateTo(navController, R.id.setting));
+        setDrawerClick(R.id.nav_sett, drawer, () -> navigateTo(navController, R.id.app_settings));
         setDrawerClick(R.id.nav_help, drawer, () -> Toast.makeText(this, "도움말은 준비 중입니다.", Toast.LENGTH_SHORT).show());
         setDrawerClick(R.id.nav_logout, drawer, this::logout);
     }
@@ -133,7 +147,10 @@ public class MainActivity extends AppCompatActivity {
         for (int itemId : drawerItemIds) {
             View item = findViewById(itemId);
             if (item != null) {
-                item.setSelected(itemId == destinationId || (itemId == R.id.nav_sett && destinationId == R.id.setting));
+                boolean selected = itemId == destinationId
+                        || (itemId == R.id.nav_sett && destinationId == R.id.app_settings)
+                        || (itemId == R.id.nav_course_search && destinationId == R.id.nav_course_view);
+                item.setSelected(selected);
             }
         }
 
@@ -181,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                Log.d("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+                Log.d("키 해시는 ", Base64.encodeToString(md.digest(), Base64.DEFAULT));
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();

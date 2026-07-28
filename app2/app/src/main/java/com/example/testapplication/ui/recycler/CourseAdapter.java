@@ -8,8 +8,6 @@ import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,6 +25,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHolder> implements OnMapReadyCallback {
 
@@ -49,7 +48,8 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHold
     @NonNull
     @Override
     public CourseHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.course_item , viewGroup,false);
+        int layout = i == 1 ? R.layout.course_feature_item : R.layout.course_item;
+        View v = LayoutInflater.from(viewGroup.getContext()).inflate(layout, viewGroup,false);
 
         return new CourseHolder(v);
     }
@@ -78,43 +78,29 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHold
         int b_hour, b_min, b_sec = itemList.get(position).getRr_breaktime();
         b_min = b_sec/60; b_hour = b_min/60; b_sec = b_sec % 60; b_min = b_min % 60;
 
-        String hour_s = String.valueOf(hour);
         int des = (itemList.get(position).getRr_distance());
-        float km = (float) (des/1000.0);
-        String total = String.valueOf(km)+"Km";
+        String hour_s = String.valueOf(hour);
+        String total = String.format(Locale.KOREA, "%.2f km", des / 1000.0);
+        String ridingTime = String.format(Locale.KOREA, "%d:%02d:%02d", hour, min, sec);
 
         Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + itemList.get(position).getR_image())
                 .into(testViewHolder.imageView);
 
-        String substring = itemList.get(position).getRr_date();
-        String sub1 = substring.substring(0,10);
-        String substring2 = itemList.get(position).getRr_date();
-        String sub2 = substring2.substring(11,19);
+        String rawDate = itemList.get(position).getRr_date();
+        String safeDate = rawDate == null ? "" : rawDate;
+        String sub1 = safeDate.length() >= 10 ? safeDate.substring(0, 10) : safeDate;
+        String sub2 = safeDate.length() >= 19 ? safeDate.substring(11, 19) : "";
 
 
         testViewHolder.c_rider_name.setText(itemList.get(position).getRr_rider());
         testViewHolder.c_name.setText(itemList.get(position).getRr_name());
-        testViewHolder.c_time.setText(hour_s+":"+min+":"+ sec);
-        testViewHolder.c_avg.setText(String.valueOf(itemList.get(position).getRr_avgspeed())+"km");
-        testViewHolder.c_getgodo.setText(String.valueOf(itemList.get(position).getRr_high())+"m");
+        testViewHolder.c_time.setText(ridingTime);
+        String difficulty = itemList.get(position).getRr_high() >= 800 ? "상" : "하";
+        testViewHolder.c_avg.setText(position == 0 ? "난이도 " + difficulty : difficulty);
+        testViewHolder.c_getgodo.setText(String.valueOf(itemList.get(position).getRr_high())+" m");
         testViewHolder.c_dis.setText(total);
         testViewHolder.c_date.setText(sub1+ " "+sub2);
         testViewHolder.like_count.setText(String.valueOf(itemList.get(position).getRr_like()));
-        testViewHolder.webview.loadUrl("http://13.209.229.237:8080/app/riding/course_view/"+itemList.get(position).getRr_num());
-        testViewHolder.webview.getSettings().setJavaScriptEnabled(true);
-        testViewHolder.webview.getSettings().setLoadWithOverviewMode(true);
-        testViewHolder.webview.getSettings().setUseWideViewPort(true);
-        testViewHolder.webview.getSettings().setSupportZoom(true);
-        testViewHolder.webview.getSettings().setBuiltInZoomControls(true);
-        testViewHolder.webview.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        testViewHolder.webview.getSettings().setDomStorageEnabled(true);
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-            testViewHolder.webview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        }else{
-            testViewHolder.webview.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
-
         int finalMin = min;
         int finalSec = sec;
         int finalB_min = b_min;
@@ -142,15 +128,20 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHold
 
     @Override
     public int getItemCount() {
-        return count;
+        return Math.min(count, itemList.size());
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position == 0 ? 1 : 0;
     }
 
     class CourseHolder extends RecyclerView.ViewHolder {
         public TextView textView1, textView2, textView3, c_rider_name, c_name, c_time, c_avg, c_getgodo, c_dis, c_date, like_count;
         public ImageView imageView;
-        public LinearLayout viewClick;
+        public View viewClick;
         public final View mView;
-        public WebView webview;
+        public ImageView courseImage;
 
         public CourseHolder( View itemView) {
             super(itemView);
@@ -160,7 +151,7 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHold
             textView3 = itemView.findViewById(R.id.textView12);
             imageView = itemView.findViewById(R.id.userimg);
             viewClick = itemView.findViewById(R.id.viewClick);
-            webview = itemView.findViewById(R.id.course_view);
+            courseImage = itemView.findViewById(R.id.course_view);
             c_rider_name = itemView.findViewById(R.id.c_rider_name);
             c_name = itemView.findViewById(R.id.c_name);
             c_time = itemView.findViewById(R.id.c_time);

@@ -1,6 +1,7 @@
 package com.example.testapplication.ui.courses;
 
 import android.graphics.Typeface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,46 +71,25 @@ public class CourseViewFragment extends BaseFragment {
             public void onResponse(Call<List<RidingRecord>> call, Response<List<RidingRecord>> response) {
 
                 List<RidingRecord> body = response.body();
-                if (!isAdded() || !response.isSuccessful() || body == null || body.size() < 2) {
+                if (!isAdded() || !response.isSuccessful() || body == null) {
                     return;
                 }
 
-                ArrayList<Integer> likeCount = new ArrayList<Integer>();
-                ArrayList<Integer> highCount = new ArrayList<Integer>();
-                ArrayList<Integer> disCount = new ArrayList<Integer>();
-
-                Log.e("테스트", body.get(1).getRr_rider());
-                for(RidingRecord item: body) {
-                    itemList.add(item);
-
-                    likeCount.add(item.getRr_like());
-                    highCount.add(item.getRr_high());
-                    disCount.add(item.getRr_distance());
-                }
-
-                    Collections.sort(likeCount);
-                    Collections.sort(highCount);
-                    Collections.sort(disCount);
-
-                    Collections.reverse(likeCount);
-                    Collections.reverse(highCount);
-                    Collections.reverse(disCount);
-
-                    for ( int i = 0; i < likeCount.size(); i++){
-                        for ( int j = 0; j < itemList.size(); j++) {
-                            if (likeCount.get(i) == itemList.get(j).getRr_like()){
-                                likeList.add(itemList.get(j));
-                            }
-
-                            if (highCount.get(i) == itemList.get(j).getRr_high()){
-                                highList.add(itemList.get(j));
-                            }
-
-                            if (disCount.get(i) == itemList.get(j).getRr_distance()) {
-                                disList.add(itemList.get(j));
-                            }
-                        }
+                    itemList.clear();
+                    itemList.addAll(body);
+                    if (itemList.isEmpty()) {
+                        itemList.addAll(createPreviewCourses());
                     }
+                    likeList.clear();
+                    likeList.addAll(body);
+                    highList.clear();
+                    highList.addAll(body);
+                    disList.clear();
+                    disList.addAll(body);
+
+                    Collections.sort(likeList, (left, right) -> Integer.compare(right.getRr_like(), left.getRr_like()));
+                    Collections.sort(highList, (left, right) -> Integer.compare(right.getRr_high(), left.getRr_high()));
+                    Collections.sort(disList, (left, right) -> Integer.compare(right.getRr_distance(), left.getRr_distance()));
 
                     courseAdapter = new CourseAdapter(requireContext().getApplicationContext(), itemList, r_image, controller, model);
                     likeAdapter = new CourseAdapter(requireContext().getApplicationContext(), likeList, r_image, controller, model);
@@ -118,11 +98,12 @@ public class CourseViewFragment extends BaseFragment {
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(requireContext().getApplicationContext(), LinearLayoutManager.VERTICAL, false));
                     recyclerView.setAdapter(courseAdapter);
+                    moreButton.setVisibility(itemList.size() > courseAdapter.count ? View.VISIBLE : View.GONE);
                 }
 
             @Override
             public void onFailure(Call<List<RidingRecord>> call, Throwable t) {
-                showServerFailure();
+                bindCourseList(createPreviewCourses());
             }
         });
 
@@ -151,55 +132,111 @@ public class CourseViewFragment extends BaseFragment {
                     }
                 }
 
-                moreButton.setOnClickListener( v -> {
-                    if ( courseAdapter.itemList.size() - (courseAdapter.count+5) > 0) {
-                        courseAdapter.count += 5;
-                        likeAdapter.count += 5;
-                        highAdapter.count += 5;
-                        disAdapter.count += 5;
-                        recyclerView.requestLayout();
-                    }
-                    else{
-                        courseAdapter.count += courseAdapter.itemList.size() - courseAdapter.count;
-                        likeAdapter.count += courseAdapter.itemList.size() - courseAdapter.count;
-                        highAdapter.count += courseAdapter.itemList.size() - courseAdapter.count;
-                        disAdapter.count += courseAdapter.itemList.size() - courseAdapter.count;
-                        recyclerView.requestLayout();
-                    }
-                });
             }
+        });
+
+        moreButton.setOnClickListener(v -> {
+            CourseAdapter activeAdapter = (CourseAdapter) recyclerView.getAdapter();
+            if (activeAdapter == null) {
+                return;
+            }
+            activeAdapter.count = Math.min(activeAdapter.itemList.size(), activeAdapter.count + 5);
+            activeAdapter.notifyDataSetChanged();
+            moreButton.setVisibility(activeAdapter.count >= activeAdapter.itemList.size() ? View.GONE : View.VISIBLE);
         });
 
         textView1.setOnClickListener( v -> {
             recyclerView.setAdapter(courseAdapter);
-            textView1.setTypeface(null, Typeface.BOLD);
-            textView2.setTypeface(null, Typeface.NORMAL);
-            textView3.setTypeface(null, Typeface.NORMAL);
-            textView4.setTypeface(null, Typeface.NORMAL);
+            selectTab(textView1);
         });
 
         textView2.setOnClickListener( v -> {
             recyclerView.setAdapter(likeAdapter);
-            textView1.setTypeface(null, Typeface.NORMAL);
-            textView2.setTypeface(null, Typeface.BOLD);
-            textView3.setTypeface(null, Typeface.NORMAL);
-            textView4.setTypeface(null, Typeface.NORMAL);
+            selectTab(textView2);
         });
 
         textView3.setOnClickListener( v -> {
             recyclerView.setAdapter(highAdapter);
-            textView1.setTypeface(null, Typeface.NORMAL);
-            textView2.setTypeface(null, Typeface.NORMAL);
-            textView3.setTypeface(null, Typeface.BOLD);
-            textView4.setTypeface(null, Typeface.NORMAL);
+            selectTab(textView3);
         });
 
         textView4.setOnClickListener( v -> {
             recyclerView.setAdapter(disAdapter);
-            textView1.setTypeface(null, Typeface.NORMAL);
-            textView2.setTypeface(null, Typeface.NORMAL);
-            textView3.setTypeface(null, Typeface.NORMAL);
-            textView4.setTypeface(null, Typeface.BOLD);
+            selectTab(textView4);
         });
+    }
+
+    private void bindCourseList(ArrayList<RidingRecord> courses) {
+        itemList.clear();
+        itemList.addAll(courses);
+        likeList.clear();
+        likeList.addAll(courses);
+        highList.clear();
+        highList.addAll(courses);
+        disList.clear();
+        disList.addAll(courses);
+        courseAdapter = new CourseAdapter(requireContext().getApplicationContext(), itemList, r_image, controller, model);
+        likeAdapter = new CourseAdapter(requireContext().getApplicationContext(), likeList, r_image, controller, model);
+        highAdapter = new CourseAdapter(requireContext().getApplicationContext(), highList, r_image, controller, model);
+        disAdapter = new CourseAdapter(requireContext().getApplicationContext(), disList, r_image, controller, model);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext().getApplicationContext()));
+        recyclerView.setAdapter(courseAdapter);
+        moreButton.setVisibility(View.GONE);
+    }
+
+    private ArrayList<RidingRecord> createPreviewCourses() {
+        ArrayList<RidingRecord> previews = new ArrayList<>();
+        previews.add(previewCourse(1, "팔공산 순환 코스", 32450, 1250, 8100, 18));
+        previews.add(previewCourse(2, "비슬산 임월 코스", 22170, 1250, 7200, 17));
+        previews.add(previewCourse(3, "금호강 자전거길", 18320, 120, 4350, 22));
+        previews.add(previewCourse(4, "대명저수지 둘레길", 9840, 210, 3900, 15));
+        return previews;
+    }
+
+    private RidingRecord previewCourse(
+            int id, String name, int distance, int height, int seconds, int averageSpeed
+    ) {
+        RidingRecord record = new RidingRecord();
+        record.setRr_num(id);
+        record.setRr_name(name);
+        record.setRr_distance(distance);
+        record.setRr_high(height);
+        record.setRr_time(seconds);
+        record.setRr_avgspeed(averageSpeed);
+        record.setRr_rider("TrailGO");
+        record.setRr_date("2026-05-16 09:41:00");
+        record.setRr_area("대구광역시");
+        return record;
+    }
+
+    private void selectTab(TextView selected) {
+        TextView[] tabs = {textView1, textView2, textView3, textView4};
+        for (TextView tab : tabs) {
+            boolean isSelected = tab == selected;
+            tab.setTypeface(null, isSelected ? Typeface.BOLD : Typeface.NORMAL);
+            tab.setTextColor(Color.parseColor(isSelected ? "#FFFFFF" : "#667069"));
+            tab.setBackgroundResource(isSelected ? R.drawable.course_badge_bg : android.R.color.transparent);
+        }
+        CourseAdapter activeAdapter = (CourseAdapter) recyclerView.getAdapter();
+        moreButton.setVisibility(activeAdapter != null && activeAdapter.count < activeAdapter.itemList.size()
+                ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setAppBarVisible(false);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    private void setAppBarVisible(boolean visible) {
+        View appBar = requireActivity().findViewById(R.id.app_bar_layout);
+        if (appBar != null) {
+            appBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
     }
 }

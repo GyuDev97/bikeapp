@@ -1,85 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F6F7F4"
     tools:context=".ui.courses.CourseViewFragment">
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true"
-        tools:ignore="MissingConstraints">
+    <LinearLayout
+        android:id="@+id/course_header"
+        android:layout_width="0dp"
+        android:layout_height="62dp"
+        android:background="#FFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <LinearLayout
-                android:id="@+id/top"
-                android:layout_width="match_parent"
-                android:layout_height="60dp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="코스"
+            android:textColor="#102117"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textView17"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="10dp"
-                android:text="최신순"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView"
-                app:layout_constraintEnd_toStartOf="@+id/textView18" />
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_search_home" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/textView18"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="10dp"
-                android:text="추천순"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView"
-                app:layout_constraintEnd_toStartOf="@+id/textView19" />
+    <LinearLayout
+        android:id="@+id/course_tabs"
+        android:layout_width="0dp"
+        android:layout_height="46dp"
+        android:background="#FFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/course_header">
 
-            <TextView
-                android:id="@+id/textView19"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="10dp"
-                android:text="획득고도순"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView"
-                app:layout_constraintEnd_toStartOf="@+id/textView20" />
+        <TextView
+            android:id="@+id/textView17"
+            style="@style/CourseFilterTabActive"
+            android:text="추천 코스" />
 
-            <TextView
-                android:id="@+id/textView20"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="10dp"
-                android:text="거리순"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView"
-                app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/textView18"
+            style="@style/CourseFilterTab"
+            android:text="인기 코스" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/top">
+        <TextView
+            android:id="@+id/textView19"
+            style="@style/CourseFilterTab"
+            android:text="내 코스" />
 
-            </androidx.recyclerview.widget.RecyclerView>
+        <TextView
+            android:id="@+id/textView20"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:visibility="gone"
+            android:text="거리순" />
+    </LinearLayout>
 
-            <Button
-                android:id="@+id/more_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="1dp"
-                android:text="더보기"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="74dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/course_tabs"
+        tools:listitem="@layout/course_item" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
+    <Button
+        android:id="@+id/more_button"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginEnd="22dp"
+        android:layout_marginBottom="18dp"
+        android:background="@drawable/course_primary_button"
+        android:text="코스 만들기"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

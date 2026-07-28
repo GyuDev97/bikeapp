@@ -3,6 +3,7 @@ package com.example.testapplication.ui.records;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import com.example.testapplication.R;
 import com.example.testapplication.dto.RidingRecord;
 import com.example.testapplication.ui.BaseFragment;
 import com.example.testapplication.ui.recycler.MyReportAdapter;
+import com.example.testapplication.ui.riding.StartActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,10 +72,15 @@ public class RecordFragment extends BaseFragment {
     }
 
     private void bindBottomNavigation(View view) {
-        view.findViewById(R.id.records_nav_home).setOnClickListener(v -> navigateTo(R.id.nav_home));
-        view.findViewById(R.id.records_nav_course).setOnClickListener(v -> navigateTo(R.id.nav_course_view));
-        view.findViewById(R.id.records_nav_community).setOnClickListener(v -> navigateTo(R.id.nav_competition_view));
-        view.findViewById(R.id.records_nav_profile).setOnClickListener(v -> navigateTo(R.id.setting));
+        view.findViewById(R.id.bottom_nav_home).setOnClickListener(v -> navigateTo(R.id.nav_home));
+        view.findViewById(R.id.bottom_nav_course).setOnClickListener(v -> navigateTo(R.id.nav_course_view));
+        view.findViewById(R.id.bottom_nav_profile).setOnClickListener(v -> navigateTo(R.id.setting));
+        view.findViewById(R.id.bottom_nav_ride).setOnClickListener(
+                v -> startActivity(new Intent(requireContext(), StartActivity.class))
+        );
+        TextView records = view.findViewById(R.id.bottom_nav_records);
+        records.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
+        records.setTypeface(null, android.graphics.Typeface.BOLD);
     }
 
     private void navigateTo(int destinationId) {
@@ -164,7 +171,6 @@ public class RecordFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        setAppBarVisible(true);
     }
 
     private void setAppBarVisible(boolean visible) {

@@ -125,6 +125,11 @@
         android:name="com.example.testapplication.setting.Setting"
         android:label="프로필 설정"
         tools:layout="@layout/fragment_profile_setting" />
+    <fragment
+        android:id="@+id/app_settings"
+        android:name="com.example.testapplication.setting.AppSettingsFragment"
+        android:label="설정"
+        tools:layout="@layout/fragment_app_settings" />
 
 
 </navigation>

@@ -21,7 +21,7 @@ public class MtbCraftApplication extends Application {
             return;
         }
         Log.d(TAG, "Using Kakao native app key " + maskAppKey(appKey));
-        KakaoMapSdk.init(this, appKey);
+        KakaoMapSdk.init(this, "0619e3c07c193137428169313e5f38c1");
     }
 
     private String maskAppKey(String appKey) {

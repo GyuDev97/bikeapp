@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -27,7 +30,6 @@ import android.speech.tts.TextToSpeech;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -35,7 +37,9 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 import com.example.testapplication.R;
 import com.example.testapplication.SoundManager;
@@ -53,6 +57,18 @@ import com.kakao.vectormap.KakaoMapReadyCallback;
 import com.kakao.vectormap.LatLng;
 import com.kakao.vectormap.MapLifeCycleCallback;
 import com.kakao.vectormap.GestureType;
+import com.kakao.vectormap.route.RouteLine;
+import com.kakao.vectormap.route.RouteLineLayer;
+import com.kakao.vectormap.route.RouteLineOptions;
+import com.kakao.vectormap.route.RouteLineSegment;
+import com.kakao.vectormap.route.RouteLineStyle;
+import com.kakao.vectormap.route.RouteLineStyles;
+import com.kakao.vectormap.route.RouteLineStylesSet;
+import com.kakao.vectormap.label.Label;
+import com.kakao.vectormap.label.LabelLayer;
+import com.kakao.vectormap.label.LabelOptions;
+import com.kakao.vectormap.label.LabelStyle;
+import com.kakao.vectormap.label.LabelStyles;
 import com.google.android.material.tabs.TabLayout;
 import net.daum.mf.map.api.CalloutBalloonAdapter;
 import net.daum.mf.map.api.CameraUpdateFactory;
@@ -81,12 +97,22 @@ import retrofit2.Response;
 @SuppressLint("HandlerLeak")
 public class StartActivity extends AppCompatActivity
         implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener, TextToSpeech.OnInitListener {
+    private static final int LOCATION_PERMISSION_REQUEST = 3101;
     private SoundPool soundPool;
     private SoundManager soundManager;
     private boolean play;
     private ActivityRidingStartBinding binding;
     private MapView mMapView;
     private com.kakao.vectormap.MapView kakaoV2MapView;
+    private KakaoMap kakaoMap;
+    private RouteLineLayer ridingRouteLayer;
+    private RouteLine ridingRouteLine;
+    private RouteLineStyles ridingRouteStyles;
+    private final List<LatLng> ridingRoutePoints = new ArrayList<>();
+    private LabelLayer currentLocationLayer;
+    private Label currentLocationLabel;
+    private LabelStyles currentLocationStyles;
+    private boolean locationUpdatesStarted;
     private MapPOIItem mCustomMarker;
     private LocationManager locationManager;
     private Location mLastlocation = null;
@@ -266,8 +292,7 @@ public class StartActivity extends AppCompatActivity
         timeThread.start();
 
         isRunning = !isRunning;
-        ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
-        startKakaoV2Map(mapViewContainer);
+        startKakaoV2Map();
 
         //??ш끽維驪??????산뭐??쀪쑬夷???쎛??????醫딆쓧??癲ル슢???몄쒜嚥▲룗??
         Intent course_get = new Intent(this.getIntent());
@@ -378,6 +403,7 @@ public class StartActivity extends AppCompatActivity
                 // do nothing
             }
         });
+        startLocationTracking();
 
 
         binding.endriding.setOnClickListener(v -> {
@@ -423,7 +449,6 @@ public class StartActivity extends AppCompatActivity
                 Log.d("RideEnd", "time=" + total_time + ", distance=" + hap + ", max=" + maX + ", avg=" + avg + ", high=" + getgodo + ", rest=" + rest + ", addr=" + adress_value);
                 startActivity(intent);
                 finish();
-                mapViewContainer.removeAllViews();
                 locationManager.removeUpdates(this);
             }
         });
@@ -467,14 +492,10 @@ public class StartActivity extends AppCompatActivity
 
     }
 
-    private void startKakaoV2Map(ViewGroup mapViewContainer) {
-        kakaoV2MapView = new com.kakao.vectormap.MapView(this);
-        kakaoV2MapView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-        mapViewContainer.addView(kakaoV2MapView);
-        kakaoV2MapView.bringToFront();
+    private void startKakaoV2Map() {
+        kakaoV2MapView = binding.mapView;
+        binding.mapStatus.setVisibility(View.VISIBLE);
+        binding.mapStatus.setText("\uCE74\uCE74\uC624\uB9F5\uC744 \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4");
         kakaoV2MapView.start(new MapLifeCycleCallback() {
             @Override
             public void onMapDestroy() {
@@ -484,14 +505,34 @@ public class StartActivity extends AppCompatActivity
             @Override
             public void onMapError(Exception error) {
                 Log.e("KakaoMapV2", "Map error", error);
+                runOnUiThread(() -> {
+                    binding.mapStatus.setVisibility(View.VISIBLE);
+                    binding.mapStatus.setText(
+                            "\uC9C0\uB3C4\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4\n"
+                                    + "\uCE74\uCE74\uC624 \uC571 \uD0A4\uC640 \uD0A4 \uD574\uC2DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694"
+                    );
+                });
             }
         }, new KakaoMapReadyCallback() {
             @Override
-            public void onMapReady(KakaoMap kakaoMap) {
+            public void onMapReady(KakaoMap readyMap) {
+                kakaoMap = readyMap;
                 kakaoMap.setGestureEnable(GestureType.Pan, true);
                 kakaoMap.setGestureEnable(GestureType.Zoom, true);
                 kakaoMap.setGestureEnable(GestureType.RotateZoom, true);
                 kakaoMap.setGestureEnable(GestureType.OneFingerZoom, true);
+                ridingRouteLayer = kakaoMap.getRouteLineManager().getLayer();
+                ridingRouteStyles = RouteLineStyles.from(
+                        RouteLineStyle.from(12, Color.rgb(30, 116, 52), 3, Color.WHITE)
+                );
+                currentLocationLayer = kakaoMap.getLabelManager().getLayer();
+                currentLocationStyles = kakaoMap.getLabelManager().addLabelStyles(
+                        LabelStyles.from(
+                                LabelStyle.from(drawableToBitmap(R.drawable.riding_current_marker, 34))
+                                        .setAnchorPoint(0.5f, 0.5f)
+                        )
+                );
+                binding.mapStatus.setVisibility(View.GONE);
                 Log.d("KakaoMapV2", "Map ready");
             }
 
@@ -505,6 +546,63 @@ public class StartActivity extends AppCompatActivity
                 return 15;
             }
         });
+    }
+
+    private void updateCurrentPosition(double latitude, double longitude, boolean recordRoute) {
+        if (kakaoMap == null) {
+            return;
+        }
+
+        LatLng currentPosition = LatLng.from(latitude, longitude);
+        if (currentLocationLabel == null && currentLocationLayer != null && currentLocationStyles != null) {
+            currentLocationLabel = currentLocationLayer.addLabel(
+                    LabelOptions.from("current-rider", currentPosition)
+                            .setStyles(currentLocationStyles)
+                            .setRank(10000)
+            );
+        } else if (currentLocationLabel != null) {
+            currentLocationLabel.moveTo(currentPosition, 350);
+        }
+        kakaoMap.moveCamera(
+                com.kakao.vectormap.camera.CameraUpdateFactory
+                        .newCenterPosition(currentPosition, 17)
+        );
+
+        if (!recordRoute || ridingRouteLayer == null || ridingRouteStyles == null) {
+            Log.d("RideTracking", "current position updated; route recording=" + recordRoute);
+            return;
+        }
+
+        ridingRoutePoints.add(currentPosition);
+        Log.d("RideTracking", "route point recorded; count=" + ridingRoutePoints.size()
+                + ", lat=" + latitude + ", lon=" + longitude);
+        if (ridingRoutePoints.size() < 2) {
+            return;
+        }
+
+        RouteLineSegment segment = RouteLineSegment.from(
+                new ArrayList<>(ridingRoutePoints),
+                ridingRouteStyles
+        );
+        if (ridingRouteLine == null) {
+            RouteLineStylesSet stylesSet = RouteLineStylesSet.from(ridingRouteStyles);
+            RouteLineOptions options = RouteLineOptions.from(segment).setStylesSet(stylesSet);
+            ridingRouteLine = ridingRouteLayer.addRouteLine(options);
+        } else {
+            ridingRouteLine.changeSegments(segment);
+        }
+    }
+
+    private Bitmap drawableToBitmap(int drawableId, int sizeDp) {
+        int sizePx = Math.round(sizeDp * getResources().getDisplayMetrics().density);
+        Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Drawable drawable = AppCompatResources.getDrawable(this, drawableId);
+        if (drawable != null) {
+            drawable.setBounds(0, 0, sizePx, sizePx);
+            drawable.draw(canvas);
+        }
+        return bitmap;
     }
                 private void changeView(int index) {
                     switch (index) {
@@ -521,22 +619,55 @@ public class StartActivity extends AppCompatActivity
                             binding.defaultLayout.setBackgroundColor(0xFFF7F8F7);
                             break;
                     }
+                }
 
+                private void startLocationTracking() {
                     locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(
+                                this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                LOCATION_PERMISSION_REQUEST
+                        );
                         return;
                     }
+
+                    if (!locationUpdatesStarted) {
+                        locationManager.requestLocationUpdates(
+                                LocationManager.GPS_PROVIDER,
+                                1000L,
+                                2f,
+                                this
+                        );
+                        locationUpdatesStarted = true;
+                    }
+
                     Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     if (lastKnownLocation != null) {
+                        updateCurrentPosition(
+                                lastKnownLocation.getLatitude(),
+                                lastKnownLocation.getLongitude(),
+                                false
+                        );
                     }
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, this);
+                }
+
+                @Override
+                public void onRequestPermissionsResult(
+                        int requestCode,
+                        @NonNull String[] permissions,
+                        @NonNull int[] grantResults
+                ) {
+                    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                    if (requestCode == LOCATION_PERMISSION_REQUEST
+                            && grantResults.length > 0
+                            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        startLocationTracking();
+                    } else if (requestCode == LOCATION_PERMISSION_REQUEST) {
+                        binding.mapStatus.setVisibility(View.VISIBLE);
+                        binding.mapStatus.setText("현재 위치 기록을 위해 위치 권한이 필요합니다");
+                    }
                 }
 
                 //???? ?癲? ?筌?????
@@ -737,6 +868,13 @@ public class StartActivity extends AppCompatActivity
                 public void onLocationChanged(Location location) {
                     latitude = location.getLatitude();
                     lonngitude = location.getLongitude();
+                    boolean shouldRecord = cur_status == Run;
+                    updateCurrentPosition(latitude, lonngitude, shouldRecord);
+
+                    if (!shouldRecord) {
+                        mLastlocation = null;
+                        return;
+                    }
 
                     Location A = new Location("pointA");
                     A.setLatitude(latitude);
@@ -959,6 +1097,19 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 protected void onDestroy() {
+                    if (locationManager != null && locationUpdatesStarted) {
+                        locationManager.removeUpdates(this);
+                        locationUpdatesStarted = false;
+                    }
+                    if (kakaoV2MapView != null) {
+                        kakaoV2MapView.finish();
+                        kakaoV2MapView = null;
+                    }
+                    kakaoMap = null;
+                    ridingRouteLine = null;
+                    ridingRouteLayer = null;
+                    currentLocationLabel = null;
+                    currentLocationLayer = null;
                     super.onDestroy();
                     Log.d("onDestroy", "onDestroy");
 

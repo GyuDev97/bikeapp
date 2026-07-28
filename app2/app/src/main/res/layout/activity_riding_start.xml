@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F7F8F7"
+    android:fitsSystemWindows="true"
     tools:context=".ui.riding.StartActivity">
 
     <com.google.android.material.tabs.TabLayout
@@ -52,10 +53,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tab_layout">
 
-        <RelativeLayout
+        <com.kakao.vectormap.MapView
             android:id="@+id/map_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/map_status"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:background="@drawable/riding_info_card"
+            android:elevation="6dp"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="카카오맵을 불러오는 중입니다"
+            android:textColor="#44514B"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"

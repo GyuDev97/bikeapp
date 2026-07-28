@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    android:paddingTop="16dp">
+
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/ic_setting_home" android:text="일반" />
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/profile_ic_bell" android:text="알림" />
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/profile_ic_theme" android:text="화면 표시" />
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/profile_ic_bicycle" android:text="주행 설정" />
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/profile_ic_user" android:text="개인정보" />
+    <TextView style="@style/AppSettingsRow" android:drawableStart="@drawable/profile_ic_data" android:text="연동 서비스" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="버전 정보" android:textColor="#747A76" android:textSize="13sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="v2.1.0" android:textColor="#747A76" android:textSize="13sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/settings_logout"
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+        android:gravity="center_vertical"
+        android:paddingStart="22dp"
+        android:text="로그아웃"
+        android:textColor="#E34848"
+        android:textSize="14sp" />
+</LinearLayout>

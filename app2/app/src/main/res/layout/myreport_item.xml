@@ -1,209 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/viewClick"
     android:layout_width="match_parent"
-    android:layout_height="158dp"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/record_card_bg"
+    android:layout_height="104dp"
+    android:background="#FFFFFF"
     android:clickable="true"
-    android:elevation="3dp"
     android:focusable="true"
-    android:paddingStart="12dp"
-    android:paddingTop="12dp"
-    android:paddingEnd="14dp"
-    android:paddingBottom="12dp">
-
-    <ImageView
-        android:id="@+id/myimage"
-        android:layout_width="112dp"
-        android:layout_height="116dp"
-        android:background="@drawable/home_map_preview_bg"
-        android:padding="1dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/tap_map"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/record_date_icon"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginStart="16dp"
-        android:src="@drawable/records_ic_calendar"
-        app:layout_constraintStart_toEndOf="@id/myimage"
-        app:layout_constraintTop_toTopOf="@id/myimage" />
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp">
 
     <TextView
         android:id="@+id/record_date"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="7dp"
-        android:layout_marginEnd="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="2026. 05. 16 (금)"
-        android:textColor="#5E6462"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@id/record_time_icon"
-        app:layout_constraintStart_toEndOf="@id/record_date_icon"
-        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
-
-    <ImageView
-        android:id="@+id/record_time_icon"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginEnd="6dp"
-        android:src="@drawable/riding_ic_clock"
-        app:layout_constraintEnd_toStartOf="@id/record_time"
-        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
-
-    <TextView
-        android:id="@+id/record_time"
-        android:layout_width="76dp"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="오후 3:43"
-        android:textColor="#5E6462"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@id/record_weather_icon"
-        app:layout_constraintTop_toTopOf="@id/record_date_icon" />
-
-    <ImageView
-        android:id="@+id/record_weather_icon"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/records_ic_sun"
-        app:layout_constraintEnd_toStartOf="@id/record_more"
-        app:layout_constraintTop_toTopOf="@id/myimage" />
-
-    <TextView
-        android:id="@+id/record_more"
-        android:layout_width="18dp"
-        android:layout_height="28dp"
-        android:gravity="center"
-        android:text="⋮"
-        android:textColor="#222222"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/myimage" />
-
-    <TextView
-        android:id="@+id/record_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="14dp"
-        android:layout_marginEnd="44dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="대구 앞산 라이딩"
-        android:textColor="#111111"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/myimage"
-        app:layout_constraintTop_toBottomOf="@id/record_date_icon" />
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:gravity="center_vertical"
+        android:text="2026.05.16 (금)"
+        android:textColor="#5C625E"
+        android:textSize="10sp" />
 
     <LinearLayout
-        android:id="@+id/record_meta_row"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="18dp"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toStartOf="@id/record_bookmark_icon"
-        app:layout_constraintStart_toEndOf="@id/myimage"
-        app:layout_constraintTop_toBottomOf="@id/record_name">
+        android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:src="@drawable/riding_ic_pin" />
+            android:id="@+id/myimage"
+            android:layout_width="82dp"
+            android:layout_height="58dp"
+            android:background="@drawable/home_map_preview_bg"
+            android:scaleType="centerCrop"
+            android:src="@drawable/trailgo_route_preview" />
 
-        <TextView
-            android:id="@+id/my_dis"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="0.02 km"
-            android:textColor="#096631"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginStart="22dp"
-            android:src="@drawable/ic_mountain_home" />
-
-        <TextView
-            android:id="@+id/my_get"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="45 m"
-            android:textColor="#111111"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:layout_marginStart="22dp"
-            android:src="@drawable/riding_ic_clock" />
-
-        <TextView
-            android:id="@+id/my_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="1시간 0분"
-            android:textColor="#111111"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/record_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="대구 앞산 라이딩"
+                android:textColor="#151A17"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView android:id="@+id/my_dis" style="@style/RecordListMeta" android:text="⌖ 12.45 km" />
+                <TextView android:id="@+id/my_get" style="@style/RecordListMeta" android:text="△ 45 m" />
+                <TextView android:id="@+id/my_time" style="@style/RecordListMeta" android:text="◷ 1:45:32" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/record_adress"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="44dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="LS7길"
-        android:textColor="#646C67"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/myimage"
-        app:layout_constraintTop_toBottomOf="@id/record_meta_row" />
-
-    <ImageView
-        android:id="@+id/record_bookmark_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/drawer_ic_bookmark_custom"
-        app:layout_constraintBottom_toBottomOf="@id/myimage"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/record_recent_label"
-        android:layout_width="1dp"
-        android:layout_height="1dp"
-        android:visibility="gone"
-        tools:visibility="gone" />
-
-    <TextView
-        android:id="@+id/record_section_label"
-        android:layout_width="1dp"
-        android:layout_height="1dp"
-        android:visibility="gone"
-        tools:visibility="gone" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView android:id="@+id/record_time" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
+    <ImageView android:id="@+id/record_weather_icon" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
+    <TextView android:id="@+id/record_adress" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
+    <ImageView android:id="@+id/record_bookmark_icon" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
+    <TextView android:id="@+id/record_recent_label" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" tools:visibility="gone" />
+    <TextView android:id="@+id/record_section_label" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" tools:visibility="gone" />
+</LinearLayout>

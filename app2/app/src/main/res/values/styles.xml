@@ -10,6 +10,19 @@
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="TrailGoAuthTheme" parent="AppTheme.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">#F7F8F5</item>
+        <item name="android:navigationBarColor">#F7F8F5</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="colorAccent">#2E7D32</item>
     </style>
 
 
@@ -25,6 +38,57 @@
         <item name="android:textColor">#303A34</item>
         <item name="android:textSize">11sp</item>
         <item name="android:drawablePadding">2dp</item>
+    </style>
+
+    <style name="HomeSummaryStat">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="HomeSummaryLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#818983</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="HomeSummaryValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#152019</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="HomeSummaryDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">#E7EBE7</item>
+    </style>
+
+    <style name="HomeRecordMeta">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#667069</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="HomeNavLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textColor">#667069</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="HomeNavLabelActive" parent="HomeNavLabel">
+        <item name="android:textColor">#2E7D32</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="HomeActionRow">
@@ -70,4 +134,144 @@
         <item name="android:scaleType">centerCrop</item>
     </style>
 
+    <style name="CourseFilterTab">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#667069</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="CourseFilterTabActive" parent="CourseFilterTab">
+        <item name="android:background">@drawable/course_badge_bg</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="CourseStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="CourseStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#858C87</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="CourseStatValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#172019</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="CourseStatDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">#E8ECE7</item>
+    </style>
+
+    <style name="TrailGoBottomNavItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:drawablePadding">3dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:textColor">#666D68</item>
+        <item name="android:textSize">9sp</item>
+    </style>
+
+    <style name="RecordTab">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#555B57</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="RecordTabActive" parent="RecordTab">
+        <item name="android:background">@drawable/trailgo_chip_active</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RecordListMeta">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:textColor">#4E5751</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+    <style name="CourseCompactMeta">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:textColor">#646B67</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+    <style name="CourseFeatureMeta">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+    <style name="ProfileMockStat">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="ProfileMockLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#D8E2DC</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+    <style name="ProfileMockValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">7dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ProfileMockRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">58dp</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:drawableEnd">@drawable/profile_ic_chevron</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textColor">#292E2A</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="AppSettingsRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">58dp</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:drawableEnd">@drawable/profile_ic_chevron</item>
+        <item name="android:drawablePadding">15dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textColor">#282D29</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

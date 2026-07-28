@@ -60,7 +60,7 @@ public class HomeFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ridingStart = view.findViewById(R.id.ridingstart);
+        ridingStart = view.findViewById(R.id.bottom_nav_ride);
         mainTime = view.findViewById(R.id.main_time);
         mainKm = view.findViewById(R.id.main_km);
         rider = view.findViewById(R.id.idinfo);
@@ -97,19 +97,8 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void bindKoreanLabels(View view) {
-        setText(view, R.id.home_today_label, "\uC624\uB298 \uD65C\uB3D9");
-        setText(view, R.id.home_goal_label, "\uBAA9\uD45C \uB2EC\uC131\uB3C4");
         setText(view, R.id.home_recent_title, "\uCD5C\uADFC \uB77C\uC774\uB529");
         setText(view, R.id.home_recent_more, "\uB354\uBCF4\uAE30");
-        setText(view, R.id.home_quick_title, "\uBE60\uB978 \uBA54\uB274");
-        setText(view, R.id.home_course_search_label, "\uCF54\uC2A4 \uD0D0\uC0C9");
-        setText(view, R.id.home_course_search_desc, "\uB2E4\uC591\uD55C \uCF54\uC2A4\uB97C\n\uAC80\uC0C9\uD574\uBCF4\uC138\uC694");
-        setText(view, R.id.home_danger_label, "\uAE34\uAE09 \uC54C\uB9BC");
-        setText(view, R.id.home_danger_desc, "\uC704\uAE09 \uC0C1\uD669 \uC2DC\n\uB3C4\uC6C0\uC744 \uC694\uCCAD\uD558\uC138\uC694");
-        setText(view, R.id.home_setting_label, "\uC124\uC815");
-        setText(view, R.id.home_setting_desc, "\uC571 \uC124\uC815 \uBC0F\n\uACC4\uC815\uC744 \uAD00\uB9AC\uD558\uC138\uC694");
-        setText(view, R.id.home_goal_target, "\uBAA9\uD45C 10 km \u00B7 60 min");
-        setText(view, R.id.ridingstart, "\uB77C\uC774\uB529 \uC2DC\uC791");
     }
 
     private void setText(View root, int textViewId, String text) {
@@ -120,14 +109,22 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void bindNavigation(View view) {
-        view.findViewById(R.id.recent_record_card).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_records));
-        view.findViewById(R.id.home_nav_records).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_records));
-        view.findViewById(R.id.home_nav_course).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_course_view));
-        view.findViewById(R.id.home_nav_community).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_competition_view));
-        view.findViewById(R.id.home_course_search).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_course_search));
-        view.findViewById(R.id.home_danger).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_nav_danger_view));
-        view.findViewById(R.id.home_setting).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_setting));
-        view.findViewById(R.id.home_nav_profile).setOnClickListener(v -> navigate(v, R.id.action_nav_home_to_setting));
+        setNavigationClick(view, R.id.recent_record_card, R.id.action_nav_home_to_nav_records);
+        setNavigationClick(view, R.id.bottom_nav_records, R.id.action_nav_home_to_nav_records);
+        setNavigationClick(view, R.id.bottom_nav_course, R.id.action_nav_home_to_nav_course_view);
+        setNavigationClick(view, R.id.bottom_nav_profile, R.id.action_nav_home_to_setting);
+        TextView home = view.findViewById(R.id.bottom_nav_home);
+        if (home != null) {
+            home.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
+            home.setTypeface(null, android.graphics.Typeface.BOLD);
+        }
+    }
+
+    private void setNavigationClick(View root, int viewId, int actionId) {
+        View item = root.findViewById(viewId);
+        if (item != null) {
+            item.setOnClickListener(v -> navigate(v, actionId));
+        }
     }
 
     private void bindHeader(View view) {
@@ -196,7 +193,7 @@ public class HomeFragment extends BaseFragment {
 
         setTextIfPresent(mainKm, formatDistance(todayDistance));
         setTextIfPresent(mainTime, formatDuration(todaySeconds));
-        setTextIfPresent(mainDistance, "\uB204\uC801 " + formatDistance(totalDistance));
+        setTextIfPresent(mainDistance, formatDistance(totalDistance));
 
         int distanceGoalMeters = 10000;
         int goalPercentValue = Math.min(100, (int) Math.round((todayDistance / (double) distanceGoalMeters) * 100.0));
@@ -219,7 +216,8 @@ public class HomeFragment extends BaseFragment {
         if (courseName == null || courseName.trim().isEmpty()) {
             courseName = recentRecord.getRr_area();
         }
-        setTextIfPresent(recentCourse, courseName == null ? "-" : courseName);
+        setTextIfPresent(recentCourse, courseName == null || courseName.trim().isEmpty()
+                ? "\uCD5C\uADFC \uB77C\uC774\uB529" : courseName);
     }
 
     private void setTextIfPresent(TextView textView, String text) {
@@ -276,7 +274,6 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        setAppBarVisible(true);
     }
 
     private void setAppBarVisible(boolean visible) {

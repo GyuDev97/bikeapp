@@ -195,6 +195,9 @@ public class StartActivity extends AppCompatActivity
         binding = ActivityRidingStartBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+        binding.ridingSettingsButton.setOnClickListener(v ->
+                startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        );
 
         SharedPreferences phone = getSharedPreferences("auto", MODE_PRIVATE);
         number = phone.getString("sosphone", "");
@@ -625,6 +628,7 @@ public class StartActivity extends AppCompatActivity
                     locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED) {
+                        binding.gpsStatus.setText("GPS 권한 필요");
                         ActivityCompat.requestPermissions(
                                 this,
                                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -665,6 +669,7 @@ public class StartActivity extends AppCompatActivity
                             && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         startLocationTracking();
                     } else if (requestCode == LOCATION_PERMISSION_REQUEST) {
+                        binding.gpsStatus.setText("GPS 권한 필요");
                         binding.mapStatus.setVisibility(View.VISIBLE);
                         binding.mapStatus.setText("현재 위치 기록을 위해 위치 권한이 필요합니다");
                     }
@@ -868,6 +873,7 @@ public class StartActivity extends AppCompatActivity
                 public void onLocationChanged(Location location) {
                     latitude = location.getLatitude();
                     lonngitude = location.getLongitude();
+                    binding.gpsStatus.setText("GPS 연결됨");
                     boolean shouldRecord = cur_status == Run;
                     updateCurrentPosition(latitude, lonngitude, shouldRecord);
 
@@ -990,7 +996,7 @@ public class StartActivity extends AppCompatActivity
 
                         if (getSpeed > maX) {
                             maX = getSpeed;
-                            binding.maxspeed.setText(String.format("%.1f", maX));
+                            binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));
                             cha_max = String.format("%.0f", maX);
                         }
                         //?????룸????좎돦???쎈뼔??
@@ -1000,17 +1006,17 @@ public class StartActivity extends AppCompatActivity
                         binding.dis.setText(String.format("%.1f m", hap));
                         binding.mDistance.setText(String.format("%.1f", hap) + "m");
 
-                        double killlo;
+                        double killlo = hap / 1000.0;
                         if (hap >= 1000) {
-                            killlo = hap / 1000.0;
                             binding.dis.setText(String.format("%.1f km", killlo));
                             binding.mDistance.setText(String.format("%.1f", killlo) + "km");
                         }
+                        binding.calories.setText(String.format(Locale.KOREA, "%d kcal", Math.round(killlo * 50.8)));
 
                         //????????戮?덫
-                        avg = hap / total_time;
-                        binding.avgspeed.setText(String.format("%.1f km/h", Double.parseDouble(String.valueOf(avg))));
-                        cha_avg = String.format("%.0f", (avg));
+                        avg = total_time > 0 ? (hap / total_time) * 3.6 : 0;
+                        binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
+                        cha_avg = String.format(Locale.KOREA, "%.0f", avg);
 
                         //????蹂λ쑋???쒙쭫??
                         //????蹂λ쑋???쒙쭫??
@@ -1046,6 +1052,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 public void onProviderEnabled(String provider) {
+                    binding.gpsStatus.setText("GPS 연결 중");
                 // ????썹땟??癲ル슢???ъ쒜??????욍걛???ш끽維??
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
@@ -1062,7 +1069,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 public void onProviderDisabled(String provider) {
-
+                    binding.gpsStatus.setText("GPS 꺼짐");
                 }
 
                 @Override

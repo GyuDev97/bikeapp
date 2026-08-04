@@ -1,13 +1,9 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="210dp"
-    android:height="126dp"
-    android:viewportWidth="210"
-    android:viewportHeight="126">
-    <path android:strokeColor="#DCE9D6" android:strokeWidth="10" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M35,105 A70,70 0,0 1,175 105" />
-    <path android:strokeColor="#BFDDAE" android:strokeWidth="10" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M35,105 A70,70 0,0 1,78 42" />
-    <path android:strokeColor="#9DCE8C" android:strokeWidth="10" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M84,39 A70,70 0,0 1,120 36" />
-    <path android:strokeColor="#82BA80" android:strokeWidth="10" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M126,38 A70,70 0,0 1,162 82" />
-    <path android:fillColor="#8FBE80" android:pathData="M105,97 L142,55 L115,104 Z" />
-    <path android:fillColor="#8FBE80" android:pathData="M105,96 m-11,0 a11,11 0,1 0,22 0 a11,11 0,1 0,-22 0" />
-    <path android:fillColor="#9DCFA1" android:pathData="M139,98 m-4,0 a4,4 0,1 0,8 0 a4,4 0,1 0,-8 0" />
+    android:width="300dp"
+    android:height="180dp"
+    android:viewportWidth="300"
+    android:viewportHeight="180">
+    <path android:strokeColor="#E1E4E7" android:strokeWidth="16" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M30,150 A120,120 0,0 1,270 150" />
+    <path android:strokeColor="#237A35" android:strokeWidth="16" android:strokeLineCap="butt" android:fillColor="@android:color/transparent" android:pathData="M30,150 A120,120 0,0 1,150 30" />
+    <path android:strokeColor="#D4D9D5" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M48,143L58,139 M67,94L76,100 M105,53L110,64 M150,38L150,50 M195,53L190,64 M233,94L224,100 M252,143L242,139" />
 </vector>

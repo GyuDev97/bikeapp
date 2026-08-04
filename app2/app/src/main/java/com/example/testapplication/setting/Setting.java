@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,15 +18,27 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.testapplication.R;
+import com.example.testapplication.dto.LoginInfo;
+import com.example.testapplication.dto.RidingRecord;
+import com.example.testapplication.net.Server;
 import com.example.testapplication.ui.BaseFragment;
 import com.example.testapplication.ui.member.LoginActivity;
 import com.example.testapplication.ui.riding.StartActivity;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class Setting extends BaseFragment {
 
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private Call<ArrayList<RidingRecord>> profileRecordsCall;
+    private Call<LoginInfo> profileInfoCall;
 
     public Setting() {
     }
@@ -53,33 +66,35 @@ public class Setting extends BaseFragment {
 
     private void bindProfileMenu(@NonNull View view) {
         SharedPreferences auto = requireActivity().getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        String loginId = auto.getString("LoginId", "");
-        String nickname = firstNotEmpty(auto.getString("r_nickname", ""), loginId, "admin");
+        String loginId = firstNotEmpty(auto.getString("LoginId", ""), "admin");
+        String nickname = firstNotEmpty(auto.getString("r_nickname", ""), loginId);
         String imageName = auto.getString("r_image", "");
         String phone = auto.getString("sosphone", "");
         String email = loginId.contains("@") ? loginId : "이메일 미등록";
 
         TextView profileName = view.findViewById(R.id.profile_name);
+        TextView profileClub = view.findViewById(R.id.profile_club);
         TextView rowNameValue = view.findViewById(R.id.row_name_value);
         TextView rowEmailValue = view.findViewById(R.id.row_email_value);
         TextView rowPhoneValue = view.findViewById(R.id.row_phone_value);
         TextView rideCount = view.findViewById(R.id.profile_ride_count);
         TextView rideDistance = view.findViewById(R.id.profile_ride_distance);
+        TextView rideHeight = view.findViewById(R.id.profile_ride_height);
         ImageView profileImage = view.findViewById(R.id.profile_image);
 
         profileName.setText(nickname);
+        profileClub.setText(firstNotEmpty(auto.getString("r_clubname", ""), "소속 클럽 없음"));
         rowNameValue.setText(nickname);
         rowEmailValue.setText(email);
         rowPhoneValue.setText(firstNotEmpty(phone, "미등록"));
         rideCount.setText(firstNotEmpty(auto.getString("ride_count", ""), "12 회"));
         rideDistance.setText(firstNotEmpty(auto.getString("ride_distance", ""), "128 km"));
+        rideHeight.setText(firstNotEmpty(auto.getString("ride_height", ""), "35,680 m"));
+        loadProfileStats(loginId, rideCount, rideDistance, rideHeight);
+        loadProfileInfo(loginId, auto, profileName, profileClub, rowNameValue, profileImage);
 
         if (!imageName.isEmpty()) {
-            Picasso.get()
-                    .load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/" + imageName)
-                    .placeholder(R.drawable.m_logo)
-                    .error(R.drawable.m_logo)
-                    .into(profileImage);
+            loadProfileImage(imageName, profileImage);
         }
 
         view.findViewById(R.id.row_phone).setOnClickListener(v -> showPhoneDialog(auto, rowPhoneValue));
@@ -95,6 +110,96 @@ public class Setting extends BaseFragment {
         TextView profile = view.findViewById(R.id.bottom_nav_profile);
         profile.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
         profile.setTypeface(null, android.graphics.Typeface.BOLD);
+    }
+
+    private void loadProfileInfo(
+            String loginId,
+            SharedPreferences auto,
+            TextView profileName,
+            TextView profileClub,
+            TextView rowNameValue,
+            ImageView profileImage
+    ) {
+        profileInfoCall = serverApi.getLoginInfo(loginId);
+        profileInfoCall.enqueue(new Callback<LoginInfo>() {
+            @Override
+            public void onResponse(Call<LoginInfo> call, Response<LoginInfo> response) {
+                if (!isAdded() || !response.isSuccessful() || response.body() == null) {
+                    return;
+                }
+
+                LoginInfo info = response.body();
+                String nickname = firstNotEmpty(info.getR_nickname(), loginId);
+                String clubName = firstNotEmpty(info.getCb_name(), "소속 클럽 없음");
+                String imageName = firstNotEmpty(info.getR_image(), "");
+
+                profileName.setText(nickname);
+                profileClub.setText(clubName);
+                rowNameValue.setText(nickname);
+                SharedPreferences.Editor editor = auto.edit()
+                        .putString("r_nickname", nickname)
+                        .putString("r_clubname", info.getCb_name());
+                if (!imageName.isEmpty()) {
+                    editor.putString("r_image", imageName);
+                    loadProfileImage(imageName, profileImage);
+                }
+                editor.apply();
+            }
+
+            @Override
+            public void onFailure(Call<LoginInfo> call, Throwable error) {
+                Log.d("ProfileApi", "Unable to load profile information", error);
+            }
+        });
+    }
+
+    private void loadProfileImage(String imageName, ImageView profileImage) {
+        Picasso.get()
+                .load(Server.getRiderImageUrl(imageName))
+                .placeholder(R.drawable.m_logo)
+                .error(R.drawable.m_logo)
+                .into(profileImage);
+    }
+
+    private void loadProfileStats(
+            String loginId,
+            TextView rideCount,
+            TextView rideDistance,
+            TextView rideHeight
+    ) {
+        profileRecordsCall = serverApi.getRecord(loginId);
+        profileRecordsCall.enqueue(new Callback<ArrayList<RidingRecord>>() {
+            @Override
+            public void onResponse(
+                    Call<ArrayList<RidingRecord>> call,
+                    Response<ArrayList<RidingRecord>> response
+            ) {
+                if (!isAdded() || !response.isSuccessful() || response.body() == null) {
+                    return;
+                }
+                int totalDistance = 0;
+                int totalHeight = 0;
+                for (RidingRecord record : response.body()) {
+                    totalDistance += Math.max(0, record.getRr_distance());
+                    totalHeight += Math.max(0, record.getRr_high());
+                }
+                rideCount.setText(response.body().size() + " 회");
+                rideDistance.setText(formatProfileDistance(totalDistance));
+                rideHeight.setText(String.format(Locale.KOREA, "%,d m", totalHeight));
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<RidingRecord>> call, Throwable error) {
+                Log.d("ProfileApi", "Unable to load profile riding summary", error);
+            }
+        });
+    }
+
+    private String formatProfileDistance(int meters) {
+        if (meters < 1000) {
+            return String.format(Locale.KOREA, "%.2f km", meters / 1000.0);
+        }
+        return String.format(Locale.KOREA, "%.1f km", meters / 1000.0);
     }
 
     private void navigateTo(int destinationId) {
@@ -147,5 +252,18 @@ public class Setting extends BaseFragment {
         if (appBar != null) {
             appBar.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (profileRecordsCall != null) {
+            profileRecordsCall.cancel();
+            profileRecordsCall = null;
+        }
+        if (profileInfoCall != null) {
+            profileInfoCall.cancel();
+            profileInfoCall = null;
+        }
+        super.onDestroyView();
     }
 }

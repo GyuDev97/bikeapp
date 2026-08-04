@@ -58,12 +58,11 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
         holder.recordDistance.setText(totalDistance);
         holder.recordHeight.setText(item.getRr_high() + " m");
         holder.recordDuration.setText(ridingDuration);
-        holder.recordImage.setImageResource(R.drawable.tap_map);
+        holder.recordImage.setImageResource(R.drawable.trailgo_route_preview);
         holder.weatherIcon.setImageResource(position % 3 == 0 ? R.drawable.records_ic_sun : R.drawable.records_ic_cloud);
         holder.bookmarkIcon.setImageResource(position == 1 ? R.drawable.records_ic_bookmark_filled : R.drawable.drawer_ic_bookmark_custom);
 
         holder.mView.setOnClickListener(v -> {
-            controller.navigate(R.id.action_nav_records_to_myDetailFragment);
             model.r_num.setValue(String.valueOf(item.getRr_num()));
             model.my_rec_name.setValue(item.getRr_name());
             model.my_rec_date.setValue(item.getRr_date());
@@ -76,6 +75,7 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
             model.my_rec_max.setValue(item.getRr_topspeed() + "km/h");
             model.my_rec_avg.setValue(item.getRr_avgspeed() + "km/h");
             model.my_rec_gpx.setValue(item.getRr_gpx());
+            controller.navigate(R.id.action_nav_records_to_myDetailFragment);
         });
     }
 

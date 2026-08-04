@@ -59,20 +59,14 @@
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="112dp"
-                android:background="@drawable/home_monthly_banner">
+                android:background="@drawable/home_monthly_banner"
+                android:clipToOutline="true">
 
                 <ImageView
-                    android:layout_width="170dp"
-                    android:layout_height="112dp"
-                    android:layout_gravity="end"
-                    android:alpha="0.9"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/main_img" />
-
-                <View
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/home_monthly_scrim" />
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/home_monthly_ride_banner" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -90,6 +84,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/home_month_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
@@ -113,12 +108,12 @@
                 <View style="@style/HomeSummaryDivider" />
                 <LinearLayout style="@style/HomeSummaryStat">
                     <TextView style="@style/HomeSummaryLabel" android:text="총 상승고도" />
-                    <TextView style="@style/HomeSummaryValue" android:text="3,560 m" />
+                    <TextView android:id="@+id/home_total_height" style="@style/HomeSummaryValue" android:text="3,560 m" />
                 </LinearLayout>
                 <View style="@style/HomeSummaryDivider" />
                 <LinearLayout style="@style/HomeSummaryStat">
                     <TextView style="@style/HomeSummaryLabel" android:text="총 시간" />
-                    <TextView style="@style/HomeSummaryValue" android:text="15:42:30" />
+                    <TextView android:id="@+id/home_total_time" style="@style/HomeSummaryValue" android:text="15:42:30" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -185,8 +180,8 @@
                         android:layout_marginTop="6dp"
                         android:orientation="horizontal">
                         <TextView android:id="@+id/home_recent_distance" style="@style/HomeRecordMeta" android:text="12.45 km" />
-                        <TextView android:id="@+id/home_recent_height" style="@style/HomeRecordMeta" android:text="△ 45 m" />
-                        <TextView android:id="@+id/home_recent_duration" style="@style/HomeRecordMeta" android:text="◷ 1:45:32" />
+                        <TextView android:id="@+id/home_recent_height" style="@style/HomeRecordMeta" android:text="△ 45 m" android:visibility="gone" />
+                        <TextView android:id="@+id/home_recent_duration" style="@style/HomeRecordMeta" android:text="~ 1시간 45분" />
                     </LinearLayout>
                     <TextView android:id="@+id/home_recent_date" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
                 </LinearLayout>

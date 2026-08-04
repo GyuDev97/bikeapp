@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import com.example.testapplication.MainActivity;
 import com.example.testapplication.R;
 import com.example.testapplication.dto.AnLogin;
+import com.example.testapplication.dto.LoginInfo;
 import com.example.testapplication.net.Server;
 import com.example.testapplication.net.ServerApi;
 
@@ -48,6 +49,7 @@ public class LoginActivity extends AppCompatActivity {
     
     protected ServerApi serverApi;//서버 호출
     private Call<AnLogin> request; //서버요청 콜
+    private Call<LoginInfo> profileRequest;
     String Save_Path, rider;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,18 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                         String status = body.getStatus();
                         try {
                             if (status.equals("true")) {
-                                //자동로그인을 위한 앱 내부 저장
-                                SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
-                                SharedPreferences.Editor autoLogin = auto.edit();
-                                autoLogin.putString("LoginId", userid.getText().toString());
-                                autoLogin.commit();
-
-                                //Toast toast = Toast.makeText(getApplicationContext(), rider + "님 로그인했습니다.", Toast.LENGTH_SHORT);
-                                //toast.show();
-                                //새 인텐트실행
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                startActivity(intent);
-                                finish();
+                                completeLogin(userid.getText().toString().trim());
                             }else{
                                 //로그인 실패시 toast값 표시
                                 Toast toast = Toast.makeText(getApplicationContext(), "아이디와 비밀번호를 확인해주세요", Toast.LENGTH_SHORT);
@@ -133,6 +124,45 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+    }
+
+    private void completeLogin(String loginId) {
+        SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
+        auto.edit().putString("LoginId", loginId).apply();
+
+        profileRequest = serverApi.getLoginInfo(loginId);
+        profileRequest.enqueue(new Callback<LoginInfo>() {
+            @Override
+            public void onResponse(Call<LoginInfo> call, Response<LoginInfo> response) {
+                LoginInfo info = response.body();
+                if (response.isSuccessful() && info != null) {
+                    SharedPreferences.Editor editor = auto.edit();
+                    if (info.getR_nickname() != null && !info.getR_nickname().trim().isEmpty()) {
+                        editor.putString("r_nickname", info.getR_nickname());
+                    }
+                    if (info.getR_image() != null && !info.getR_image().trim().isEmpty()) {
+                        editor.putString("r_image", info.getR_image());
+                    }
+                    editor.putString("r_clubname", info.getCb_name() == null ? "" : info.getCb_name());
+                    editor.apply();
+                }
+                openMainScreen();
+            }
+
+            @Override
+            public void onFailure(Call<LoginInfo> call, Throwable error) {
+                openMainScreen();
+            }
+        });
+    }
+
+    private void openMainScreen() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private boolean checkPermissions() {
@@ -175,6 +205,17 @@ public class LoginActivity extends AppCompatActivity {
     private void showToast_PermissionDeny() {
         Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (request != null) {
+            request.cancel();
+        }
+        if (profileRequest != null) {
+            profileRequest.cancel();
+        }
+        super.onDestroy();
     }
 
 

@@ -27,13 +27,27 @@ public class WebController {
 	
 	@RequestMapping("/")
 	public String main() {
-		return "index2";
+		return "forward:/index.html";
 	}
 	
 	@RequestMapping("/index")
 	public String index() {
-		//return "index";
-		return "index2";
+		return "redirect:/";
+	}
+
+	@RequestMapping("/privacy")
+	public String privacy() {
+		return "forward:/privacy.html";
+	}
+
+	@RequestMapping("/terms")
+	public String terms() {
+		return "forward:/terms.html";
+	}
+
+	@RequestMapping("/support")
+	public String support() {
+		return "forward:/support.html";
 	}
 	@RequestMapping("/intro")
 	public String intro() {

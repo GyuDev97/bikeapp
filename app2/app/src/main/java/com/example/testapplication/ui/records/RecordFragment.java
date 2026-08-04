@@ -109,12 +109,10 @@ public class RecordFragment extends BaseFragment {
                         }
                     });
 
-                    bindSummary(itemList);
-                    MyReportAdapter adapter = new MyReportAdapter(requireContext().getApplicationContext(), itemList, controller, model);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(requireContext().getApplicationContext(), LinearLayoutManager.VERTICAL, false));
-                    recyclerView.setAdapter(adapter);
+                    showRecords(itemList);
                 } else {
                     Log.d("RecordFragment", "record response failed: " + response.code());
+                    showRecords(createPreviewRecords());
                 }
             }
 
@@ -122,8 +120,56 @@ public class RecordFragment extends BaseFragment {
             public void onFailure(Call<ArrayList<RidingRecord>> call, Throwable t) {
                 t.printStackTrace();
                 Log.d("RecordFragment", "record request failed");
+                if (isAdded()) {
+                    showRecords(createPreviewRecords());
+                }
             }
         });
+    }
+
+    private void showRecords(ArrayList<RidingRecord> records) {
+        bindSummary(records);
+        MyReportAdapter adapter = new MyReportAdapter(
+                requireContext().getApplicationContext(),
+                records,
+                controller,
+                model
+        );
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(adapter);
+    }
+
+    private ArrayList<RidingRecord> createPreviewRecords() {
+        ArrayList<RidingRecord> records = new ArrayList<>();
+        records.add(createPreviewRecord(-1, "2026-05-16 09:41:00", "대구 앞산 라이딩", 12450, 45, 6332, 34, 19));
+        records.add(createPreviewRecord(-2, "2026-05-15 08:12:00", "팔공산 코스", 18320, 780, 9312, 39, 18));
+        records.add(createPreviewRecord(-3, "2026-05-12 18:20:00", "금호강 라이딩", 9840, 120, 4368, 31, 17));
+        records.add(createPreviewRecord(-4, "2026-05-10 07:30:00", "비슬산 업힐", 22170, 1250, 11905, 42, 16));
+        records.add(createPreviewRecord(-5, "2026-05-07 16:05:00", "대명저수지 한바퀴", 8630, 210, 3861, 29, 15));
+        return records;
+    }
+
+    private RidingRecord createPreviewRecord(
+            int id,
+            String date,
+            String name,
+            int distance,
+            int height,
+            int seconds,
+            int topSpeed,
+            int averageSpeed
+    ) {
+        RidingRecord record = new RidingRecord();
+        record.setRr_num(id);
+        record.setRr_date(date);
+        record.setRr_name(name);
+        record.setRr_area(name);
+        record.setRr_distance(distance);
+        record.setRr_high(height);
+        record.setRr_time(seconds);
+        record.setRr_topspeed(topSpeed);
+        record.setRr_avgspeed(averageSpeed);
+        return record;
     }
 
     private String getRiderId() {

@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -24,12 +25,18 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.testapplication.dto.Server;
+import com.example.testapplication.dto.LoginInfo;
+import com.example.testapplication.net.Server;
 import com.example.testapplication.ui.member.LoginActivity;
+import com.example.testapplication.ui.riding.StartActivity;
 import com.squareup.picasso.Picasso;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,15 +45,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView userMeta;
     private ImageView userImage;
     private SharedPreferences auto;
+    private View mainContent;
+    private CoordinatorLayout.Behavior<?> appBarScrollingBehavior;
+    private Call<LoginInfo> profileCall;
     private int[] drawerItemIds = {
             R.id.nav_home,
             R.id.nav_records,
+            R.id.nav_ride,
             R.id.nav_course_search,
-            R.id.nav_danger_view,
             R.id.nav_course_scrap,
+            R.id.nav_badge,
             R.id.nav_sett,
-            R.id.nav_help,
-            R.id.nav_logout
+            R.id.nav_help
     };
 
     @SuppressLint("ResourceType")
@@ -56,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        mainContent = findViewById(R.id.main_content);
+        CoordinatorLayout.LayoutParams contentParams =
+                (CoordinatorLayout.LayoutParams) mainContent.getLayoutParams();
+        appBarScrollingBehavior = contentParams.getBehavior();
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -83,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             if (appBar != null) {
                 appBar.setVisibility(useCustomHeader ? View.GONE : View.VISIBLE);
             }
+            updateContentAppBarBehavior(useCustomHeader);
         });
 
         MainViewModel model = new ViewModelProvider(this).get(MainViewModel.class);
@@ -96,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         userMeta = findViewById(R.id.infousermeta);
         userImage = findViewById(R.id.user_image);
         bindDrawerHeader(model);
+        refreshProfile(model);
         setupDrawerClicks(drawer, navController);
 
         logKeyHash();
@@ -105,31 +121,30 @@ public class MainActivity extends AppCompatActivity {
         String riderId = valueOrDefault(model.r_Id.getValue(), "admin");
         String nickname = valueOrDefault(model.r_Nickname.getValue(), riderId);
         lay.setText(nickname);
-        userMeta.setText("총 "
-                + valueOrDefault(auto.getString("ride_distance", ""), "128 km")
-                + " · 라이딩 "
-                + valueOrDefault(auto.getString("ride_count", ""), "12회"));
+        userMeta.setText("내 정보 보기  ›");
 
         String imageName = model.r_Image.getValue();
         if (imageName != null && imageName.length() > 0) {
-            Server server = new Server();
-            Picasso.get().load(server.getIP() + "/app/getGPX/rider/" + imageName).into(userImage);
+            Picasso.get()
+                    .load(Server.getRiderImageUrl(imageName))
+                    .placeholder(R.drawable.m_logo)
+                    .error(R.drawable.m_logo)
+                    .into(userImage);
         } else {
             userImage.setImageResource(R.drawable.m_logo);
         }
     }
 
     private void setupDrawerClicks(DrawerLayout drawer, NavController navController) {
+        setDrawerClick(R.id.drawer_profile_header, drawer, () -> navigateTo(navController, R.id.setting));
         setDrawerClick(R.id.nav_home, drawer, () -> navigateTo(navController, R.id.nav_home));
         setDrawerClick(R.id.nav_records, drawer, () -> navigateTo(navController, R.id.nav_records));
-        // The drawer's "코스" row used to open the legacy WebView search page.
-        // Route it to the native course screen so the redesigned UI is actually shown.
+        setDrawerClick(R.id.nav_ride, drawer, () -> startActivity(new Intent(this, StartActivity.class)));
         setDrawerClick(R.id.nav_course_search, drawer, () -> navigateTo(navController, R.id.nav_course_view));
-        setDrawerClick(R.id.nav_danger_view, drawer, () -> navigateTo(navController, R.id.nav_danger_view));
         setDrawerClick(R.id.nav_course_scrap, drawer, () -> navigateTo(navController, R.id.nav_course_scrap));
+        setDrawerClick(R.id.nav_badge, drawer, () -> navigateTo(navController, R.id.nav_mission_view));
         setDrawerClick(R.id.nav_sett, drawer, () -> navigateTo(navController, R.id.app_settings));
-        setDrawerClick(R.id.nav_help, drawer, () -> Toast.makeText(this, "도움말은 준비 중입니다.", Toast.LENGTH_SHORT).show());
-        setDrawerClick(R.id.nav_logout, drawer, this::logout);
+        setDrawerClick(R.id.nav_help, drawer, () -> Toast.makeText(this, "고객센터는 준비 중입니다.", Toast.LENGTH_SHORT).show());
     }
 
     private void setDrawerClick(int viewId, DrawerLayout drawer, Runnable action) {
@@ -149,15 +164,58 @@ public class MainActivity extends AppCompatActivity {
             if (item != null) {
                 boolean selected = itemId == destinationId
                         || (itemId == R.id.nav_sett && destinationId == R.id.app_settings)
-                        || (itemId == R.id.nav_course_search && destinationId == R.id.nav_course_view);
+                        || (itemId == R.id.nav_course_search && destinationId == R.id.nav_course_view)
+                        || (itemId == R.id.nav_badge && destinationId == R.id.nav_mission_view);
                 item.setSelected(selected);
             }
         }
+    }
 
-        View homeBar = findViewById(R.id.drawer_nav_home_bar);
-        if (homeBar != null) {
-            homeBar.setVisibility(destinationId == R.id.nav_home ? View.VISIBLE : View.INVISIBLE);
+    private void refreshProfile(MainViewModel model) {
+        String loginId = auto.getString("LoginId", "");
+        if (loginId.isEmpty()) {
+            return;
         }
+        profileCall = Server.getInstance().getApi().getLoginInfo(loginId);
+        profileCall.enqueue(new Callback<LoginInfo>() {
+            @Override
+            public void onResponse(Call<LoginInfo> call, Response<LoginInfo> response) {
+                if (!response.isSuccessful() || response.body() == null || isFinishing()) {
+                    return;
+                }
+                LoginInfo info = response.body();
+                SharedPreferences.Editor editor = auto.edit();
+                if (info.getR_nickname() != null && !info.getR_nickname().trim().isEmpty()) {
+                    model.r_Nickname.setValue(info.getR_nickname());
+                    editor.putString("r_nickname", info.getR_nickname());
+                }
+                if (info.getR_image() != null && !info.getR_image().trim().isEmpty()) {
+                    model.r_Image.setValue(info.getR_image());
+                    editor.putString("r_image", info.getR_image());
+                }
+                String clubName = info.getCb_name() == null ? "" : info.getCb_name();
+                model.r_ClubName.setValue(clubName);
+                editor.putString("r_clubname", clubName).apply();
+                bindDrawerHeader(model);
+            }
+
+            @Override
+            public void onFailure(Call<LoginInfo> call, Throwable error) {
+                Log.d("ProfileApi", "Unable to refresh drawer profile", error);
+            }
+        });
+    }
+
+    private void updateContentAppBarBehavior(boolean useCustomHeader) {
+        if (mainContent == null) {
+            return;
+        }
+        CoordinatorLayout.LayoutParams params =
+                (CoordinatorLayout.LayoutParams) mainContent.getLayoutParams();
+        params.setBehavior(useCustomHeader ? null : appBarScrollingBehavior);
+        mainContent.setLayoutParams(params);
+        mainContent.setTranslationY(0f);
+        mainContent.requestLayout();
     }
 
     private String valueOrDefault(String value, String defaultValue) {
@@ -212,5 +270,13 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (profileCall != null) {
+            profileCall.cancel();
+        }
+        super.onDestroy();
     }
 }

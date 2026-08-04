@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <title th:text="${hazard.title + ' | TrailGO 관리자'}">위험지역 상세</title><link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body class="admin-page" th:attr="data-kakao-key=${kakaoMapAppKey}">
+  <div th:replace="admin/fragments/sidebar :: sidebar"></div>
+  <div class="admin-main">
+    <div th:replace="admin/fragments/header :: header('위험지역 상세')"></div>
+    <main class="admin-content wide-content">
+      <div class="page-title"><div><a class="back-to-list" href="/admin/hazards">← 목록으로</a><h1 th:text="${hazard.title}">위험지역</h1><p th:text="|제보 #${hazard.id} · ${hazard.reporter}|">제보 정보</p></div><span class="status-badge large" th:classappend="|status-${#strings.toLowerCase(hazard.status)}|" th:text="${hazard.statusLabel}">대기</span></div>
+      <div class="detail-layout">
+        <section class="map-panel detail-map-panel">
+          <div id="hazard-map" class="hazard-map" th:attr="data-lat=${hazard.latitude},data-lng=${hazard.longitude}"><div class="map-fallback"><span class="map-marker">!</span><p>지도 위치</p></div></div>
+          <dl class="coordinate-bar"><div><dt>위도</dt><dd th:text="${hazard.latitude}">0</dd></div><div><dt>경도</dt><dd th:text="${hazard.longitude}">0</dd></div><div><dt>주소</dt><dd th:text="${hazard.address}">주소</dd></div></dl>
+        </section>
+        <aside class="review-panel">
+          <form id="hazard-edit-form" th:attr="data-hazard-id=${hazard.id}">
+            <div class="form-row"><label for="title">제목</label><input id="title" name="title" th:value="${hazard.title}" maxlength="120"></div>
+            <div class="form-row"><label for="hazardType">위험 유형</label><select id="hazardType" name="hazardType"><option value="ROCKFALL" th:selected="${hazard.hazardType == 'ROCKFALL'}">낙석</option><option value="STEEP_SLOPE" th:selected="${hazard.hazardType == 'STEEP_SLOPE'}">급경사</option><option value="ROAD_DAMAGE" th:selected="${hazard.hazardType == 'ROAD_DAMAGE'}">노면 파손</option><option value="VEHICLE_TRAFFIC" th:selected="${hazard.hazardType == 'VEHICLE_TRAFFIC'}">차량 통행</option><option value="CONSTRUCTION" th:selected="${hazard.hazardType == 'CONSTRUCTION'}">공사 중</option><option value="BLOCKED" th:selected="${hazard.hazardType == 'BLOCKED'}">길 막힘</option><option value="OTHER" th:selected="${hazard.hazardType == 'OTHER'}">기타</option></select></div>
+            <div class="form-row"><label for="description">설명</label><textarea id="description" name="description" rows="5" th:text="${hazard.description}"></textarea></div>
+            <div class="form-grid"><div class="form-row"><label for="latitude">위도</label><input id="latitude" name="latitude" th:value="${hazard.latitude}"></div><div class="form-row"><label for="longitude">경도</label><input id="longitude" name="longitude" th:value="${hazard.longitude}"></div></div>
+            <div class="form-row"><label for="address">주소</label><input id="address" name="address" th:value="${hazard.address}"></div>
+            <div class="form-row"><label for="status">상태</label><select id="status" name="status"><option value="PENDING" th:selected="${hazard.status == 'PENDING'}">검토 대기</option><option value="REVIEWING" th:selected="${hazard.status == 'REVIEWING'}">검토 중</option><option value="APPROVED" th:selected="${hazard.status == 'APPROVED'}">승인 완료</option><option value="REJECTED" th:selected="${hazard.status == 'REJECTED'}">반려됨</option><option value="INACTIVE" th:selected="${hazard.status == 'INACTIVE'}">비활성</option></select></div>
+            <div class="report-meta"><div><small>제보자</small><strong th:text="${hazard.reporter}">-</strong></div><div><small>확인 수</small><strong th:text="${hazard.confirmCount}">0</strong></div><div><small>신고 수</small><strong th:text="${hazard.reportCount}">0</strong></div></div>
+            <div class="hazard-photo" th:if="${hazard.image != null and !#strings.isEmpty(hazard.image)}"><img th:src="@{'/uploads/danger/' + ${hazard.image}}" alt="위험지역 제보 사진"></div>
+            <div class="review-actions"><button class="secondary-button" type="button" data-action="save">수정 저장</button><button class="danger-button" type="button" data-action="reject">반려</button><button class="primary-button" type="button" data-action="approve">승인</button></div>
+            <button class="merge-button" type="button" data-action="merge">중복 위험지역 병합</button>
+          </form>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <script src="/admin/js/admin.js"></script>
+</body></html>

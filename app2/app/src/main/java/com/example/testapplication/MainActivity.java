@@ -92,6 +92,11 @@ public class MainActivity extends AppCompatActivity {
                     || destinationId == R.id.nav_course_view
                     || destinationId == R.id.setting
                     || destinationId == R.id.app_settings
+                    || destinationId == R.id.profile_stats
+                    || destinationId == R.id.profile_courses
+                    || destinationId == R.id.profile_favorites
+                    || destinationId == R.id.profile_badges
+                    || destinationId == R.id.profile_gear
                     || destinationId == R.id.myDetailFragment;
             View appBar = findViewById(R.id.app_bar_layout);
             if (appBar != null) {

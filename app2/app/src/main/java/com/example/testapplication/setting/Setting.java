@@ -105,8 +105,11 @@ public class Setting extends BaseFragment {
         view.findViewById(R.id.bottom_nav_ride).setOnClickListener(
                 v -> startActivity(new Intent(requireContext(), StartActivity.class))
         );
-        view.findViewById(R.id.profile_menu_courses).setOnClickListener(v -> navigateTo(R.id.nav_course_view));
-        view.findViewById(R.id.profile_menu_favorite).setOnClickListener(v -> navigateTo(R.id.nav_course_scrap));
+        view.findViewById(R.id.profile_menu_stats).setOnClickListener(v -> navigateTo(R.id.profile_stats));
+        view.findViewById(R.id.profile_menu_courses).setOnClickListener(v -> navigateTo(R.id.profile_courses));
+        view.findViewById(R.id.profile_menu_favorite).setOnClickListener(v -> navigateTo(R.id.profile_favorites));
+        view.findViewById(R.id.profile_menu_badge).setOnClickListener(v -> navigateTo(R.id.profile_badges));
+        view.findViewById(R.id.profile_menu_gear).setOnClickListener(v -> navigateTo(R.id.profile_gear));
         TextView profile = view.findViewById(R.id.bottom_nav_profile);
         profile.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
         profile.setTypeface(null, android.graphics.Typeface.BOLD);

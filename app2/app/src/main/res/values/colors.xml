@@ -3,4 +3,5 @@
     <color name="colorPrimary">#181818</color>
     <color name="colorPrimaryDark">#181818</color>
     <color name="colorAccent">#03DAC5</color>
+    <color name="trailgoIconBackground">#F8F6EF</color>
 </resources>

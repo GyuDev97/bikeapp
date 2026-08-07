@@ -131,5 +131,21 @@
         android:label="설정"
         tools:layout="@layout/fragment_app_settings" />
 
+    <fragment android:id="@+id/profile_stats" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="활동 통계" tools:layout="@layout/fragment_profile_feature">
+        <argument android:name="screen" app:argType="string" android:defaultValue="stats" />
+    </fragment>
+    <fragment android:id="@+id/profile_courses" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="나의 코스" tools:layout="@layout/fragment_profile_feature">
+        <argument android:name="screen" app:argType="string" android:defaultValue="courses" />
+    </fragment>
+    <fragment android:id="@+id/profile_favorites" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="즐겨찾기" tools:layout="@layout/fragment_profile_feature">
+        <argument android:name="screen" app:argType="string" android:defaultValue="favorites" />
+    </fragment>
+    <fragment android:id="@+id/profile_badges" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="배지" tools:layout="@layout/fragment_profile_feature">
+        <argument android:name="screen" app:argType="string" android:defaultValue="badges" />
+    </fragment>
+    <fragment android:id="@+id/profile_gear" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="장비 관리" tools:layout="@layout/fragment_profile_feature">
+        <argument android:name="screen" app:argType="string" android:defaultValue="gear" />
+    </fragment>
+
 
 </navigation>

@@ -36,12 +36,8 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.google.gson.Gson;
 
-import net.daum.mf.map.api.CameraUpdateFactory;
 import net.daum.mf.map.api.MapPoint;
-import net.daum.mf.map.api.MapPointBounds;
 import net.daum.mf.map.api.MapPolyline;
-import net.daum.mf.map.api.MapReverseGeoCoder;
-import net.daum.mf.map.api.MapView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -61,7 +57,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class FollowEndActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener{
+public class FollowEndActivity extends AppCompatActivity {
     private FragmentRidingEndBinding binding;
     private final ServerApi serverApi = Server.getInstance().getApi();
 
@@ -83,7 +79,7 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
 
     int check, clearCount=0, riding_point=0;
 
-    MapView mapView;
+    private RidePreviewMap ridePreviewMap;
     //DB????ш끽維뽬땻????꾨탿 ??ш낄援η뵳??怨뚮뼚???
     String open = "1";
 
@@ -192,9 +188,9 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         lineChart.invalidate();
 
 
-        mapView = new MapView(this);
         ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
-        mapViewContainer.addView(mapView);
+        ridePreviewMap = new RidePreviewMap(this, mapViewContainer, witch_lat, witch_lon);
+        ridePreviewMap.start();
         MapPolyline polyline = new MapPolyline();
         polyline.setTag(1000);
         polyline.setLineColor(Color.argb(128, 255, 51, 0)); // Polyline ??濡ル㎥??癲ル슣????
@@ -203,11 +199,6 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
         int mapPointCount = Math.min(witch_lat.size(), witch_lon.size());
         for (int i = 0; i < mapPointCount; i++) {
             polyline.addPoint(MapPoint.mapPointWithGeoCoord(witch_lat.get(i), witch_lon.get(i)));
-        }
-        if (mapPointCount > 0) {
-            mapView.addPolyline(polyline);
-            MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
-            mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, 100));
         }
 
         Button save = (Button) findViewById(R.id.saveriding);
@@ -483,33 +474,28 @@ public class FollowEndActivity extends AppCompatActivity implements MapView.Curr
 
 
     @Override
-    public void onCurrentLocationUpdate(MapView mapView, MapPoint mapPoint, float v) {
-
+    protected void onResume() {
+        super.onResume();
+        if (ridePreviewMap != null) {
+            ridePreviewMap.resume();
+        }
     }
 
     @Override
-    public void onCurrentLocationDeviceHeadingUpdate(MapView mapView, float v) {
-
+    protected void onPause() {
+        if (ridePreviewMap != null) {
+            ridePreviewMap.pause();
+        }
+        super.onPause();
     }
 
     @Override
-    public void onCurrentLocationUpdateFailed(MapView mapView) {
-
-    }
-
-    @Override
-    public void onCurrentLocationUpdateCancelled(MapView mapView) {
-
-    }
-
-    @Override
-    public void onReverseGeoCoderFoundAddress(MapReverseGeoCoder mapReverseGeoCoder, String s) {
-
-    }
-
-    @Override
-    public void onReverseGeoCoderFailedToFindAddress(MapReverseGeoCoder mapReverseGeoCoder) {
-
+    protected void onDestroy() {
+        if (ridePreviewMap != null) {
+            ridePreviewMap.finish();
+            ridePreviewMap = null;
+        }
+        super.onDestroy();
     }
 
 

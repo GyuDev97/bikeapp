@@ -1,18 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 35
-    namespace 'com.example.testapplication'
+    compileSdkVersion 36
+    namespace 'com.bike.trailgo'
 
     buildFeatures{
         viewBinding = true
     }
 
     defaultConfig {
-        applicationId "com.example.testapplication"
+        applicationId "com.bike.trailgo"
         minSdkVersion 24
-        targetSdkVersion 35
-        versionCode 1
+        targetSdkVersion 36
+        versionCode 3
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

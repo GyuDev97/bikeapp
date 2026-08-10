@@ -1,341 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:background="#F8FAF8">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:id="@+id/cancelriding"
+            android:layout_width="44dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="#152019"
+            android:textSize="40sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="라이딩 저장"
+            android:textColor="#152019"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <ScrollView
-        android:fillViewport="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="1dp"
             android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:padding="16dp"
+            android:paddingBottom="20dp">
 
-
-            <RelativeLayout
-                android:id="@+id/map_view"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_alignParentBottom="true"
-                android:layout_weight="0" />
+                android:layout_height="190dp"
+                android:background="@drawable/riding_save_card"
+                android:clipToOutline="true"
+                android:elevation="2dp">
 
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/chart"
-                android:layout_width="match_parent"
-                android:layout_height="350dp" />
-
-            <GridLayout
-                android:id="@+id/record_grid"
-                android:verticalSpacing="30dp"
-                android:layout_marginTop="10dp"
-                android:layout_gravity = "center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="3"
-                android:orientation="horizontal"
-                tools:ignore="MissingConstraints">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    >
-
-                    <ImageView
-                        android:id="@+id/imageView3"
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/riding_time"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="라이딩 시간"
-                        android:textColor="#000"
-                        android:textSize="17dp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/ending"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="0:0:0"
-                        android:textColor="#000"
-                        android:textSize="15dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="50dp">
-
-                    <ImageView
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/rest_time"
-                        tools:layout_editor_absoluteX="131dp"
-                        tools:layout_editor_absoluteY="407dp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="휴식시간"
-                        android:textSize="17dp"
-                        android:textColor="#000"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/endresttime"
-                        android:text="0:0:0"
-                        android:layout_gravity="center"
-                        android:textSize="15dp"
-                        android:textColor="#000"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="50dp">
-
-                    <ImageView
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/riding_des"
-                        tools:layout_editor_absoluteX="131dp"
-                        tools:layout_editor_absoluteY="407dp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="이동거리"
-                        android:textSize="17dp"
-                        android:textColor="#000"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/enddis"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="0"
-                        android:textSize="15dp"
-                        android:textColor="#000"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="40dp">
-
-                    <ImageView
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/max_speed"
-                        tools:layout_editor_absoluteX="131dp"
-                        tools:layout_editor_absoluteY="407dp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="최대속도"
-                        android:textSize="17dp"
-                        android:textColor="#000"
-                        android:textStyle="bold"/>
-                    <TextView
-                        android:id="@+id/endmax"
-                        android:text="0"
-                        android:gravity="center"
-                        android:textSize="15dp"
-                        android:textColor="#000"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="50dp"
-                    android:layout_marginTop="40dp">
-
-                    <ImageView
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/avg_speed"
-                        tools:layout_editor_absoluteX="131dp"
-                        tools:layout_editor_absoluteY="407dp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="평균속도"
-                        android:textSize="17dp"
-                        android:textColor="#000"
-                        android:textStyle="bold"/>
-                    <TextView
-                        android:id="@+id/endavg"
-                        android:text="0"
-                        android:gravity="center"
-                        android:textSize="15dp"
-                        android:textColor="#000"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-                </LinearLayout>
-
-
-
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="50dp"
-                    android:layout_marginTop="40dp">
-                    <ImageView
-                        android:layout_width="74dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/godo"
-                        tools:layout_editor_absoluteX="131dp"
-                        tools:layout_editor_absoluteY="407dp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="획득고도"
-                        android:textSize="17dp"
-                        android:textColor="#000"
-                        android:textStyle="bold"/>
-                    <TextView
-                        android:id="@+id/endget"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="0"
-                        android:textSize="15dp"
-                        android:textColor="#000"/>
-                </LinearLayout>
-
-            </GridLayout>
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="center"
-                android:layout_marginTop="40dp">
-                <ImageView
-                    android:layout_gravity="center"
-                    android:layout_width="74dp"
-                    android:layout_height="54dp"
-                    android:src="@drawable/addr"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="주소"
-                    android:textSize="17dp"
-                    android:textColor="#000"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/addr"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="대한민국 대구광역시 북구 관문동"
-                    android:textSize="15dp"
-                    android:textColor="#000"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/openset"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:orientation="horizontal"
-                android:layout_marginTop="30dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="라이딩 이름  : "
-                    android:textColor="#000"/>
-
-                <EditText
-                    android:id="@+id/riding_nameinput"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:hint="내 라이딩"
-                    android:inputType="textPersonName"
-                    android:text=" " />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp">
-                <RadioGroup
-                    android:id="@+id/selectgroup"
+                <RelativeLayout
+                    android:id="@+id/map_view"
                     android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="end|top"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:gravity="center"
+                        android:background="@drawable/riding_save_map_control"
+                        android:text="◎"
+                        android:textColor="#1F7A2E"
+                        android:textSize="22sp" />
+
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:background="@drawable/riding_save_map_control"
+                        android:text="≡"
+                        android:textColor="#1F7A2E"
+                        android:textSize="21sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/riding_save_card"
+                android:elevation="2dp"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
                     android:orientation="horizontal">
 
-                    <RadioButton
-                        android:id="@+id/NoOpen"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="비공개" />
-                    <RadioButton
-                        android:id="@+id/FriOpen"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="전체 공개" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="거리" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/enddis" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0.0 km" android:textColor="#152019" android:textSize="19sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <View android:layout_width="1dp" android:layout_height="44dp" android:layout_gravity="center_vertical" android:background="#E7ECE8" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="라이딩 시간" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/ending" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0분" android:textColor="#152019" android:textSize="17sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <View android:layout_width="1dp" android:layout_height="44dp" android:layout_gravity="center_vertical" android:background="#E7ECE8" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="휴식시간" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/endresttime" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0분" android:textColor="#152019" android:textSize="17sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
 
-                </RadioGroup>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E7ECE8" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="70dp" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="평균속도" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/endavg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0.0 km/h" android:textColor="#152019" android:textSize="18sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <View android:layout_width="1dp" android:layout_height="44dp" android:layout_gravity="center_vertical" android:background="#E7ECE8" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="최대속도" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/endmax" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0.0 km/h" android:textColor="#152019" android:textSize="18sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <View android:layout_width="1dp" android:layout_height="44dp" android:layout_gravity="center_vertical" android:background="#E7ECE8" />
+                    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="획득고도" android:textColor="#657068" android:textSize="12sp" />
+                        <TextView android:id="@+id/endget" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="0 m" android:textColor="#152019" android:textSize="18sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp">
-                <Button
-                    android:id="@+id/saveriding"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:text="기록저장"
-                    tools:layout_editor_absoluteX="31dp"
-                    tools:layout_editor_absoluteY="626dp"
-                    tools:ignore="MissingConstraints" />
 
+            <LinearLayout android:layout_width="match_parent" android:layout_height="190dp" android:layout_marginTop="12dp" android:background="@drawable/riding_save_card" android:elevation="2dp" android:orientation="vertical" android:padding="14dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="고도 그래프" android:textColor="#152019" android:textSize="16sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="라이딩 고도 변화" android:textColor="#1F7A2E" android:textSize="12sp" />
+                </LinearLayout>
+                <com.github.mikephil.charting.charts.LineChart android:id="@+id/chart" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/riding_save_card" android:elevation="2dp" android:gravity="center_vertical" android:minHeight="74dp" android:orientation="horizontal" android:paddingStart="16dp" android:paddingEnd="16dp">
+                <TextView android:layout_width="30dp" android:layout_height="wrap_content" android:text="●" android:textColor="#1F9A45" android:textSize="20sp" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="도착 위치" android:textColor="#152019" android:textSize="15sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/addr" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:ellipsize="end" android:maxLines="1" android:text="위치 정보 없음" android:textColor="#657068" android:textSize="13sp" />
+                </LinearLayout>
+                <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:gravity="center" android:text="›" android:textColor="#98A19A" android:textSize="26sp" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/riding_save_card" android:elevation="2dp" android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="라이딩 이름" android:textColor="#152019" android:textSize="15sp" android:textStyle="bold" />
+                <EditText android:id="@+id/riding_nameinput" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="10dp" android:background="@drawable/riding_save_input" android:gravity="center_vertical" android:hint="예: 관악산 야간 라이딩" android:inputType="textCapSentences" android:maxLength="30" android:paddingStart="14dp" android:paddingEnd="14dp" android:textColor="#152019" android:textColorHint="#A4ACA6" android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/riding_save_card" android:elevation="2dp" android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="공개 설정" android:textColor="#152019" android:textSize="15sp" android:textStyle="bold" />
+                <RadioGroup android:id="@+id/selectgroup" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="12dp" android:orientation="horizontal">
+                    <RadioButton android:id="@+id/NoOpen" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="6dp" android:layout_weight="1" android:background="@drawable/riding_save_visibility_choice" android:button="@null" android:gravity="center" android:text="비공개" android:textColor="@drawable/riding_save_visibility_text" android:textSize="13sp" />
+                    <RadioButton android:id="@+id/FriOpen" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="6dp" android:layout_weight="1" android:background="@drawable/riding_save_visibility_choice" android:button="@null" android:gravity="center" android:text="팔로워 공개" android:textColor="@drawable/riding_save_visibility_text" android:textSize="13sp" />
+                    <RadioButton android:id="@+id/AllOpen" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/riding_save_visibility_choice" android:button="@null" android:checked="true" android:gravity="center" android:text="전체 공개" android:textColor="@drawable/riding_save_visibility_text" android:textSize="13sp" />
+                </RadioGroup>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="76dp" android:background="#FFFFFF" android:elevation="8dp" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="16dp" android:paddingEnd="16dp">
+        <TextView android:id="@+id/cancelriding_bottom" android:layout_width="96dp" android:layout_height="52dp" android:gravity="center" android:text="취소" android:textColor="#1F7A2E" android:textSize="15sp" android:textStyle="bold" />
+        <Button android:id="@+id/saveriding" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:background="@drawable/riding_save_primary_button" android:text="기록 저장" android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

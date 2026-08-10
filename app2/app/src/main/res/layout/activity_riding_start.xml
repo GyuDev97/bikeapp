@@ -347,13 +347,11 @@
             android:layout_width="match_parent"
             android:layout_height="248dp">
 
-            <ImageView
+            <com.bike.trailgo.ui.riding.RideSpeedGaugeView
                 android:id="@+id/speed_gauge"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:layout_gravity="top|center_horizontal"
-                android:scaleType="fitCenter"
-                android:src="@drawable/riding_speed_gauge" />
+                android:layout_gravity="top|center_horizontal" />
 
             <LinearLayout
                 android:layout_width="wrap_content"

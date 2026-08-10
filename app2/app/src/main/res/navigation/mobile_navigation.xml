@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.example.testapplication.ui.home.HomeFragment"
+        android:name="com.bike.trailgo.ui.home.HomeFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -38,7 +38,7 @@
 
     <fragment
         android:id="@+id/nav_records"
-        android:name="com.example.testapplication.ui.records.RecordFragment"
+        android:name="com.bike.trailgo.ui.records.RecordFragment"
         android:label="@string/menu_records"
         tools:layout="@layout/fragment_records" >
         <action
@@ -48,7 +48,7 @@
 
     <fragment
         android:id="@+id/nav_course_view"
-        android:name="com.example.testapplication.ui.courses.CourseViewFragment"
+        android:name="com.bike.trailgo.ui.courses.CourseViewFragment"
         android:label="코스 보기"
         tools:layout="@layout/fragment_course_view" >
         <action
@@ -57,30 +57,30 @@
     </fragment>
     <fragment
         android:id="@+id/nav_course_scrap"
-        android:name="com.example.testapplication.ui.courses.CourseScrapFragment"
+        android:name="com.bike.trailgo.ui.courses.CourseScrapFragment"
         android:label="@string/menu_course_scrap"
         tools:layout="@layout/fragment_course_scrap" />
 
     <fragment
         android:id="@+id/nav_course_search"
-        android:name="com.example.testapplication.ui.courses.CourseSearchFragment"
+        android:name="com.bike.trailgo.ui.courses.CourseSearchFragment"
         android:label="코스 찾기"
         tools:layout="@layout/fragment_course_search" />
     <fragment
         android:id="@+id/nav_course_detail"
-        android:name="com.example.testapplication.ui.courses.CourseDetailFragment"
+        android:name="com.bike.trailgo.ui.courses.CourseDetailFragment"
         android:label=""
         tools:layout="@layout/fragment_course_detail" />
 
     <fragment
         android:id="@+id/myDetailFragment"
-        android:name="com.example.testapplication.ui.records.MyDetailFragment"
+        android:name="com.bike.trailgo.ui.records.MyDetailFragment"
         android:label="내 기록"
         tools:layout="@layout/fragment_my_detail" />
 
     <fragment
         android:id="@+id/nav_competition_view"
-        android:name="com.example.testapplication.ui.competitions.CompetitionViewFragment"
+        android:name="com.bike.trailgo.ui.competitions.CompetitionViewFragment"
         android:label="경쟁전"
         tools:layout="@layout/fragment_competition_view" >
         <action
@@ -89,12 +89,12 @@
     </fragment>
     <fragment
         android:id="@+id/competitionDetailFragment"
-        android:name="com.example.testapplication.ui.competitions.CompetitionDetailFragment"
+        android:name="com.bike.trailgo.ui.competitions.CompetitionDetailFragment"
         android:label="경쟁전 상세보기"
         tools:layout="@layout/fragment_competition_detail" />
     <fragment
         android:id="@+id/nav_mission_view"
-        android:name="com.example.testapplication.ui.missions.MissionViewFragment"
+        android:name="com.bike.trailgo.ui.missions.MissionViewFragment"
         android:label="미션"
         tools:layout="@layout/fragment_mission_view" >
         <action
@@ -103,12 +103,12 @@
     </fragment>
     <fragment
         android:id="@+id/missionDetailFragment"
-        android:name="com.example.testapplication.ui.missions.MissionDetailFragment"
+        android:name="com.bike.trailgo.ui.missions.MissionDetailFragment"
         android:label="미션 상세보기"
         tools:layout="@layout/fragment_mission_detail" />
     <fragment
         android:id="@+id/nav_danger_view"
-        android:name="com.example.testapplication.ui.dangers.DangerViewFragment"
+        android:name="com.bike.trailgo.ui.dangers.DangerViewFragment"
         android:label="위험지역"
         tools:layout="@layout/fragment_danger_view" >
         <action
@@ -117,33 +117,33 @@
     </fragment>
     <fragment
         android:id="@+id/dangerRegisterFragment"
-        android:name="com.example.testapplication.ui.dangers.DangerRegisterFragment"
+        android:name="com.bike.trailgo.ui.dangers.DangerRegisterFragment"
         android:label="위험지역 등록"
         tools:layout="@layout/fragment_danger_register" />
     <fragment
         android:id="@+id/setting"
-        android:name="com.example.testapplication.setting.Setting"
+        android:name="com.bike.trailgo.setting.Setting"
         android:label="프로필 설정"
         tools:layout="@layout/fragment_profile_setting" />
     <fragment
         android:id="@+id/app_settings"
-        android:name="com.example.testapplication.setting.AppSettingsFragment"
+        android:name="com.bike.trailgo.setting.AppSettingsFragment"
         android:label="설정"
         tools:layout="@layout/fragment_app_settings" />
 
-    <fragment android:id="@+id/profile_stats" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="활동 통계" tools:layout="@layout/fragment_profile_feature">
+    <fragment android:id="@+id/profile_stats" android:name="com.bike.trailgo.setting.ProfileFeatureFragment" android:label="활동 통계" tools:layout="@layout/fragment_profile_feature">
         <argument android:name="screen" app:argType="string" android:defaultValue="stats" />
     </fragment>
-    <fragment android:id="@+id/profile_courses" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="나의 코스" tools:layout="@layout/fragment_profile_feature">
+    <fragment android:id="@+id/profile_courses" android:name="com.bike.trailgo.setting.ProfileFeatureFragment" android:label="나의 코스" tools:layout="@layout/fragment_profile_feature">
         <argument android:name="screen" app:argType="string" android:defaultValue="courses" />
     </fragment>
-    <fragment android:id="@+id/profile_favorites" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="즐겨찾기" tools:layout="@layout/fragment_profile_feature">
+    <fragment android:id="@+id/profile_favorites" android:name="com.bike.trailgo.setting.ProfileFeatureFragment" android:label="즐겨찾기" tools:layout="@layout/fragment_profile_feature">
         <argument android:name="screen" app:argType="string" android:defaultValue="favorites" />
     </fragment>
-    <fragment android:id="@+id/profile_badges" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="배지" tools:layout="@layout/fragment_profile_feature">
+    <fragment android:id="@+id/profile_badges" android:name="com.bike.trailgo.setting.ProfileFeatureFragment" android:label="배지" tools:layout="@layout/fragment_profile_feature">
         <argument android:name="screen" app:argType="string" android:defaultValue="badges" />
     </fragment>
-    <fragment android:id="@+id/profile_gear" android:name="com.example.testapplication.setting.ProfileFeatureFragment" android:label="장비 관리" tools:layout="@layout/fragment_profile_feature">
+    <fragment android:id="@+id/profile_gear" android:name="com.bike.trailgo.setting.ProfileFeatureFragment" android:label="장비 관리" tools:layout="@layout/fragment_profile_feature">
         <argument android:name="screen" app:argType="string" android:defaultValue="gear" />
     </fragment>
 

@@ -17,8 +17,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.activity.OnBackPressedCallback;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.core.view.GravityCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -118,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         bindDrawerHeader(model);
         refreshProfile(model);
         setupDrawerClicks(drawer, navController);
+        configureBackNavigation(drawer, navController);
 
         logKeyHash();
     }
@@ -234,6 +237,45 @@ public class MainActivity extends AppCompatActivity {
         if (navController.getCurrentDestination() == null || navController.getCurrentDestination().getId() != destinationId) {
             navController.navigate(destinationId);
         }
+    }
+
+    private void configureBackNavigation(DrawerLayout drawer, NavController navController) {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                    return;
+                }
+                if (navController.getCurrentDestination() != null
+                        && navController.getCurrentDestination().getId() != R.id.nav_home) {
+                    int destinationId = navController.getCurrentDestination().getId();
+                    if (isMainMenuDestination(destinationId)) {
+                        // Drawer destinations are app sections, not a history chain: Back always returns Home.
+                        if (!navController.popBackStack(R.id.nav_home, false)) {
+                            navController.navigate(R.id.nav_home);
+                        }
+                    } else if (!navController.popBackStack()) {
+                        navController.navigate(R.id.nav_home);
+                    }
+                    return;
+                }
+                // Android's normal behavior is preserved only when the user is already Home.
+                moveTaskToBack(true);
+            }
+        });
+    }
+
+    private boolean isMainMenuDestination(int destinationId) {
+        return destinationId == R.id.nav_records
+                || destinationId == R.id.nav_course_view
+                || destinationId == R.id.nav_course_search
+                || destinationId == R.id.nav_course_scrap
+                || destinationId == R.id.nav_competition_view
+                || destinationId == R.id.nav_mission_view
+                || destinationId == R.id.nav_danger_view
+                || destinationId == R.id.setting
+                || destinationId == R.id.app_settings;
     }
 
     private void shareInvite(MainViewModel model) {

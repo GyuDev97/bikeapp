@@ -11,6 +11,7 @@ public final class RideEventDetector {
     private final Map<RideEventType, Long> lastEventMillis = new EnumMap<>(RideEventType.class);
     private RideState previousState = RideState.FLAT;
     private double nextMilestoneMeters;
+    private long paceDropSinceMillis = -1L;
 
     public RideEventDetector(RideAssistantPolicy policy) {
         this.policy = policy;
@@ -22,11 +23,7 @@ public final class RideEventDetector {
         if (context.currentRideState == RideState.LONG_CLIMB && previousState != RideState.LONG_CLIMB) {
             addIfReady(result, RideEventType.LONG_CLIMB_STARTED, context);
         }
-        if (context.avgSpeed5mKmh > 0.0d
-                && context.avgSpeed1mKmh + policy.paceDropKmh <= context.avgSpeed5mKmh
-                && context.currentRideState != RideState.STOPPED) {
-            addIfReady(result, RideEventType.PACE_DROPPED, context);
-        }
+        detectSustainedClimbPaceDrop(result, context);
         if (context.currentRideState == RideState.DESCENT
                 && context.currentSpeedKmh >= policy.fastDescentKmh) {
             addIfReady(result, RideEventType.FAST_DESCENT, context);
@@ -39,6 +36,25 @@ public final class RideEventDetector {
         }
         previousState = context.currentRideState;
         return result;
+    }
+
+    private void detectSustainedClimbPaceDrop(List<RideEvent> result, RideContext context) {
+        boolean isClimbing = context.currentRideState == RideState.CLIMB
+                || context.currentRideState == RideState.LONG_CLIMB;
+        boolean hasPaceDrop = context.avgSpeed5mKmh > 0.0d
+                && context.avgSpeed1mKmh + policy.paceDropKmh <= context.avgSpeed5mKmh;
+        boolean isMeaningful = isClimbing
+                && context.currentSpeedKmh >= policy.movingSpeedKmh
+                && context.stoppedSeconds == 0L
+                && context.estimatedGradePercent >= policy.paceDropMinimumGradePercent;
+        if (!hasPaceDrop || !isMeaningful) {
+            paceDropSinceMillis = -1L;
+            return;
+        }
+        if (paceDropSinceMillis < 0L) paceDropSinceMillis = context.timestampMs;
+        if (context.timestampMs - paceDropSinceMillis >= policy.paceDropMinimumSustainedSeconds * 1000L) {
+            addIfReady(result, RideEventType.PACE_DROPPED, context);
+        }
     }
 
     private void addIfReady(List<RideEvent> output, RideEventType type, RideContext context) {

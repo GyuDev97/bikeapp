@@ -134,7 +134,13 @@ public class StartActivity extends AppCompatActivity
     private String getDalat, getDalon, getDacon, address_dong;
     //??醫딆┣??????⑤슢堉???
     private double latitude, lonngitude, getSpeed = 0, hap = 0, avg = 0, maX = 0, maxLat = 0, maxLon = 0, minLat = 1000, minLon = 1000;
-    private int getgodo, getgodoval = 0;
+    private static final double MIN_ELEVATION_GAIN_METERS = 3.0;
+    private static final double MAX_REASONABLE_RIDE_SPEED_KMH = 100.0;
+    private int getgodo = 0;
+    private int totalDescentMeters = 0;
+    private Double elevationBaselineMeters = null;
+    private Location gradeBaselineLocation = null;
+    private long lastSpeedLocationReceivedAtMillis = 0L;
     private int  total_time=0, rest=0;
     private ArrayList<Double> witch_lat = new ArrayList<>();
     private ArrayList<Double> witch_lon = new ArrayList<>();
@@ -893,6 +899,9 @@ public class StartActivity extends AppCompatActivity
 
                     if (!shouldRecord) {
                         mLastlocation = null;
+                        elevationBaselineMeters = null;
+                        gradeBaselineLocation = null;
+                        lastSpeedLocationReceivedAtMillis = 0L;
                         return;
                     }
 
@@ -909,9 +918,13 @@ public class StartActivity extends AppCompatActivity
 
                     // ???쒙쭫???癲ル슢???ъ쒜?????
                     ele.add(location.getAltitude());
+                    if (location.hasAltitude()) {
+                        updateElevationStats(location);
+                    }
+                    updateGpsQuality(location);
 
                     //????썹땟?????戮?덫
-                    getSpeed = Double.parseDouble(String.format("%.1f", location.getSpeed() * 3600 / 1000));
+                    getSpeed = resolveSpeedKmh(location);
                     binding.nowspeed.setText(String.format("%.1f", getSpeed));  //Get Speed
                     binding.mSpeed.setText(String.format("%.1f", getSpeed) + "km/h");
                     binding.speedGauge.setSpeedKmh((float) getSpeed);
@@ -984,19 +997,91 @@ public class StartActivity extends AppCompatActivity
                         binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
                         cha_avg = String.format(Locale.KOREA, "%.0f", avg);
 
-                        //????蹂λ쑋???쒙쭫??
-                        //????蹂λ쑋???쒙쭫??
-                        getgodoval = (int) (location.getAltitude() - mLastlocation.getAltitude());
-                        if (getgodoval > 0) {
-                            getgodo += getgodoval;
-                            binding.getgodo.setText(String.valueOf(getgodo));
-                        }
+                        updateCurrentGrade(location);
 
-                        //???쒙쭫??
-                        binding.Nowgodo.setText(String.format("%.0f", location.getAltitude()) + "m");
                     }
                     // ????썹땟?????썹땟????꿔꺂?????????썹땟?熬?????⑤슢堉???
                     mLastlocation = location;
+                }
+
+                private void updateElevationStats(Location location) {
+                    double altitude = location.getAltitude();
+                    binding.Nowgodo.setText(String.format(Locale.KOREA, "%.0f m", altitude));
+
+                    if (elevationBaselineMeters == null) {
+                        elevationBaselineMeters = altitude;
+                        return;
+                    }
+
+                    double elevationChange = altitude - elevationBaselineMeters;
+                    if (elevationChange >= MIN_ELEVATION_GAIN_METERS) {
+                        getgodo += Math.round(elevationChange);
+                        elevationBaselineMeters = altitude;
+                        binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
+                    } else if (elevationChange <= -MIN_ELEVATION_GAIN_METERS) {
+                        totalDescentMeters += Math.round(Math.abs(elevationChange));
+                        elevationBaselineMeters = altitude;
+                        binding.totalDescent.setText(String.format(Locale.KOREA, "%d m", totalDescentMeters));
+                    }
+                }
+
+                private void updateCurrentGrade(Location location) {
+                    if (!location.hasAltitude()) {
+                        binding.currentGrade.setText("-- %");
+                        return;
+                    }
+
+                    if (gradeBaselineLocation == null) {
+                        gradeBaselineLocation = new Location(location);
+                        return;
+                    }
+
+                    float horizontalDistance = gradeBaselineLocation.distanceTo(location);
+                    if (horizontalDistance < 10f) return;
+
+                    double grade = ((location.getAltitude() - gradeBaselineLocation.getAltitude())
+                            / horizontalDistance) * 100.0;
+                    gradeBaselineLocation = new Location(location);
+                    // Values outside this range are overwhelmingly likely to be a GPS altitude jump.
+                    if (Math.abs(grade) > 35.0) {
+                        binding.currentGrade.setText("-- %");
+                        return;
+                    }
+                    binding.currentGrade.setText(String.format(Locale.KOREA, "%+.1f %%", grade));
+                }
+
+                private void updateGpsQuality(Location location) {
+                    if (location.hasAccuracy()) {
+                        binding.gpsAccuracy.setText(String.format(Locale.KOREA, "±%.0f m", location.getAccuracy()));
+                    } else {
+                        binding.gpsAccuracy.setText("확인 중");
+                    }
+                }
+
+                private double resolveSpeedKmh(Location location) {
+                    long receivedAtMillis = SystemClock.elapsedRealtime();
+                    double reportedSpeedKmh = location.getSpeed() * 3.6;
+                    if (location.hasSpeed() && reportedSpeedKmh > 0.1) {
+                        lastSpeedLocationReceivedAtMillis = receivedAtMillis;
+                        return reportedSpeedKmh;
+                    }
+
+                    if (mLastlocation == null) {
+                        lastSpeedLocationReceivedAtMillis = receivedAtMillis;
+                        return 0.0;
+                    }
+
+                    long elapsedMillis = location.getElapsedRealtimeNanos() > mLastlocation.getElapsedRealtimeNanos()
+                            ? (location.getElapsedRealtimeNanos() - mLastlocation.getElapsedRealtimeNanos()) / 1_000_000L
+                            : location.getTime() - mLastlocation.getTime();
+                    if (elapsedMillis <= 0L && lastSpeedLocationReceivedAtMillis > 0L) {
+                        elapsedMillis = receivedAtMillis - lastSpeedLocationReceivedAtMillis;
+                    }
+                    lastSpeedLocationReceivedAtMillis = receivedAtMillis;
+                    if (elapsedMillis < 250L || elapsedMillis > 15_000L) return 0.0;
+
+                    double inferredSpeedKmh = mLastlocation.distanceTo(location) * 3600.0 / elapsedMillis;
+                    return inferredSpeedKmh <= MAX_REASONABLE_RIDE_SPEED_KMH ? inferredSpeedKmh : 0.0;
                 }
 
 
@@ -1055,6 +1140,20 @@ public class StartActivity extends AppCompatActivity
                 @Override
                 public void onCurrentLocationUpdateCancelled(MapView mapView) {
 
+                }
+
+                @Override
+                public void onBackPressed() {
+                    new AlertDialog.Builder(this)
+                            .setTitle("주행을 종료할까요?")
+                            .setMessage("저장하지 않은 주행 기록은 사라집니다.")
+                            .setNegativeButton("계속 주행", null)
+                            .setNeutralButton("기록 없이 종료", (dialog, which) -> {
+                                stopRideTracking();
+                                finish();
+                            })
+                            .setPositiveButton("종료 후 저장", (dialog, which) -> binding.endriding.performClick())
+                            .show();
                 }
 
                 @Override

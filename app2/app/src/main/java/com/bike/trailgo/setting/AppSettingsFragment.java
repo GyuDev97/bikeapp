@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import androidx.activity.OnBackPressedCallback;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.BuildConfig;
 import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.member.LoginActivity;
 import com.bike.trailgo.ui.riding.StartActivity;
@@ -67,7 +68,9 @@ public class AppSettingsFragment extends BaseFragment {
                             return;
                         }
                         setEnabled(false);
-                        requireActivity().onBackPressed();
+                        if (!controller.popBackStack(R.id.nav_home, false)) {
+                            controller.navigate(R.id.nav_home);
+                        }
                     }
                 }
         );
@@ -147,6 +150,14 @@ public class AppSettingsFragment extends BaseFragment {
         addSwitchRow("고도 보정", "시작 시 고도를 보정합니다.", "altitude_correction", true);
         TextView test = simpleAction("기록 품질 테스트  ›", TEXT);
         test.setOnClickListener(v -> Toast.makeText(requireContext(), "GPS와 센서 상태가 양호합니다.", Toast.LENGTH_SHORT).show());
+        if (BuildConfig.DEBUG) {
+            TextView simulator = simpleAction("Ride Assistant 테스트  ›\n시뮬레이션 주행으로 AI 안내 흐름을 점검합니다.", TEXT);
+            simulator.setOnClickListener(v -> {
+                Intent intent = new Intent();
+                intent.setClassName(requireContext(), "com.bike.trailgo.debug.RideAssistantDebugActivity");
+                startActivity(intent);
+            });
+        }
     }
 
     private void buildPrivacy() {

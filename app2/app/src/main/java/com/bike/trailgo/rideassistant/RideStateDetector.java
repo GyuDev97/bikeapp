@@ -10,8 +10,7 @@ public final class RideStateDetector {
     public RideState detect(RideContext context) {
         if (context.stoppedSeconds >= policy.stoppedAfterSeconds) return RideState.STOPPED;
         if (context.continuousClimbSeconds >= policy.longClimbMinimumSeconds
-                && context.elevationGain10mMeters >= policy.longClimbMinimumGainMeters
-                && context.avgSpeed1mKmh + policy.paceDropKmh <= context.avgSpeed5mKmh) {
+                && context.elevationGain10mMeters >= policy.longClimbMinimumGainMeters) {
             return RideState.LONG_CLIMB;
         }
         if (context.elevationGain1mMeters >= policy.climbGainPerMinuteMeters

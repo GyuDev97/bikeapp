@@ -203,8 +203,8 @@ public class FollowEndActivity extends AppCompatActivity {
 
         Button save = (Button) findViewById(R.id.saveriding);
         RadioGroup openselect = (RadioGroup)findViewById(R.id.selectgroup);
-        findViewById(R.id.cancelriding).setOnClickListener(v -> finish());
-        findViewById(R.id.cancelriding_bottom).setOnClickListener(v -> finish());
+        findViewById(R.id.cancelriding).setOnClickListener(v -> confirmDiscardRide());
+        findViewById(R.id.cancelriding_bottom).setOnClickListener(v -> confirmDiscardRide());
 
         //??嚥▲꺆諭???袁⑸즵?룸돁???影??????源낃도 ????몄릇?嶺뚮ㅎ?붷ㅇ????源놁젳
         binding.endavg.setText(String.valueOf(AvgSpeed)+"km/h"); //????????뽦뵣
@@ -867,6 +867,20 @@ public class FollowEndActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        confirmDiscardRide();
+    }
+
+    private void confirmDiscardRide() {
+        new AlertDialog.Builder(this)
+                .setTitle("저장하지 않고 나갈까요?")
+                .setMessage("이번 주행 기록은 저장되지 않습니다.")
+                .setNegativeButton("계속 작성", null)
+                .setPositiveButton("나가기", (dialog, which) -> finish())
+                .show();
     }
 
     public class updateMissionStatus extends AsyncTask<Map<String, String>, Integer, String> {

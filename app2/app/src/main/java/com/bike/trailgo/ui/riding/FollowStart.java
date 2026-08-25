@@ -907,6 +907,20 @@ public class FollowStart extends AppCompatActivity
     }
 
     @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("주행을 종료할까요?")
+                .setMessage("저장하지 않은 주행 기록은 사라집니다.")
+                .setNegativeButton("계속 주행", null)
+                .setNeutralButton("기록 없이 종료", (dialog, which) -> {
+                    stopRideTracking();
+                    finish();
+                })
+                .setPositiveButton("종료 후 저장", (dialog, which) -> binding.endriding.performClick())
+                .show();
+    }
+
+    @Override
     protected void onDestroy() {
         if (isFinishing()) {
             stopRideTracking();

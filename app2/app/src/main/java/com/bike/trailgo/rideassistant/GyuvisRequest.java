@@ -8,21 +8,25 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 final class GyuvisRequest {
+    @SerializedName("ride_id") final String rideId;
+    @SerializedName("event_id") final String eventId;
     @SerializedName("event_type") final String eventType;
     final String timestamp;
     @SerializedName("ride_context") final RideContextPayload rideContext;
 
-    private GyuvisRequest(String eventType, String timestamp, RideContextPayload rideContext) {
+    private GyuvisRequest(String rideId, String eventId, String eventType, String timestamp, RideContextPayload rideContext) {
+        this.rideId = rideId;
+        this.eventId = eventId;
         this.eventType = eventType;
         this.timestamp = timestamp;
         this.rideContext = rideContext;
     }
 
-    static GyuvisRequest from(RideEvent event) {
+    static GyuvisRequest from(String rideId, RideEvent event) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return new GyuvisRequest(event.type.name(), format.format(new Date(event.timestampMs)),
-                new RideContextPayload(event.context));
+        return new GyuvisRequest(rideId, event.eventId, event.type.name(), format.format(new Date(event.timestampMs)),
+                new RideContextPayload(event));
     }
 
     static final class RideContextPayload {
@@ -38,8 +42,12 @@ final class GyuvisRequest {
         @SerializedName("ride_duration_sec") final long rideDurationSec;
         @SerializedName("total_elevation_gain") final double totalElevationGain;
         @SerializedName("ride_state") final String rideState;
+        @SerializedName("estimated_grade") final double estimatedGrade;
+        @SerializedName("nearest_danger_distance") final Double nearestDangerDistance;
+        @SerializedName("danger_id") final String dangerId;
 
-        RideContextPayload(RideContext context) {
+        RideContextPayload(RideEvent event) {
+            RideContext context = event.context;
             currentSpeed = context.currentSpeedKmh;
             currentAltitude = context.currentAltitudeMeters;
             avgSpeed1m = context.avgSpeed1mKmh;
@@ -52,6 +60,10 @@ final class GyuvisRequest {
             rideDurationSec = context.rideDurationSeconds;
             totalElevationGain = context.totalElevationGainMeters;
             rideState = context.currentRideState.name();
+            estimatedGrade = context.estimatedGradePercent;
+            nearestDangerDistance = event.type == RideEventType.DANGER_APPROACH
+                    && event.dangerDistanceMeters >= 0.0d ? event.dangerDistanceMeters : null;
+            dangerId = event.type == RideEventType.DANGER_APPROACH ? event.dangerId : null;
         }
     }
 }

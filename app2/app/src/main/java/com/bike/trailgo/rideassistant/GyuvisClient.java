@@ -1,5 +1,9 @@
 package com.bike.trailgo.rideassistant;
 
+import android.util.Log;
+
+import com.bike.trailgo.BuildConfig;
+
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -12,8 +16,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /** Optional event-only client. It never blocks location collection or local alerts. */
 public final class GyuvisClient {
+    private static final String TAG = "GyuvisClient";
     public interface Listener {
-        void onResponse(RideEvent event, GyuvisResponse response);
+        void onResponse(RideEvent event, GyuvisResponse response, int httpStatus);
+        void onFailure(RideEvent event, String reason);
     }
 
     private final GyuvisApi api;
@@ -48,20 +54,31 @@ public final class GyuvisClient {
         }
     }
 
-    public void send(final RideEvent event, final Listener listener) {
+    public void send(final String rideId, final RideEvent event, final Listener listener) {
         try {
-            api.submitRideEvent(GyuvisRequest.from(event)).enqueue(new Callback<GyuvisResponse>() {
+            api.submitRideEvent(GyuvisRequest.from(rideId, event)).enqueue(new Callback<GyuvisResponse>() {
                 @Override
                 public void onResponse(Call<GyuvisResponse> call, Response<GyuvisResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) listener.onResponse(event, response.body());
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onResponse(event, response.body(), response.code());
+                    } else {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "GYUVIS response event_id=" + event.eventId + " http=" + response.code());
+                        }
+                        listener.onFailure(event, "HTTP " + response.code());
+                    }
                 }
 
                 @Override
                 public void onFailure(Call<GyuvisResponse> call, Throwable ignored) {
+                    if (BuildConfig.DEBUG) Log.d(TAG, "GYUVIS request failed event_id=" + event.eventId);
+                    listener.onFailure(event, "NETWORK_FAILURE");
                     // The ride, local warning, GPX, and UI intentionally continue without GYUVIS.
                 }
             });
         } catch (RuntimeException ignored) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "GYUVIS request setup failed event_id=" + event.eventId);
+            listener.onFailure(event, "REQUEST_SETUP_FAILURE");
             // Protect the foreground location service from malformed network data or configuration.
         }
     }

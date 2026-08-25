@@ -29,7 +29,6 @@ import android.os.SystemClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -99,7 +98,7 @@ import retrofit2.Response;
 
 @SuppressLint("HandlerLeak")
 public class StartActivity extends AppCompatActivity
-        implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener, TextToSpeech.OnInitListener {
+        implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener {
     private static final int LOCATION_PERMISSION_REQUEST = 3101;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 3102;
     private SoundPool soundPool;
@@ -130,9 +129,6 @@ public class StartActivity extends AppCompatActivity
     private MapPOIItem mCustomMarker;
     private LocationManager locationManager;
     private Location mLastlocation = null;
-    private TextToSpeech textToSpeech;
-    private String value;
-    private float distance;
     private int cnt=0;
 
     private String getDalat, getDalon, getDacon, address_dong;
@@ -709,6 +705,8 @@ public class StartActivity extends AppCompatActivity
                                     PauseTime = SystemClock.elapsedRealtime();
                                     RidingTimer.removeMessages(0); //??濚밸Ŧ?????꾩룆梨띰쭛??
 
+                                    RideTrackingService.pauseAssistant(this);
+
                                     cur_status = Pause;
                                     binding.resumeBt.setVisibility(View.VISIBLE);
                                     binding.pausebt.setVisibility(View.GONE);
@@ -720,6 +718,7 @@ public class StartActivity extends AppCompatActivity
                                     binding.resttime.setText(formatDuration(rest));
                                     RidingTimer.sendEmptyMessage(0);
                                     BaseTime += (now2 - PauseTime);
+                                    RideTrackingService.resumeAssistant(this);
                                     cur_status = Run;
                                     binding.resumeBt.setVisibility(View.GONE);
                                     binding.pausebt.setVisibility(View.VISIBLE);
@@ -897,57 +896,6 @@ public class StartActivity extends AppCompatActivity
                         return;
                     }
 
-                    Location A = new Location("pointA");
-                    A.setLatitude(latitude);
-                    A.setLongitude(lonngitude);
-
-
-                    try {
-                        if (getDanger != null) {
-                        for (DangerousArea danger : getDanger) {
-                            getDalat = danger.getDa_latitude();
-                            getDalon = danger.getDa_longitude();
-                            getDacon = danger.getDa_content();
-                            //Log.d("????꾣뤃?????됱삩???, test + " " + test2 + test3);
-
-                            Location B = new Location("pointA");
-                            B.setLatitude(Double.parseDouble(getDalat));
-                            B.setLongitude(Double.parseDouble(getDalon));
-                            distance = A.distanceTo(B);
-                            // Log.d(test3 + "?꿸쑨??????, String.valueOf(distance));
-                            //float???癲ル슢캉????용뮋?
-                            int a = (int) distance;
-                            //?癲ル슢캉????용뮋????닍??辱??影?삳춦?????戮?뜪????濚?
-                            String cut_format = String.valueOf(a);
-                            //???戮?뜪?????ㅼ굡?????궰?嶺???る옖??????????
-                            int leget = cut_format.length();
-                            //
-
-                            if (leget == 2) {
-                                String get = cut_format.substring(cut_format.length() - 2);
-                                String get2 = get.substring(0, 1);
-                                if (get2.equals("7")) {
-                                    value = getDacon + "m ahead, danger area near " + get + "m. Please be careful.";
-                                    textToSpeech = new TextToSpeech(this, this);
-                                    // Log.d("????????????, "70m ????쏙쭗?ㅒ?????녿뮝???筌뤾퍔커???????뉖뤁??);
-                                }
-                            }
-                            if (leget == 3) {
-                                String get = cut_format.substring(cut_format.length() - 3);
-                                String get2 = get.substring(0, 1);
-                                if (get2.equals("3")) {
-                                    value = "Danger area within 300m. Please be careful.";
-                                    textToSpeech = new TextToSpeech(this, this);
-                                    // Log.d("????????????, "300m ????쏙쭗?ㅒ?????녿뮝???筌뤾퍔커???????뉖뤁??);
-                                }
-                            }
-                        }
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
                     // ????썹땟?嶺??嚥▲굧??嶸???癲ル슢???ъ쒜??熬곣뫖利?影?뉖뜦?????
                     witch_lat.add(latitude);
                     witch_lon.add(lonngitude);
@@ -1049,17 +997,6 @@ public class StartActivity extends AppCompatActivity
                     }
                     // ????썹땟?????썹땟????꿔꺂?????????썹땟?熬?????⑤슢堉???
                     mLastlocation = location;
-                }
-
-
-                @Override
-                public void onInit(int i) {
-                    if (i == TextToSpeech.SUCCESS) {
-                        textToSpeech.setLanguage(Locale.KOREAN);
-                        textToSpeech.setPitch(0.6f);
-                        textToSpeech.setSpeechRate(1f);
-                        textToSpeech.speak(value, TextToSpeech.QUEUE_FLUSH, null);
-                    }
                 }
 
 
@@ -1174,10 +1111,6 @@ public class StartActivity extends AppCompatActivity
                 @Override
                 protected void onStop() {
                     super.onStop();
-                    if (textToSpeech != null) {
-                        textToSpeech.stop();
-                        textToSpeech.shutdown();
-                    }
                     Log.d("SpeechRecognizer", "stopped");
                 }
 

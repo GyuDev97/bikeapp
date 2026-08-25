@@ -26,7 +26,6 @@ import android.os.SystemClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -79,7 +78,7 @@ import retrofit2.Response;
 
 @SuppressLint("HandlerLeak")
 public class FollowStart extends AppCompatActivity
-        implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener, TextToSpeech.OnInitListener {
+        implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener {
     private SoundPool soundPool;
     private SoundManager soundManager;
     private boolean play;
@@ -98,9 +97,6 @@ public class FollowStart extends AppCompatActivity
         }
     };
     private Location mLastlocation = null;
-    private TextToSpeech textToSpeech;
-    private String value;
-    private float distance;
     private int cnt=0;
 
     private String getDalat, getDalon, getDacon, address_dong;
@@ -572,9 +568,11 @@ public class FollowStart extends AppCompatActivity
 
                         break;
 
-                    case Run:
-                        PauseTime = SystemClock.elapsedRealtime();
-                        RidingTimer.removeMessages(0); //라이딩시간
+                case Run:
+                    PauseTime = SystemClock.elapsedRealtime();
+                    RidingTimer.removeMessages(0); //라이딩시간
+
+                    RideTrackingService.pauseAssistant(this);
 
                         cur_status = Pause;
                         binding.resumeBt.setVisibility(View.VISIBLE);
@@ -584,10 +582,11 @@ public class FollowStart extends AppCompatActivity
                     case Pause:
                         long now2 = SystemClock.elapsedRealtime();
                         rest += (int) ((now2 - PauseTime) / 1000L);
-                        binding.resttime.setText(formatDuration(rest));
-                        RidingTimer.sendEmptyMessage(0);
-                        BaseTime += (now2 - PauseTime);
-                        cur_status = Run;
+                    binding.resttime.setText(formatDuration(rest));
+                    RidingTimer.sendEmptyMessage(0);
+                    BaseTime += (now2 - PauseTime);
+                    RideTrackingService.resumeAssistant(this);
+                    cur_status = Run;
                         binding.resumeBt.setVisibility(View.GONE);
                         binding.pausebt.setVisibility(View.VISIBLE);
                         Log.d("cur_status", "중지");
@@ -756,55 +755,6 @@ public class FollowStart extends AppCompatActivity
         latitude = location.getLatitude();
         lonngitude = location.getLongitude();
 
-        Location A = new Location("pointA");
-        A.setLatitude(latitude);
-        A.setLongitude(lonngitude);
-
-
-        try {
-            for (DangerousArea danger : getDanger) {
-                getDalat = danger.getDa_latitude();
-                getDalon = danger.getDa_longitude();
-                getDacon = danger.getDa_content();
-                //Log.d("위험지역", test + " " + test2 + test3);
-
-                Location B = new Location("pointA");
-                B.setLatitude(Double.parseDouble(getDalat));
-                B.setLongitude(Double.parseDouble(getDalon));
-                distance = A.distanceTo(B);
-                // Log.d(test3 + "거리는", String.valueOf(distance));
-                //float를 정수로
-                int a = (int) distance;
-                //정수로바꾼거를 문자열로
-                String cut_format = String.valueOf(a);
-                //문자열의 길이를 구한다
-                int leget = cut_format.length();
-                //
-
-                if (leget == 2) {
-                    String get = cut_format.substring(cut_format.length() - 2);
-                    String get2 = get.substring(0, 1);
-                    if (get2.equals("7")) {
-                        value = getDacon + "위험구간이 " + get + "미터 앞입니다. 주의하세요";
-                        textToSpeech = new TextToSpeech(this, this);
-                        // Log.d("십의자리숫자", "70m 전방에 주의구간입니동");
-                    }
-                }
-                if (leget == 3) {
-                    String get = cut_format.substring(cut_format.length() - 3);
-                    String get2 = get.substring(0, 1);
-                    if (get2.equals("3")) {
-                        value = "300m앞에 위험구간입니다";
-                        textToSpeech = new TextToSpeech(this, this);
-                        // Log.d("십의자리숫자", "300m 전방에 주의구간입니동");
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         // 위도 경도 정보 배열 저장
         witch_lat.add(latitude);
         witch_lon.add(lonngitude);
@@ -901,17 +851,6 @@ public class FollowStart extends AppCompatActivity
 
 
     @Override
-    public void onInit(int i) {
-        if (i == TextToSpeech.SUCCESS) {
-            textToSpeech.setLanguage(Locale.KOREAN);
-            textToSpeech.setPitch(0.6f);
-            textToSpeech.setSpeechRate(1f);
-            textToSpeech.speak(value, TextToSpeech.QUEUE_FLUSH, null);
-        }
-    }
-
-
-    @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
     }
@@ -1002,10 +941,6 @@ public class FollowStart extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
         Log.d("다른화면임", "다른화면임");
     }
 

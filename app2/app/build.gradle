@@ -6,6 +6,7 @@ android {
 
     buildFeatures{
         viewBinding = true
+        buildConfig = true
     }
 
     defaultConfig {
@@ -16,6 +17,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        def gyuvisBaseUrl = project.findProperty("GYUVIS_BASE_URL") ?: ""
+        def gyuvisApiToken = project.findProperty("GYUVIS_API_TOKEN") ?: ""
+        def rideAssistantTestMode = project.findProperty("RIDE_ASSISTANT_TEST_MODE") ?: "false"
+        buildConfigField "String", "GYUVIS_BASE_URL", "\"${gyuvisBaseUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
+        buildConfigField "String", "GYUVIS_API_TOKEN", "\"${gyuvisApiToken.replace('\\', '\\\\').replace('\"', '\\\"')}\""
+        buildConfigField "boolean", "RIDE_ASSISTANT_TEST_MODE", rideAssistantTestMode
     }
 
     buildTypes {

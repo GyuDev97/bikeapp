@@ -28,6 +28,7 @@ import com.bike.trailgo.gpx.Gpx;
 import com.bike.trailgo.gpx.Track;
 import com.bike.trailgo.gpx.TrackPoint;
 import com.bike.trailgo.gpx.TrackSegment;
+import com.bike.trailgo.net.Server;
 import com.bike.trailgo.ui.BaseFragment;
 import com.kakao.vectormap.GestureType;
 import com.kakao.vectormap.KakaoMap;
@@ -61,6 +62,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -102,8 +104,9 @@ public class MyDetailFragment extends BaseFragment {
     private TextView mapStatus;
     private ImageView mapFallback;
     private LinearLayout set_noopen, set_open;
+    private TextView publicVisibilityAction, privateVisibilityAction;
     private ImageView userImage;
-    private Call<RidingRecord> record;
+    private Call<Map<String, String>> record;
     List<Track> tracks;
     private TextView RidingTime, RidingRest, RidingDistance, RidingMax, RidingAvg, RidingGet, RidingAddr;
     private TextView detailTitle, detailDate, detailTime, detailGraphHigh, detailAnalysisHeight, detailAnalysisAvg;
@@ -210,70 +213,83 @@ public class MyDetailFragment extends BaseFragment {
         setTextIfPresent(detailAnalysisAvg, "평균 " + average);
         set_open = (LinearLayout) view.findViewById(R.id.set_open);
         set_noopen = (LinearLayout) view.findViewById(R.id.set_noopen);
-
-        set_open.setVisibility(View.GONE);
-        set_noopen.setVisibility(View.GONE);
-
+        publicVisibilityAction = view.findViewById(R.id.detail_visibility_public_action);
+        privateVisibilityAction = view.findViewById(R.id.detail_visibility_private_action);
         Integer openValue = model.my_rec_open.getValue();
         rr_open = openValue == null ? 0 : openValue;
-        if(rr_open == 1){
-            set_open.setVisibility(View.VISIBLE);
-            set_noopen.setVisibility(View.GONE);
-            HashMap<String, Object> input = new HashMap<>();
-            input.put("rr_num",rr_num);
-            input.put("rr_open","0");
-            set_open.setOnClickListener(v->{
-                if (isPreviewRecord()) {
-                    set_open.setVisibility(View.GONE);
-                    set_noopen.setVisibility(View.VISIBLE);
-                    return;
-                }
-                record = serverApi.setOpen(input);
-                record.enqueue(new Callback<RidingRecord>() {
-                    @Override
-                    public void onResponse(Call<RidingRecord> call, Response<RidingRecord> response) {
-                        if(response.code()==200){
-                            set_open.setVisibility(View.GONE);
-                            set_noopen.setVisibility(View.VISIBLE);
-                        }
-                    }
+        renderVisibilityControl();
+    }
 
-                    @Override
-                    public void onFailure(Call<RidingRecord> call, Throwable t) {
+    private void renderVisibilityControl() {
+        boolean isPublic = rr_open != 0;
+        set_open.setVisibility(isPublic ? View.VISIBLE : View.GONE);
+        set_noopen.setVisibility(isPublic ? View.GONE : View.VISIBLE);
+        publicVisibilityAction.setText("공개");
+        privateVisibilityAction.setText("비공개");
+        set_open.setContentDescription("공개 기록. 탭하면 비공개로 전환합니다.");
+        set_noopen.setContentDescription("비공개 기록. 탭하면 전체 공개로 전환합니다.");
+        set_open.setEnabled(true);
+        set_noopen.setEnabled(true);
+        set_open.setOnClickListener(v -> confirmVisibilityChange(0));
+        set_noopen.setOnClickListener(v -> confirmVisibilityChange(1));
+    }
 
-                    }
-                });
-            });
+    private void confirmVisibilityChange(int nextOpenValue) {
+        boolean makePublic = nextOpenValue != 0;
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(makePublic ? "기록을 전체 공개할까요?" : "기록을 비공개로 전환할까요?")
+                .setMessage(makePublic
+                        ? "다른 사용자가 이 주행 기록을 볼 수 있습니다."
+                        : "다른 사용자는 이 주행 기록을 볼 수 없게 됩니다.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton(makePublic ? "전체 공개" : "비공개 전환",
+                        (dialog, which) -> updateRecordVisibility(nextOpenValue))
+                .show();
+    }
 
-        }else{
-            set_noopen.setVisibility(View.VISIBLE);
-            set_open.setVisibility(View.GONE);
-
-            HashMap<String, Object> input = new HashMap<>();
-            input.put("rr_num",rr_num);
-            input.put("rr_open","1");
-            set_noopen.setOnClickListener(v->{
-                if (isPreviewRecord()) {
-                    set_noopen.setVisibility(View.GONE);
-                    set_open.setVisibility(View.VISIBLE);
-                    return;
-                }
-                record = serverApi.setOpen(input);
-                record.enqueue(new Callback<RidingRecord>() {
-                    @Override
-                    public void onResponse(Call<RidingRecord> call, Response<RidingRecord> response) {
-                        if(response.code()==200){
-                            set_open.setVisibility(View.VISIBLE);
-                            set_noopen.setVisibility(View.GONE);
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<RidingRecord> call, Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
-            });
+    private void updateRecordVisibility(int nextOpenValue) {
+        if (isPreviewRecord()) {
+            Toast.makeText(requireContext(), "저장된 기록에서만 공개 설정을 변경할 수 있습니다.", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        set_open.setEnabled(false);
+        set_noopen.setEnabled(false);
+        HashMap<String, Object> input = new HashMap<>();
+        input.put("rr_num", rr_num);
+        input.put("rr_open", String.valueOf(nextOpenValue));
+        record = serverApi.setOpen(input);
+        record.enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                if (!isAdded()) {
+                    return;
+                }
+                if (response.isSuccessful() && response.body() != null
+                        && "1".equals(response.body().get("updated"))) {
+                    rr_open = nextOpenValue;
+                    model.my_rec_open.setValue(nextOpenValue);
+                    renderVisibilityControl();
+                    Toast.makeText(requireContext(), nextOpenValue == 0
+                            ? "기록을 비공개로 전환했습니다."
+                            : "기록을 전체 공개했습니다.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e("RecordVisibility", "Visibility update rejected: HTTP " + response.code());
+                    renderVisibilityControl();
+                    Toast.makeText(requireContext(), "공개 설정을 변경하지 못했습니다. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                if (!isAdded()) {
+                    return;
+                }
+                Log.e("RecordVisibility", "Unable to update record visibility", t);
+                renderVisibilityControl();
+                Toast.makeText(requireContext(), "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void startNativeMap(View view) {
@@ -337,7 +353,7 @@ public class MyDetailFragment extends BaseFragment {
             ArrayList<LatLng> loadedPoints = new ArrayList<>();
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://13.209.229.237:8080/app/getGPX/gpx/" + gpxFile);
+                URL url = new URL(Server.getUrl("app/getGPX/gpx/" + gpxFile));
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(7000);
                 connection.setReadTimeout(7000);
@@ -380,9 +396,14 @@ public class MyDetailFragment extends BaseFragment {
             return;
         }
         if (routePoints.size() < 2) {
-            routePoints.clear();
-            routePoints.addAll(createPreviewRoute());
+            mapFallback.setVisibility(View.VISIBLE);
+            mapStatus.setVisibility(View.VISIBLE);
+            mapStatus.setText("저장된 GPX 경로를 불러오지 못했습니다");
+            return;
         }
+
+        mapFallback.setVisibility(View.GONE);
+        mapStatus.setVisibility(View.GONE);
 
         RouteLineSegment segment = RouteLineSegment.from(new ArrayList<>(routePoints), routeLineStyles);
         if (routeLine == null) {
@@ -411,19 +432,6 @@ public class MyDetailFragment extends BaseFragment {
                         routePoints.toArray(new LatLng[0]), 80
                 )
         );
-    }
-
-    private ArrayList<LatLng> createPreviewRoute() {
-        ArrayList<LatLng> points = new ArrayList<>();
-        points.add(LatLng.from(35.8387, 128.5484));
-        points.add(LatLng.from(35.8358, 128.5529));
-        points.add(LatLng.from(35.8371, 128.5588));
-        points.add(LatLng.from(35.8327, 128.5631));
-        points.add(LatLng.from(35.8342, 128.5694));
-        points.add(LatLng.from(35.8300, 128.5748));
-        points.add(LatLng.from(35.8334, 128.5809));
-        points.add(LatLng.from(35.8370, 128.5862));
-        return points;
     }
 
     private Bitmap drawableToBitmap(int drawableId, int sizeDp) {

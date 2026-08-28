@@ -7,17 +7,19 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.activity.OnBackPressedCallback;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.core.view.GravityCompat;
@@ -50,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
     private View mainContent;
     private CoordinatorLayout.Behavior<?> appBarScrollingBehavior;
     private Call<LoginInfo> profileCall;
+    private DrawerLayout drawer;
+    private NavController navController;
+    private OnBackInvokedCallback systemBackCallback;
     private int[] drawerItemIds = {
             R.id.nav_home,
             R.id.nav_records,
@@ -74,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         appBarScrollingBehavior = contentParams.getBehavior();
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_records, R.id.nav_course_view, R.id.nav_course_search, R.id.nav_course_scrap,
                 R.id.nav_competition_view, R.id.nav_mission_view, R.id.nav_danger_view,
@@ -82,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 .setDrawerLayout(drawer)
                 .build();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         toolbar.setTitle("TrailGO");
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
@@ -120,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         bindDrawerHeader(model);
         refreshProfile(model);
         setupDrawerClicks(drawer, navController);
-        configureBackNavigation(drawer, navController);
+        configureBackNavigation();
 
         logKeyHash();
     }
@@ -239,31 +244,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void configureBackNavigation(DrawerLayout drawer, NavController navController) {
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (drawer.isDrawerOpen(GravityCompat.START)) {
-                    drawer.closeDrawer(GravityCompat.START);
-                    return;
+    private void configureBackNavigation() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            systemBackCallback = this::handleBackNavigation;
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                    systemBackCallback
+            );
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        handleBackNavigation();
+    }
+
+    private void handleBackNavigation() {
+        if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+            return;
+        }
+        if (navController != null && navController.getCurrentDestination() != null
+                && navController.getCurrentDestination().getId() != R.id.nav_home) {
+            int destinationId = navController.getCurrentDestination().getId();
+            if (isMainMenuDestination(destinationId)) {
+                // Drawer destinations are app sections, not a history chain: Back always returns Home.
+                if (!navController.popBackStack(R.id.nav_home, false)) {
+                    navController.navigate(R.id.nav_home);
                 }
-                if (navController.getCurrentDestination() != null
-                        && navController.getCurrentDestination().getId() != R.id.nav_home) {
-                    int destinationId = navController.getCurrentDestination().getId();
-                    if (isMainMenuDestination(destinationId)) {
-                        // Drawer destinations are app sections, not a history chain: Back always returns Home.
-                        if (!navController.popBackStack(R.id.nav_home, false)) {
-                            navController.navigate(R.id.nav_home);
-                        }
-                    } else if (!navController.popBackStack()) {
-                        navController.navigate(R.id.nav_home);
-                    }
-                    return;
-                }
-                // Android's normal behavior is preserved only when the user is already Home.
-                moveTaskToBack(true);
+            } else if (!navController.popBackStack()) {
+                navController.navigate(R.id.nav_home);
             }
-        });
+            return;
+        }
+        // Android's normal behavior is preserved only when the user is already Home.
+        moveTaskToBack(true);
     }
 
     private boolean isMainMenuDestination(int destinationId) {
@@ -321,6 +336,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && systemBackCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(systemBackCallback);
+        }
         if (profileCall != null) {
             profileCall.cancel();
         }

@@ -424,9 +424,10 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/detail_visibility_public_action"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="공개 기록"
+                        android:text="공개"
                         android:textColor="#13833F"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -442,9 +443,10 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/detail_visibility_private_action"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="비공개 기록"
+                        android:text="비공개"
                         android:textColor="#13833F"
                         android:textSize="12sp"
                         android:textStyle="bold" />

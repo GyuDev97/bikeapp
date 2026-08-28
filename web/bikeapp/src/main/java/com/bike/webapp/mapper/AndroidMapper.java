@@ -67,7 +67,7 @@ public interface AndroidMapper {
 	//경쟁전 개인 점수 가져오기
 	public List<CompScore> getCompScore(int comp_num) throws Exception;
 	
-	public String RidingOpenSet(RidingRecord record) throws Exception;
+	public int RidingOpenSet(RidingRecord record) throws Exception;
 
 	public void delScrap(String ss_rnum) throws Exception;
 	

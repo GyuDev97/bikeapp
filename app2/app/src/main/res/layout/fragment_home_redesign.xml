@@ -88,7 +88,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
-                        android:text="12 회"
+                        android:text="0 회"
                         android:textColor="#111B14"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -103,17 +103,17 @@
 
                 <LinearLayout style="@style/HomeSummaryStat">
                     <TextView style="@style/HomeSummaryLabel" android:text="총 거리" />
-                    <TextView android:id="@+id/main_dis" style="@style/HomeSummaryValue" android:text="128.6 km" />
+                    <TextView android:id="@+id/main_dis" style="@style/HomeSummaryValue" android:text="0 m" />
                 </LinearLayout>
                 <View style="@style/HomeSummaryDivider" />
                 <LinearLayout style="@style/HomeSummaryStat">
                     <TextView style="@style/HomeSummaryLabel" android:text="총 상승고도" />
-                    <TextView android:id="@+id/home_total_height" style="@style/HomeSummaryValue" android:text="3,560 m" />
+                    <TextView android:id="@+id/home_total_height" style="@style/HomeSummaryValue" android:text="0 m" />
                 </LinearLayout>
                 <View style="@style/HomeSummaryDivider" />
                 <LinearLayout style="@style/HomeSummaryStat">
                     <TextView style="@style/HomeSummaryLabel" android:text="총 시간" />
-                    <TextView android:id="@+id/home_total_time" style="@style/HomeSummaryValue" android:text="15:42:30" />
+                    <TextView android:id="@+id/home_total_time" style="@style/HomeSummaryValue" android:text="00:00:00" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -170,7 +170,7 @@
                         android:id="@+id/home_recent_course"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="대구 앞산 라이딩"
+                        android:text="기록을 불러오는 중"
                         android:textColor="#172019"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -179,19 +179,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:orientation="horizontal">
-                        <TextView android:id="@+id/home_recent_distance" style="@style/HomeRecordMeta" android:text="12.45 km" />
+                        <TextView android:id="@+id/home_recent_distance" style="@style/HomeRecordMeta" android:text="" />
                         <TextView android:id="@+id/home_recent_height" style="@style/HomeRecordMeta" android:text="△ 45 m" android:visibility="gone" />
-                        <TextView android:id="@+id/home_recent_duration" style="@style/HomeRecordMeta" android:text="~ 1시간 45분" />
+                        <TextView android:id="@+id/home_recent_duration" style="@style/HomeRecordMeta" android:text="" />
                     </LinearLayout>
                     <TextView android:id="@+id/home_recent_date" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
                 </LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘" android:textColor="#8D938E" android:textSize="10sp" />
+                <TextView android:id="@+id/home_recent_badge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#8D938E" android:textSize="10sp" />
             </LinearLayout>
-
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F1F0" />
-            <include layout="@layout/home_sample_record_two" />
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F1F0" />
-            <include layout="@layout/home_sample_record_three" />
 
             <TextView android:id="@+id/main_time" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
             <TextView android:id="@+id/main_km" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />

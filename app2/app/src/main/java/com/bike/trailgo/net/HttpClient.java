@@ -150,7 +150,7 @@ public class HttpClient {
                 method = "GET";
             }
             this.method = method;
-            this.url = "http://gyudrive.ipdisk.co.kr:8002"+url;
+            this.url = Server.getUrl(url);
             this.parameters = new HashMap<String, Object>();
         }
 

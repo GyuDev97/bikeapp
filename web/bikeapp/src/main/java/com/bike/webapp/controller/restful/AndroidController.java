@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -56,6 +60,9 @@ import com.bike.webapp.service.*;
 public class AndroidController {
 	
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+	@Value("${trailgo.storage-root}")
+	private String storageRoot;
 	
 	//회원 Service객체
 	@Autowired
@@ -125,45 +132,37 @@ public class AndroidController {
 	}
 	
 	//주행기록 공개여부 설정
-		@RequestMapping(value = "recordset/open")
+		@RequestMapping(value = "recordset/open", method = RequestMethod.POST)
 		public @ResponseBody Map<String, String> RidingOpenSet(HttpServletRequest request) throws Exception {
 			RidingRecord record = new RidingRecord();
 			record.setRr_num(Integer.parseInt(request.getParameter("rr_num")));
 			record.setRr_open(Integer.parseInt(request.getParameter("rr_open")));
 			System.out.println(request.getParameter("rr_num")+ " "+request.getParameter("rr_open"));
 
-			androidService.RidingOpenSet(record);
+			int updated = androidService.RidingOpenSet(record);
 			// 안드로이드에게 전달하는 데이터
 			Map<String, String> result = new HashMap<String, String>();
-			result.put("data1", "성공했쩡");
+			result.put("updated", String.valueOf(updated));
 
 			return result;
 		}
 	
 		//GPX파일 저장
 		@RequestMapping(value = "fileUpload/{dir}/{fileName}", method = RequestMethod.POST)
-		public @ResponseBody void upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
+		public ResponseEntity<Void> upload(HttpServletRequest request, MultipartFile file1, @PathVariable(value = "dir") String dir,
 				@PathVariable(value="fileName") String fileName) {
 			log.debug("업로드 파일 명 "+fileName+" "+"업로드 경로 "+dir);
 			try {
-				
-				//로컬에선
-				//String path = "D:/github/bikeapp/web/bikeapp/src/main/resources/static/uploads/" + dir;
-				//운영에선
-				String path = "/volume1/Develop/bikeapp/uploads" + dir;
-				if (!file1.isEmpty()) { // 첨부파일이 존재?
-					try {
-						// 디렉토리 생성
-						if ( !new File(path).exists())
-							new File(path).mkdir();
-							// 지정된 업로드 경로로 저장됨
-							file1.transferTo(new File(path + "/" + fileName));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+				Path directory = resolveStorageDirectory(dir);
+				if (file1 == null || file1.isEmpty()) {
+					return ResponseEntity.badRequest().build();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+				Files.createDirectories(directory);
+				file1.transferTo(resolveStorageFile(directory, fileName).toFile());
+				return ResponseEntity.ok().build();
+			} catch (IOException e) {
+				log.error("GPX upload failed: {}", fileName, e);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
 		}
 
@@ -245,17 +244,37 @@ public class AndroidController {
 	// 파일 다운로드
 	@RequestMapping(value = "getGPX/{file_dir}/{file_name}", method = RequestMethod.GET)
 	public ResponseEntity<byte[]> getImageAsResponseEntity( @PathVariable("file_name") String fileName, @PathVariable("file_dir") String fileDir ) throws IOException {
-		
-	    HttpHeaders headers = new HttpHeaders();
-	    byte[] media = null;
-	    InputStream in;
-	    
-	    in = new FileInputStream("/home/ec2-user/data/" + fileDir + "/" +fileName);
-	    
-	    media = IOUtils.toByteArray(in);
-	    headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-	    ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(media, headers, HttpStatus.OK);
-	    return responseEntity;
+		Path file = resolveStorageFile(resolveStorageDirectory(fileDir), fileName);
+		if (!Files.isRegularFile(file)) {
+			return ResponseEntity.notFound().build();
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+		return new ResponseEntity<>(Files.readAllBytes(file), headers, HttpStatus.OK);
+	}
+
+	private Path resolveStorageDirectory(String directory) throws IOException {
+		if (directory == null || !directory.matches("[A-Za-z0-9_-]+")) {
+			throw new IOException("Invalid storage directory");
+		}
+		Path root = Paths.get(storageRoot).toAbsolutePath().normalize();
+		Path resolved = root.resolve(directory).normalize();
+		if (!resolved.startsWith(root)) {
+			throw new IOException("Invalid storage directory");
+		}
+		return resolved;
+	}
+
+	private Path resolveStorageFile(Path directory, String fileName) throws IOException {
+		if (fileName == null || !fileName.matches("[A-Za-z0-9._-]+")) {
+			throw new IOException("Invalid storage file name");
+		}
+		Path file = directory.resolve(fileName).normalize();
+		if (!file.startsWith(directory)) {
+			throw new IOException("Invalid storage file name");
+		}
+		return file;
 	}
 
 	// 웹뷰용 라이딩 기록

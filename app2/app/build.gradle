@@ -17,9 +17,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        def trailgoServerBaseUrl = project.findProperty("TRAILGO_SERVER_BASE_URL") ?: "http://192.168.0.5:8000/"
         def gyuvisBaseUrl = project.findProperty("GYUVIS_BASE_URL") ?: ""
         def gyuvisApiToken = project.findProperty("GYUVIS_API_TOKEN") ?: ""
         def rideAssistantTestMode = project.findProperty("RIDE_ASSISTANT_TEST_MODE") ?: "false"
+        buildConfigField "String", "TRAILGO_SERVER_BASE_URL", "\"${trailgoServerBaseUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
         buildConfigField "String", "GYUVIS_BASE_URL", "\"${gyuvisBaseUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
         buildConfigField "String", "GYUVIS_API_TOKEN", "\"${gyuvisApiToken.replace('\\', '\\\\').replace('\"', '\\\"')}\""
         buildConfigField "boolean", "RIDE_ASSISTANT_TEST_MODE", rideAssistantTestMode

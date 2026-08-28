@@ -85,7 +85,7 @@ public interface ServerApi {
     //라이딩 공개설정
     @FormUrlEncoded
     @POST("app/recordset/open")
-    Call<RidingRecord> setOpen(@FieldMap HashMap<String, Object> param);
+    Call<Map<String, String>> setOpen(@FieldMap HashMap<String, Object> param);
 
     //라이딩 기록
     @GET("app/riding/scrap/{rr_rider}")

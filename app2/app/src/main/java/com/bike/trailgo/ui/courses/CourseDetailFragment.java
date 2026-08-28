@@ -171,7 +171,7 @@ public class CourseDetailFragment extends BaseFragment {
         CourseRiderName.setText(model.CourseRider.getValue());
         CourseDate.setText(model.my_rec_date.getValue());
         LikeCnt.setText(String.valueOf(model.like_count.getValue()));
-        Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/" + model.CourseR_image.getValue())
+        Picasso.get().load(Server.getUrl("app/getGPX/rider/" + model.CourseR_image.getValue()))
                 .into(userImage);
 
         Save_Path = requireContext().getFilesDir().getPath();
@@ -183,7 +183,7 @@ public class CourseDetailFragment extends BaseFragment {
             @Override
             public void run() {
                 try {
-                    URL url = new URL("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/gpx/"+model.my_rec_gpx.getValue());
+                    URL url = new URL(Server.getUrl("app/getGPX/gpx/" + model.my_rec_gpx.getValue()));
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setDoInput(true); //Server 통신에서 입력 가능한 상태로 만듦
                     conn.connect(); //연결된 곳에 접속할 때 (connect() 호출해야 실제 통신 가능함)
@@ -263,7 +263,7 @@ public class CourseDetailFragment extends BaseFragment {
             intent1.setAction(Intent.ACTION_SEND);
             intent1.setType("text/plain");
             intent1.putExtra(Intent.EXTRA_SUBJECT, model.r_Nickname.getValue()+"님이"+model.my_rec_name.getValue()+"코스를 공유하였습니다. 해당URL을 누르면 해당 페이지로 이동합니다. ");
-            intent1.putExtra(Intent.EXTRA_TEXT, "http://gyudrive.ipdisk.co.kr:8080/bike/app/riding/course_share/"+rr_num);
+            intent1.putExtra(Intent.EXTRA_TEXT, Server.getUrl("app/riding/course_share/" + rr_num));
 
             Intent chooser = Intent.createChooser(intent1, "친구에게 공유하기");
             startActivity(chooser);
@@ -540,16 +540,16 @@ public class CourseDetailFragment extends BaseFragment {
         public void onBindViewHolder(@NonNull CourseReviewAdapter.CourseReviewHolder holder, int position) {
 
             if (itemList.get(position).getR_image() != null) {
-                Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/" + itemList.get(position).getR_image())
+                Picasso.get().load(Server.getUrl("app/getGPX/rider/" + itemList.get(position).getR_image()))
                         .into(holder.imageView1);
             }
             else {
-                Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/noImage.jpg")
+                Picasso.get().load(Server.getUrl("app/getGPX/rider/noImage.jpg"))
                         .into(holder.imageView1);
             }
 
             if (itemList.get(position).getCr_images() != null) {
-                Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/review/" + itemList.get(position).getCr_images())
+                Picasso.get().load(Server.getUrl("app/getGPX/review/" + itemList.get(position).getCr_images()))
                         .into(holder.imageView2);
             }
 
@@ -640,7 +640,7 @@ public class CourseDetailFragment extends BaseFragment {
                                         @Override
                                         public void onResponse(Call<Void> call, Response<Void> response) {
                                             Log.e("성공",String.valueOf(response.code()));
-                                            Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/review/" + change_Name)
+                                            Picasso.get().load(Server.getUrl("app/getGPX/review/" + change_Name))
                                                     .into(holder.imageView2);
                                         }
                                         @Override

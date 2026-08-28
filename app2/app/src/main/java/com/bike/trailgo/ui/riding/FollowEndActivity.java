@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -354,6 +355,13 @@ public class FollowEndActivity extends AppCompatActivity {
                 return;
             }
 
+            String gpxFileName = "gpx_" + nowTime + ".gpx";
+            MultipartBody.Part gpxPart = Server.getFilePart(xmlFile.getAbsolutePath(), gpxFileName);
+            if (gpxPart == null) {
+                android.widget.Toast.makeText(FollowEndActivity.this, "GPX 파일을 만들지 못해 기록을 저장할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             save.setEnabled(false);
             HashMap<String, Object> insert = new HashMap<>();
             insert.put("rr_rider", LoginId);
@@ -361,7 +369,7 @@ public class FollowEndActivity extends AppCompatActivity {
             insert.put("rr_topspeed", String.valueOf(MaxSpeed));
             insert.put("rr_avgspeed", String.valueOf(AvgSpeed));
             insert.put("rr_high", String.valueOf(Getgodo));
-            insert.put("rr_gpx", "gpx_" + nowTime + ".gpx");
+            insert.put("rr_gpx", gpxFileName);
             insert.put("rr_open", open);
             insert.put("rr_breaktime", String.valueOf(RestTime));
             insert.put("rr_time", String.valueOf(IngTime));
@@ -370,29 +378,50 @@ public class FollowEndActivity extends AppCompatActivity {
             insert.put("rr_comp", rr_comp == null ? "null" : rr_comp);
             insert.put("rr_fonum", course_name == null ? "" : course_name);
 
-            serverApi.InsertRecord(insert).enqueue(new Callback<Void>() {
+            serverApi.upload(gpxPart, "gpx", gpxFileName).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (!response.isSuccessful()) {
                         save.setEnabled(true);
-                        android.widget.Toast.makeText(FollowEndActivity.this, "기록 저장에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(FollowEndActivity.this, "GPX 업로드에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
                         return;
                     }
-
-                    android.widget.Toast.makeText(FollowEndActivity.this, "라이딩 기록을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
-                    Intent home = new Intent(FollowEndActivity.this, com.bike.trailgo.MainActivity.class);
-                    home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(home);
-                    finish();
+                    saveFollowRideRecord(insert, save);
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable error) {
-                    Log.e("RideSave", "Unable to save followed ride", error);
+                    Log.e("RideSave", "Unable to upload followed GPX", error);
                     save.setEnabled(true);
                     android.widget.Toast.makeText(FollowEndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+    }
+
+    private void saveFollowRideRecord(HashMap<String, Object> insert, Button save) {
+        serverApi.InsertRecord(insert).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!response.isSuccessful()) {
+                    save.setEnabled(true);
+                    android.widget.Toast.makeText(FollowEndActivity.this, "기록 저장에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                android.widget.Toast.makeText(FollowEndActivity.this, "라이딩 기록을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                Intent home = new Intent(FollowEndActivity.this, com.bike.trailgo.MainActivity.class);
+                home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(home);
+                finish();
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable error) {
+                Log.e("RideSave", "Unable to save followed ride", error);
+                save.setEnabled(true);
+                android.widget.Toast.makeText(FollowEndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

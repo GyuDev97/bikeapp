@@ -51,8 +51,7 @@ public class AndroidService {
 		return androidMapper.getRidingRecordDetail(rr_rider, rr_num);
 	}
 	
-	public String RidingOpenSet(RidingRecord record) throws Exception {
-		// TODO Auto-generated method stub
+	public int RidingOpenSet(RidingRecord record) throws Exception {
 		return androidMapper.RidingOpenSet(record);
 	}
 	

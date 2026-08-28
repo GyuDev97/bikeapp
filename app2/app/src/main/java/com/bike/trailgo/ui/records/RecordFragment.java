@@ -39,6 +39,11 @@ public class RecordFragment extends BaseFragment {
     private TextView totalDistanceText;
     private TextView totalHeightText;
     private TextView totalTimeText;
+    private View emptyState;
+    private TextView emptyTitle;
+    private TextView emptyDescription;
+    private TextView emptyAction;
+    private boolean recordsUnavailable;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -53,6 +58,17 @@ public class RecordFragment extends BaseFragment {
         totalDistanceText = view.findViewById(R.id.records_total_distance);
         totalHeightText = view.findViewById(R.id.records_total_height);
         totalTimeText = view.findViewById(R.id.records_total_time);
+        emptyState = view.findViewById(R.id.records_empty_state);
+        emptyTitle = view.findViewById(R.id.records_empty_title);
+        emptyDescription = view.findViewById(R.id.records_empty_description);
+        emptyAction = view.findViewById(R.id.records_empty_action);
+        emptyAction.setOnClickListener(v -> {
+            if (recordsUnavailable) {
+                loadRecords();
+            } else {
+                startActivity(new Intent(requireContext(), StartActivity.class));
+            }
+        });
 
         bindHeader(view);
         bindBottomNavigation(view);
@@ -112,10 +128,14 @@ public class RecordFragment extends BaseFragment {
                         }
                     });
 
-                    showRecords(itemList);
+                    if (itemList.isEmpty()) {
+                        showEmptyState(false);
+                    } else {
+                        showRecords(itemList);
+                    }
                 } else {
                     Log.d("RecordFragment", "record response failed: " + response.code());
-                    showRecords(createPreviewRecords());
+                    showEmptyState(true);
                 }
             }
 
@@ -127,13 +147,15 @@ public class RecordFragment extends BaseFragment {
                 t.printStackTrace();
                 Log.d("RecordFragment", "record request failed");
                 if (isAdded() && getView() != null && recyclerView != null) {
-                    showRecords(createPreviewRecords());
+                    showEmptyState(true);
                 }
             }
         });
     }
 
     private void showRecords(ArrayList<RidingRecord> records) {
+        emptyState.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
         bindSummary(records);
         MyReportAdapter adapter = new MyReportAdapter(
                 requireContext().getApplicationContext(),
@@ -145,37 +167,20 @@ public class RecordFragment extends BaseFragment {
         recyclerView.setAdapter(adapter);
     }
 
-    private ArrayList<RidingRecord> createPreviewRecords() {
-        ArrayList<RidingRecord> records = new ArrayList<>();
-        records.add(createPreviewRecord(-1, "2026-05-16 09:41:00", "대구 앞산 라이딩", 12450, 45, 6332, 34, 19));
-        records.add(createPreviewRecord(-2, "2026-05-15 08:12:00", "팔공산 코스", 18320, 780, 9312, 39, 18));
-        records.add(createPreviewRecord(-3, "2026-05-12 18:20:00", "금호강 라이딩", 9840, 120, 4368, 31, 17));
-        records.add(createPreviewRecord(-4, "2026-05-10 07:30:00", "비슬산 업힐", 22170, 1250, 11905, 42, 16));
-        records.add(createPreviewRecord(-5, "2026-05-07 16:05:00", "대명저수지 한바퀴", 8630, 210, 3861, 29, 15));
-        return records;
-    }
-
-    private RidingRecord createPreviewRecord(
-            int id,
-            String date,
-            String name,
-            int distance,
-            int height,
-            int seconds,
-            int topSpeed,
-            int averageSpeed
-    ) {
-        RidingRecord record = new RidingRecord();
-        record.setRr_num(id);
-        record.setRr_date(date);
-        record.setRr_name(name);
-        record.setRr_area(name);
-        record.setRr_distance(distance);
-        record.setRr_high(height);
-        record.setRr_time(seconds);
-        record.setRr_topspeed(topSpeed);
-        record.setRr_avgspeed(averageSpeed);
-        return record;
+    private void showEmptyState(boolean unavailable) {
+        recordsUnavailable = unavailable;
+        recyclerView.setVisibility(View.GONE);
+        emptyState.setVisibility(View.VISIBLE);
+        if (unavailable) {
+            emptyTitle.setText("기록을 불러오지 못했습니다");
+            emptyDescription.setText("네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
+            emptyAction.setText("다시 시도");
+        } else {
+            emptyTitle.setText("저장된 주행 기록이 없습니다");
+            emptyDescription.setText("첫 라이딩을 완료하고 저장하면 여기에 표시됩니다.");
+            emptyAction.setText("주행 시작");
+        }
+        bindSummary(new ArrayList<>());
     }
 
     private String getRiderId() {

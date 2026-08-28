@@ -1,7 +1,7 @@
 package com.bike.trailgo.dto;
 
 public class Server {
-    private String IP = "http://gyudrive.ipdisk.co.kr:8080/bike";
+    private String IP = com.bike.trailgo.net.Server.BASE_URL;
 
     public String getIP() {
         return IP;

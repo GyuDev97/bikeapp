@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bike.trailgo.MainViewModel;
 import com.bike.trailgo.R;
 import com.bike.trailgo.dto.Mission;
+import com.bike.trailgo.net.Server;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public class MissionAdapter extends RecyclerView.Adapter<MissionAdapter.MissionH
     @Override
     public void onBindViewHolder(@NonNull MissionHolder holder, int position) {
 
-        Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/mission/" + itemList.get(position).getBg_image())
+        Picasso.get().load(Server.getUrl("app/getGPX/mission/" + itemList.get(position).getBg_image()))
                 .into(holder.imageView);
 
         holder.textView1.setText(itemList.get(position).getM_name());

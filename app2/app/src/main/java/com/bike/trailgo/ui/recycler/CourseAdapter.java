@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bike.trailgo.MainViewModel;
 import com.bike.trailgo.R;
 import com.bike.trailgo.dto.RidingRecord;
+import com.bike.trailgo.net.Server;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.squareup.picasso.Picasso;
@@ -83,7 +84,7 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseHold
         String total = String.format(Locale.KOREA, "%.2f km", des / 1000.0);
         String ridingTime = String.format(Locale.KOREA, "%d:%02d:%02d", hour, min, sec);
 
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/rider/" + itemList.get(position).getR_image())
+        Picasso.get().load(Server.getRiderImageUrl(itemList.get(position).getR_image()))
                 .into(testViewHolder.imageView);
 
         String rawDate = itemList.get(position).getRr_date();

@@ -47,19 +47,21 @@
 	
 	<!-- 내 기록 가져오기 -->
 	<select id="readRecord" parameterType="String" resultType="com.bike.webapp.dto.App_RidingRecord">
-	select * from riding_record where rr_rider = #{rr_rider} order by RR_TIME desc
+	select rr_idx as rr_num, riding_record.*
+	from riding_record where rr_rider = #{rr_rider} order by rr_time desc
 		
 	</select>
 	
 	<!-- 내 기록 상세보기 -->
 	<select id="getRidingRecordDetail" parameterType="String" resultType="com.bike.webapp.dto.RidingRecord">
-		select * fro m riding_record where rr_rider = #{rr_rider} and rr_idx = #{rr_num}
+		select rr_idx as rr_num, riding_record.*
+		from riding_record where rr_rider = #{rr_rider} and rr_idx = #{rr_num}
 	</select>
 	
 	<!-- 내 기록 상세보기 공개여부 업데이트 -->
-	<select id="RidingOpenSet" parameterType="Map" resultType="com.bike.webapp.dto.RidingRecord">
-		update riding_record set rr_open = #{rr_open} where rr_num=#{rr_num}
-	</select>
+	<update id="RidingOpenSet" parameterType="com.bike.webapp.dto.RidingRecord">
+		update riding_record set rr_open = #{rr_open} where rr_idx = #{rr_num}
+	</update>
 	
 	<!-- 코스보기 -->
 	<select id="getCourse" parameterType="String" resultType="com.bike.webapp.dto.App_RidingRecord">

@@ -30,6 +30,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.bike.trailgo.R;
 import com.bike.trailgo.net.HttpClient;
+import com.bike.trailgo.net.Server;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -297,7 +298,7 @@ public class registerActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(Map<String, String>... maps) {
 
-            final String url_address = "http://13.209.229.237:8080/android/fileUpload/rider/" + fileName;
+            final String url_address = Server.getUrl("android/fileUpload/rider/" + fileName);
 
             String str; //결과를 저장할 변수
 

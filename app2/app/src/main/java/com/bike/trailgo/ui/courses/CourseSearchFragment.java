@@ -24,7 +24,7 @@ import com.bike.trailgo.ui.BaseFragment;
 
 public class CourseSearchFragment extends BaseFragment {
     WebView webview;
-    private static final String ENTRY_URL = "http://gyudrive.ipdisk.co.kr:8080/bike/app/riding/CourseSearch";
+    private static final String ENTRY_URL = Server.getUrl("app/riding/CourseSearch");
     String LoginId, Nickname, r_image;
     ImageView userImage;
     SharedPreferences auto;

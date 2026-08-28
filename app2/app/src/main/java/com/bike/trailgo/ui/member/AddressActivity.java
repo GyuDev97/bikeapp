@@ -9,6 +9,7 @@ import android.webkit.WebViewClient;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.net.Server;
 
 public class AddressActivity extends AppCompatActivity {
 
@@ -46,7 +47,7 @@ public class AddressActivity extends AppCompatActivity {
             }
         });
 
-        browser.loadUrl("http://13.209.229.237:8080/uploads/daum.html");
+        browser.loadUrl(Server.getUrl("uploads/daum.html"));
 
     }
 }

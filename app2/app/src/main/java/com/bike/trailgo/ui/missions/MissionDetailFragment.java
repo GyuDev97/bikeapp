@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.net.Server;
 import com.bike.trailgo.ui.BaseFragment;
 import com.squareup.picasso.Picasso;
 
@@ -45,7 +46,7 @@ public class MissionDetailFragment extends BaseFragment {
         missionWhen = view.findViewById(R.id.mission_when);
 
         missionName.setText(model.m_name.getValue());
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/badge/" + model.m_image.getValue())
+        Picasso.get().load(Server.getUrl("app/getGPX/badge/" + model.m_image.getValue()))
                 .into(missionImage);
         missionContent.setText(model.m_content.getValue());
         badgeName.setText(model.m_bg_name.getValue());

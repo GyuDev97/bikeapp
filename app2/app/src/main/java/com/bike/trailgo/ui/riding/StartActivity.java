@@ -235,7 +235,7 @@ public class StartActivity extends AppCompatActivity
             try {
                 SmsManager smsManager = SmsManager.getDefault();
                 String sms = "" +
-                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://13.209.229.237:8080/app/dangergps/" + latitude + "/" + lonngitude;
+                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
                 smsManager.sendTextMessage(number, null, sms, null, null);
                 Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
@@ -274,7 +274,7 @@ public class StartActivity extends AppCompatActivity
                         try {
                             SmsManager smsManager = SmsManager.getDefault();
                             String sms = "" +
-                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude;
+                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
                             smsManager.sendTextMessage("010-4752-7613", null, sms, null, null);
                             Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
@@ -290,7 +290,7 @@ public class StartActivity extends AppCompatActivity
                         try {
                             SmsManager smsManager = SmsManager.getDefault();
                             String sms = "" +
-                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? http://13.209.229.237:8080/app/dangergps/"+latitude+"/"+lonngitude+"";
+                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
                             smsManager.sendTextMessage(number, null, sms, null, null);
                             Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
@@ -329,7 +329,7 @@ public class StartActivity extends AppCompatActivity
                         polyline.setTag(1000);
                         polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline ??嚥▲꺂????꿔꺂?????
                         //??嶺뚮Ĳ?됭짆????????????꿔꺂??? URL
-                        URL url = new URL("http://gyudrive.ipdisk.co.kr:8080/app/getGPX/gpx/"+gpx_name);
+                        URL url = new URL(Server.getUrl("app/getGPX/gpx/" + gpx_name));
                         //Web??????????꿔꺂??? ??醫딆쓧??癲ル슢???몄쒜???ImageView???꿔꺂????癲ル슢怡??뱀떫 Bitmap ?꿔꺂??????筌뚯솃?
                     // Open the GPX file from the server.
 
@@ -1288,7 +1288,7 @@ public class StartActivity extends AppCompatActivity
                         switch (a) {
                             case "\uC704\uCE58\uC804\uC1A1":
                                 String sms = "" +
-                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
+                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
                                 smsManager.sendTextMessage(number, null, sms, null, null);
                                 Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
                                 break;
@@ -1297,7 +1297,7 @@ public class StartActivity extends AppCompatActivity
                                 break;
                             case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC704\uCE58\uC804\uC1A1":
                                 String sms2 = "" +
-                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " http://gyudrive.ipdisk.co.kr:8080/app/dangergps/35.896599/128.621009";
+                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
                                 smsManager.sendTextMessage(number, null, sms2, null, null);
                                 break;
                             case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC804\uD654":

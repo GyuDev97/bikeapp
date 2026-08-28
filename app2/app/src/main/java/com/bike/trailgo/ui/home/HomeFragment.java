@@ -48,6 +48,7 @@ public class HomeFragment extends BaseFragment {
     private TextView recentHeight;
     private TextView recentDuration;
     private TextView recentCourse;
+    private TextView recentBadge;
     private TextView monthCount;
     private TextView totalHeight;
     private TextView totalTime;
@@ -78,6 +79,7 @@ public class HomeFragment extends BaseFragment {
         recentHeight = view.findViewById(R.id.home_recent_height);
         recentDuration = view.findViewById(R.id.home_recent_duration);
         recentCourse = view.findViewById(R.id.home_recent_course);
+        recentBadge = view.findViewById(R.id.home_recent_badge);
         monthCount = view.findViewById(R.id.home_month_count);
         totalHeight = view.findViewById(R.id.home_total_height);
         totalTime = view.findViewById(R.id.home_total_time);
@@ -168,8 +170,10 @@ public class HomeFragment extends BaseFragment {
         myInfo.enqueue(new Callback<List<RidingRecord>>() {
             @Override
             public void onResponse(Call<List<RidingRecord>> call, Response<List<RidingRecord>> response) {
-                if (response.code() == 200) {
+                if (response.code() == 200 && response.body() != null) {
                     updateSummary(response.body());
+                } else if (!call.isCanceled()) {
+                    showRecordLoadFailure();
                 }
             }
 
@@ -177,6 +181,7 @@ public class HomeFragment extends BaseFragment {
             public void onFailure(Call<List<RidingRecord>> call, Throwable t) {
                 if (!call.isCanceled()) {
                     t.printStackTrace();
+                    showRecordLoadFailure();
                 }
             }
         });
@@ -238,6 +243,8 @@ public class HomeFragment extends BaseFragment {
 
         if (!sorted.isEmpty()) {
             bindRecentRecord(sorted.get(0));
+        } else {
+            showNoRecords();
         }
     }
 
@@ -251,7 +258,32 @@ public class HomeFragment extends BaseFragment {
             courseName = recentRecord.getRr_area();
         }
         setTextIfPresent(recentCourse, courseName == null || courseName.trim().isEmpty()
-                ? "대구 앞산 라이딩" : courseName);
+                ? "이름 없는 주행" : courseName);
+        setTextIfPresent(recentBadge, "최근");
+    }
+
+    private void showNoRecords() {
+        setTextIfPresent(recentCourse, "저장된 주행 기록이 없습니다");
+        setTextIfPresent(recentDistance, "첫 라이딩을 저장하면 여기에 표시됩니다.");
+        setTextIfPresent(recentDuration, "");
+        setTextIfPresent(recentBadge, "");
+    }
+
+    private void showRecordLoadFailure() {
+        setTextIfPresent(mainKm, "0 m");
+        setTextIfPresent(mainTime, "0초");
+        setTextIfPresent(mainDistance, "0 m");
+        setTextIfPresent(monthCount, "0 회");
+        setTextIfPresent(totalHeight, "0 m");
+        setTextIfPresent(totalTime, "00:00:00");
+        if (goalProgress != null) {
+            goalProgress.setProgress(0);
+        }
+        setTextIfPresent(goalPercent, "0%");
+        setTextIfPresent(recentCourse, "기록을 불러오지 못했습니다");
+        setTextIfPresent(recentDistance, "네트워크 연결 후 기록 탭에서 다시 시도해 주세요.");
+        setTextIfPresent(recentDuration, "");
+        setTextIfPresent(recentBadge, "");
     }
 
     private void setTextIfPresent(TextView textView, String text) {

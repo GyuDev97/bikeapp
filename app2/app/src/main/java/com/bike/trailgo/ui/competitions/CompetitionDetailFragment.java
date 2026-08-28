@@ -29,6 +29,7 @@ import com.bike.trailgo.dto.Badge;
 import com.bike.trailgo.dto.CompClub;
 import com.bike.trailgo.dto.CompScore;
 import com.bike.trailgo.dto.Competition;
+import com.bike.trailgo.net.Server;
 import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.riding.FollowStart;
 import com.squareup.picasso.Picasso;
@@ -91,7 +92,7 @@ public class CompetitionDetailFragment extends BaseFragment {
         compName.setText(model.comp_name.getValue());
         compDay.setText(model.comp_period.getValue());
         compContent.setText(model.comp_content.getValue());
-        Picasso.get().load("http://13.209.229.237:8080/app/getGPX/comp/" + model.comp_image.getValue())
+        Picasso.get().load(Server.getUrl("app/getGPX/comp/" + model.comp_image.getValue()))
                 .into(compImage);
 
         Save_Path = requireContext().getFilesDir().getPath();
@@ -102,7 +103,7 @@ public class CompetitionDetailFragment extends BaseFragment {
         WebSettings wbs = webView.getSettings();
         wbs.setLoadWithOverviewMode(true);
         wbs.setJavaScriptEnabled(true);
-        webView.loadUrl("http://13.209.229.237:8080/app/getAppCompCourse?c_num=" + model.comp_course.getValue());//웹뷰 실행
+        webView.loadUrl(Server.getUrl("app/getAppCompCourse?c_num=" + model.comp_course.getValue()));//웹뷰 실행
         webView.setWebChromeClient(new WebChromeClient());//웹뷰에 크롬 사용 허용//이 부분이 없으면 크롬에서 alert가 뜨지 않음
         webView.setWebViewClient(new WebViewClientClass());//새창열기 없이 웹뷰 내에서 다시 열기//페이지 이동 원활히 하기위해 사용
 
@@ -117,11 +118,11 @@ public class CompetitionDetailFragment extends BaseFragment {
 
                     Log.e("배지이미지", body.getBg_image());
 
-                    Picasso.get().load("http://13.209.229.237:8080/app/getGPX/badge/" + body.getBg_image() + "1.png")
+                    Picasso.get().load(Server.getUrl("app/getGPX/badge/" + body.getBg_image() + "1.png"))
                             .into(badgeImage1);
-                    Picasso.get().load("http://13.209.229.237:8080/app/getGPX/badge/" + body.getBg_image() + "2.png")
+                    Picasso.get().load(Server.getUrl("app/getGPX/badge/" + body.getBg_image() + "2.png"))
                             .into(badgeImage2);
-                    Picasso.get().load("http://13.209.229.237:8080/app/getGPX/badge/" + body.getBg_image() + "3.png")
+                    Picasso.get().load(Server.getUrl("app/getGPX/badge/" + body.getBg_image() + "3.png"))
                             .into(badgeImage3);
 
                     compBadgeName.setText(body.getBg_name());

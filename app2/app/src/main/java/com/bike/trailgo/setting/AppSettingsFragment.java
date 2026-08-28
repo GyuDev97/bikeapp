@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.activity.OnBackPressedCallback;
 
 import com.bike.trailgo.R;
 import com.bike.trailgo.BuildConfig;
@@ -58,22 +57,6 @@ public class AppSettingsFragment extends BaseFragment {
         bottomNav = view.findViewById(R.id.settings_bottom_nav);
         prefs = requireContext().getSharedPreferences(PREFS, Activity.MODE_PRIVATE);
         back.setOnClickListener(v -> showPage("main"));
-        requireActivity().getOnBackPressedDispatcher().addCallback(
-                getViewLifecycleOwner(),
-                new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
-                        if (!"main".equals(currentPage)) {
-                            showPage("main");
-                            return;
-                        }
-                        setEnabled(false);
-                        if (!controller.popBackStack(R.id.nav_home, false)) {
-                            controller.navigate(R.id.nav_home);
-                        }
-                    }
-                }
-        );
         bindBottomNavigation(view);
         showPage(state == null ? "main" : state.getString(STATE_PAGE, "main"));
     }

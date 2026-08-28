@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bike.trailgo.dto.MissionRanking;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.net.Server;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -44,10 +45,10 @@ public class MissionRankingAdapter extends RecyclerView.Adapter<MissionRankingAd
     public void onBindViewHolder(@NonNull MissionRankingHolder holder, int position) {
 
         if ( itemList.get(position).getR_image() == null)
-            Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/app/getGPX/rider/image.jpg")
+            Picasso.get().load(Server.getRiderImageUrl("image.jpg"))
                     .into(holder.imageView);
         else
-            Picasso.get().load("http://gyudrive.ipdisk.co.kr:8080/bike/getGPX/rider/" + itemList.get(position).getR_image())
+            Picasso.get().load(Server.getRiderImageUrl(itemList.get(position).getR_image()))
                     .into(holder.imageView);
 
 

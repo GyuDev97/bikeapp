@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -99,23 +101,18 @@ public class AndroidController {
 	}
 
 	// 주행기록 등록(안드로이드)
-	@RequestMapping(value = "riding/upload")
+	@RequestMapping(value = "riding/upload", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String, String> insertriding(@RequestBody RidingRecord record , HttpServletRequest request) throws Exception {
-		
+	public ResponseEntity<Map<String, String>> insertriding(@ModelAttribute RidingRecord record) {
 		Map<String, String> result = new HashMap<String, String>();
-		
-		log.info("=========upload=======", "");
-		log.info("", record.toString());
-		log.info("=========end=======", record.toString());
-		
 		try {
 			androidService.insertRecord(record); //기록저장
-			result.put("data1", request.getParameter("rr_rider"));
+			result.put("saved", "1");
+			return ResponseEntity.ok(result);
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Riding record save failed for rider={}", record.getRr_rider(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-		return result;
 	}
 
 	//메인화면 라이딩 기록 가져오기
@@ -156,10 +153,12 @@ public class AndroidController {
 				Path directory = resolveStorageDirectory(dir);
 				if (file1 == null || file1.isEmpty()) {
 					return ResponseEntity.badRequest().build();
-				}
-				Files.createDirectories(directory);
-				file1.transferTo(resolveStorageFile(directory, fileName).toFile());
-				return ResponseEntity.ok().build();
+			}
+			Files.createDirectories(directory);
+			try (InputStream input = file1.getInputStream()) {
+				Files.copy(input, resolveStorageFile(directory, fileName), StandardCopyOption.REPLACE_EXISTING);
+			}
+			return ResponseEntity.ok().build();
 			} catch (IOException e) {
 				log.error("GPX upload failed: {}", fileName, e);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

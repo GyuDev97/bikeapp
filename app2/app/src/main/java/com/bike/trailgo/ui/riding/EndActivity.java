@@ -364,7 +364,9 @@ public class EndActivity extends AppCompatActivity {
             insert.put("rr_time", String.valueOf(IngTime));
             insert.put("rr_area", adress_value == null ? "" : adress_value);
             insert.put("rr_name", rideName);
-            insert.put("rr_comp", rr_comp == null ? "null" : rr_comp);
+            if (rr_comp != null && !rr_comp.trim().isEmpty() && !"null".equalsIgnoreCase(rr_comp.trim())) {
+                insert.put("rr_comp", rr_comp);
+            }
 
             serverApi.upload(gpxPart, "gpx", gpxFileName).enqueue(new Callback<Void>() {
                 @Override

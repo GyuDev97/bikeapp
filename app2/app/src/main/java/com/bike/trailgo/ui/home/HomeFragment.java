@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,12 +44,7 @@ public class HomeFragment extends BaseFragment {
     private TextView rider;
     private TextView mainDistance;
     private TextView goalPercent;
-    private TextView recentDate;
-    private TextView recentDistance;
-    private TextView recentHeight;
-    private TextView recentDuration;
-    private TextView recentCourse;
-    private TextView recentBadge;
+    private LinearLayout recentRecordList;
     private TextView monthCount;
     private TextView totalHeight;
     private TextView totalTime;
@@ -74,12 +70,7 @@ public class HomeFragment extends BaseFragment {
         mainDistance = view.findViewById(R.id.main_dis);
         goalPercent = view.findViewById(R.id.home_goal_percent);
         goalProgress = view.findViewById(R.id.home_goal_progress);
-        recentDate = view.findViewById(R.id.home_recent_date);
-        recentDistance = view.findViewById(R.id.home_recent_distance);
-        recentHeight = view.findViewById(R.id.home_recent_height);
-        recentDuration = view.findViewById(R.id.home_recent_duration);
-        recentCourse = view.findViewById(R.id.home_recent_course);
-        recentBadge = view.findViewById(R.id.home_recent_badge);
+        recentRecordList = view.findViewById(R.id.home_recent_list);
         monthCount = view.findViewById(R.id.home_month_count);
         totalHeight = view.findViewById(R.id.home_total_height);
         totalTime = view.findViewById(R.id.home_total_time);
@@ -120,7 +111,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void bindNavigation(View view) {
-        setNavigationClick(view, R.id.recent_record_card, R.id.action_nav_home_to_nav_records);
+        setNavigationClick(view, R.id.home_recent_more, R.id.action_nav_home_to_nav_records);
         setNavigationClick(view, R.id.bottom_nav_records, R.id.action_nav_home_to_nav_records);
         setNavigationClick(view, R.id.bottom_nav_course, R.id.action_nav_home_to_nav_course_view);
         setNavigationClick(view, R.id.bottom_nav_profile, R.id.action_nav_home_to_setting);
@@ -241,32 +232,82 @@ public class HomeFragment extends BaseFragment {
         }
         setTextIfPresent(goalPercent, goalPercentValue + "%");
 
-        if (!sorted.isEmpty()) {
-            bindRecentRecord(sorted.get(0));
+        bindRecentRecords(sorted);
+    }
+
+    private void bindRecentRecords(List<RidingRecord> records) {
+        if (recentRecordList == null) {
+            return;
+        }
+
+        recentRecordList.removeAllViews();
+        if (records == null || records.isEmpty()) {
+            addRecentRecordRow(null, "저장된 주행 기록이 없습니다", "첫 라이딩을 저장하면 여기에 표시됩니다.");
+            return;
+        }
+
+        int recentCount = Math.min(3, records.size());
+        for (int index = 0; index < recentCount; index++) {
+            RidingRecord record = records.get(index);
+            addRecentRecordRow(record, null, null);
+            if (index < recentCount - 1) {
+                View divider = new View(requireContext());
+                divider.setBackgroundColor(android.graphics.Color.parseColor("#E8EBE8"));
+                recentRecordList.addView(divider, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        1
+                ));
+            }
+        }
+    }
+
+    private void addRecentRecordRow(@Nullable RidingRecord record, @Nullable String emptyTitle, @Nullable String emptyDetail) {
+        View row = LayoutInflater.from(requireContext()).inflate(
+                R.layout.item_home_recent_record,
+                recentRecordList,
+                false
+        );
+        TextView course = row.findViewById(R.id.home_recent_item_course);
+        TextView distance = row.findViewById(R.id.home_recent_item_distance);
+        TextView height = row.findViewById(R.id.home_recent_item_height);
+        TextView duration = row.findViewById(R.id.home_recent_item_duration);
+        TextView date = row.findViewById(R.id.home_recent_item_date);
+
+        if (record == null) {
+            course.setText(emptyTitle);
+            distance.setText(emptyDetail);
+            height.setText("");
+            duration.setText("");
+            date.setText("");
         } else {
-            showNoRecords();
+            String courseName = record.getRr_name();
+            if (courseName == null || courseName.trim().isEmpty()) {
+                courseName = record.getRr_area();
+            }
+            course.setText(courseName == null || courseName.trim().isEmpty() ? "이름 없는 주행" : courseName);
+            distance.setText(formatDistance(record.getRr_distance()));
+            height.setText("△ " + record.getRr_high() + " m");
+            duration.setText("~ " + formatDuration(record.getRr_time()));
+            date.setText(formatRecentDate(record.getRr_date()));
+            row.setOnClickListener(v -> openRecordDetail(record));
         }
+        recentRecordList.addView(row);
     }
 
-    private void bindRecentRecord(RidingRecord recentRecord) {
-        setTextIfPresent(recentDate, formatRecentDate(recentRecord.getRr_date()));
-        setTextIfPresent(recentDistance, formatDistance(recentRecord.getRr_distance()));
-        setTextIfPresent(recentHeight, recentRecord.getRr_high() + " m");
-        setTextIfPresent(recentDuration, "~ " + formatDuration(recentRecord.getRr_time()));
-        String courseName = recentRecord.getRr_name();
-        if (courseName == null || courseName.trim().isEmpty()) {
-            courseName = recentRecord.getRr_area();
-        }
-        setTextIfPresent(recentCourse, courseName == null || courseName.trim().isEmpty()
-                ? "이름 없는 주행" : courseName);
-        setTextIfPresent(recentBadge, "최근");
-    }
-
-    private void showNoRecords() {
-        setTextIfPresent(recentCourse, "저장된 주행 기록이 없습니다");
-        setTextIfPresent(recentDistance, "첫 라이딩을 저장하면 여기에 표시됩니다.");
-        setTextIfPresent(recentDuration, "");
-        setTextIfPresent(recentBadge, "");
+    private void openRecordDetail(RidingRecord record) {
+        model.r_num.setValue(String.valueOf(record.getRr_num()));
+        model.my_rec_name.setValue(record.getRr_name());
+        model.my_rec_date.setValue(record.getRr_date());
+        model.my_rec_adress.setValue(record.getRr_area());
+        model.my_rec_dis.setValue(formatDistance(record.getRr_distance()));
+        model.my_rec_get.setValue(record.getRr_high() + "m");
+        model.my_rec_time.setValue(formatDuration(record.getRr_time()));
+        model.my_rec_rest.setValue(formatDuration(record.getRr_breaktime()));
+        model.my_rec_open.setValue(record.getRr_open());
+        model.my_rec_max.setValue(record.getRr_topspeed() + "km/h");
+        model.my_rec_avg.setValue(record.getRr_avgspeed() + "km/h");
+        model.my_rec_gpx.setValue(record.getRr_gpx());
+        controller.navigate(R.id.action_nav_home_to_myDetailFragment);
     }
 
     private void showRecordLoadFailure() {
@@ -280,10 +321,7 @@ public class HomeFragment extends BaseFragment {
             goalProgress.setProgress(0);
         }
         setTextIfPresent(goalPercent, "0%");
-        setTextIfPresent(recentCourse, "기록을 불러오지 못했습니다");
-        setTextIfPresent(recentDistance, "네트워크 연결 후 기록 탭에서 다시 시도해 주세요.");
-        setTextIfPresent(recentDuration, "");
-        setTextIfPresent(recentBadge, "");
+        bindRecentRecords(Collections.<RidingRecord>emptyList());
     }
 
     private void setTextIfPresent(TextView textView, String text) {

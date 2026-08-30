@@ -21,6 +21,8 @@ public interface AndroidMapper {
 	
 	//안드로이드 앱에서 라이딩 기록 저장
 	public void insertRecord(RidingRecord record) throws Exception;
+
+	public int nextRidingRecordId() throws Exception;
 	
 	//주행기록 전체보기
 	public List<RidingRecord> getRidingRecordAll();

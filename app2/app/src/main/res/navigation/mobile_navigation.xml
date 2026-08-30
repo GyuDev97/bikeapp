@@ -20,6 +20,9 @@
             android:id="@+id/action_nav_home_to_nav_records"
             app:destination="@id/nav_records" />
         <action
+            android:id="@+id/action_nav_home_to_myDetailFragment"
+            app:destination="@id/myDetailFragment" />
+        <action
             android:id="@+id/action_nav_home_to_nav_course_search"
             app:destination="@id/nav_course_search" />
         <action

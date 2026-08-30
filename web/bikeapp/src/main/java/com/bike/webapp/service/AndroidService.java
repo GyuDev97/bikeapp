@@ -31,7 +31,8 @@ public class AndroidService {
 	}
 	
 	//라이딩기록 저장
-	public void insertRecord(RidingRecord record) throws Exception{
+	public synchronized void insertRecord(RidingRecord record) throws Exception{
+		record.setRr_num(androidMapper.nextRidingRecordId());
 		androidMapper.insertRecord(record);
 	}
 	
@@ -207,7 +208,8 @@ public class AndroidService {
 		return androidMapper.sameCheck(LoginId);
 	}
 
-    public void foinsert(RidingRecord record) {
+	public synchronized void foinsert(RidingRecord record) throws Exception {
+		record.setRr_num(androidMapper.nextRidingRecordId());
 		androidMapper.foinsert(record);
     }
 

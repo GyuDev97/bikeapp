@@ -450,7 +450,7 @@
         <LinearLayout
             android:id="@+id/flow_info"
             android:layout_width="380dp"
-            android:layout_height="80dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/subactivity_shape"
             android:layout_gravity="center"
@@ -476,6 +476,24 @@
                 android:text="코스이름"
                 android:textColor="#000"
                 android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/course_follow_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="코스 준비 중"
+                android:textColor="#365B3D"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/course_follow_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="진행률 - · 남은 거리 -"
+                android:textColor="#666666"
+                android:textSize="14sp" />
         </LinearLayout>
 
     </LinearLayout>

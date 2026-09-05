@@ -89,6 +89,11 @@ public final class RideAssistant {
         dangerAlertsEnabled = enabled;
     }
 
+    /** A local course-following warning from the foreground tracking flow. */
+    public void announceCourseGuidance(String message) {
+        speakIfEnabled(message, VoicePriority.HIGH);
+    }
+
     public void onLocation(Location location) {
         if (paused || location == null) return;
         long timestamp = location.getTime() > 0L ? location.getTime() : System.currentTimeMillis();

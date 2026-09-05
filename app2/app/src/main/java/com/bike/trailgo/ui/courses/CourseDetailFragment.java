@@ -46,7 +46,7 @@ import com.bike.trailgo.net.HttpClient;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
-import com.bike.trailgo.ui.riding.StartActivity;
+import com.bike.trailgo.ui.riding.FollowStart;
 import com.squareup.picasso.Picasso;
 
 import net.daum.mf.map.api.CameraUpdateFactory;
@@ -283,7 +283,7 @@ public class CourseDetailFragment extends BaseFragment {
 
         //따라가기
         follow_bt.setOnClickListener(v->{
-            Intent intent2=new Intent(requireContext(), StartActivity.class);
+            Intent intent2=new Intent(requireContext(), FollowStart.class);
             intent2.putExtra("gpx",model.my_rec_gpx.getValue());
             intent2.putExtra("c_name",model.my_rec_name.getValue());
             startActivity(intent2);

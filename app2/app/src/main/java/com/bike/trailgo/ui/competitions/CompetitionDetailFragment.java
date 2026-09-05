@@ -82,8 +82,8 @@ public class CompetitionDetailFragment extends BaseFragment {
             Intent intent3 = new Intent(v.getContext(), FollowStart.class);
             intent3.putExtra("comp_num", model.comp_num.getValue());
             intent3.putExtra("check", 1);
-            intent3.putExtra("comp_gpx", model.comp_course.getValue());
-            intent3.putExtra("c_name", model.r_Id.getValue());
+            intent3.putExtra("gpx", model.c_gpx.getValue());
+            intent3.putExtra("c_name", model.c_name.getValue());
             intent3.putExtra("comp_name", model.comp_name.getValue());
             intent3.putExtra("comp_point", "100");
             intent3.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

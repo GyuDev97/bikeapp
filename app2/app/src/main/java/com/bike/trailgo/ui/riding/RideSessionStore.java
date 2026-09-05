@@ -92,6 +92,8 @@ final class RideSessionStore {
         final ArrayList<Double> longitudes;
         final ArrayList<Double> elevations;
         final ArrayList<Float> elevationSamples;
+        final String courseGpxName;
+        final String courseName;
 
         Snapshot(
                 boolean followMode,
@@ -119,6 +121,41 @@ final class RideSessionStore {
                 ArrayList<Double> elevations,
                 ArrayList<Float> elevationSamples
         ) {
+            this(followMode, status, baseTime, pauseTime, restSeconds, activeSeconds,
+                    distanceMeters, maxSpeedKmh, averageSpeedKmh, elevationGainMeters,
+                    descentMeters, maxLat, maxLon, minLat, minLon, lastLatitude, lastLongitude,
+                    lastAltitude, address, addressDong, latitudes, longitudes, elevations,
+                    elevationSamples, null, null);
+        }
+
+        Snapshot(
+                boolean followMode,
+                int status,
+                long baseTime,
+                long pauseTime,
+                int restSeconds,
+                int activeSeconds,
+                double distanceMeters,
+                double maxSpeedKmh,
+                double averageSpeedKmh,
+                int elevationGainMeters,
+                int descentMeters,
+                double maxLat,
+                double maxLon,
+                double minLat,
+                double minLon,
+                double lastLatitude,
+                double lastLongitude,
+                double lastAltitude,
+                String address,
+                String addressDong,
+                ArrayList<Double> latitudes,
+                ArrayList<Double> longitudes,
+                ArrayList<Double> elevations,
+                ArrayList<Float> elevationSamples,
+                String courseGpxName,
+                String courseName
+        ) {
             this.followMode = followMode;
             this.status = status;
             this.baseTime = baseTime;
@@ -143,6 +180,8 @@ final class RideSessionStore {
             this.longitudes = new ArrayList<>(longitudes);
             this.elevations = new ArrayList<>(elevations);
             this.elevationSamples = new ArrayList<>(elevationSamples);
+            this.courseGpxName = courseGpxName;
+            this.courseName = courseName;
         }
     }
 }

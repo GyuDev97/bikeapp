@@ -44,9 +44,6 @@ import com.bike.trailgo.databinding.FlowBinding;
 import com.bike.trailgo.dto.DangerousArea;
 import com.bike.trailgo.gpx.GPXParser;
 import com.bike.trailgo.gpx.Gpx;
-import com.bike.trailgo.gpx.Track;
-import com.bike.trailgo.gpx.TrackPoint;
-import com.bike.trailgo.gpx.TrackSegment;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.net.ServerApi;
 import com.bike.trailgo.setting.RideSettings;
@@ -65,6 +62,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,6 +130,9 @@ public class FollowStart extends AppCompatActivity
     private boolean voicePermissionOfferShown;
     private String gpx_name;
     private String c_name, comp_point, comp_name;
+    private final CourseGuidanceEngine courseGuidance = new CourseGuidanceEngine();
+    private TextView courseFollowStatus;
+    private TextView courseFollowProgress;
 
     //gpx관련
     Gpx parsedGpx = null;
@@ -189,9 +191,6 @@ public class FollowStart extends AppCompatActivity
         String comp_num = intentt.getStringExtra("comp_num");
         binding.couseInfo.setText(intentt.getStringExtra("comp_name"));
         Log.d("확인",intentt.getStringExtra("c_name") + ""+ intentt.getStringExtra("gpx"));
-
-        String course_name = intentt.getStringExtra("c_name");
-
 
         //input array data
         list = new ArrayList<>();
@@ -255,84 +254,15 @@ public class FollowStart extends AppCompatActivity
         mMapView.setCurrentLocationEventListener(this);
         mMapView.setShowCurrentLocationMarker(true);
         mMapView.setMapViewEventListener(this);
-        mMapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+        mMapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithHeading);
 
         // 구현한 CalloutBalloonAdapter 등록
         mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
 
-        //코스 따라가기 값 가져오기
-        Intent course_get = new Intent(this.getIntent());
-        c_name = course_get.getStringExtra("comp_name");
-        gpx_name = course_get.getStringExtra("gpx");
-
-        if(gpx_name == null && c_name == null){
-            binding.flowInfo.setVisibility(View.GONE);
-        }else{
-            binding.flowInfo.setVisibility(View.VISIBLE);
-            binding.couseInfo.setText(c_name);
-            Thread uThread = new Thread() {
-                @Override
-                public void run() {
-
-                    try {
-                        MapPolyline polyline = new MapPolyline();
-                        polyline.setTag(1000);
-                        polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline 컬러 지정.
-                        //서버에 올려둔 이미지 URL
-                        //Web에서 이미지 가져온 후 ImageView에 지정할 Bitmap 만들기
-                    /* URLConnection 생성자가 protected로 선언되어 있으므로
-                     개발자가 직접 HttpURLConnection 객체 생성 불가 */
-                        HttpURLConnection conn = Server.openConnection("app/getGPX/gpx/" + gpx_name);
-                    /* openConnection()메서드가 리턴하는 urlConnection 객체는
-                    HttpURLConnection의 인스턴스가 될 수 있으므로 캐스팅해서 사용한다*/
-
-                        conn.setDoInput(true); //Server 통신에서 입력 가능한 상태로 만듦
-                        conn.connect(); //연결된 곳에 접속할 때 (connect() 호출해야 실제 통신 가능함)
-
-
-                        InputStream is = conn.getInputStream(); //inputStream 값 가져오기
-                        // InputStream in = getAssets().open("and.gpx");
-                        parsedGpx = mParser.parse(is);
-
-                        if (parsedGpx != null) {
-                            // log stuff
-                            List<Track> tracks = parsedGpx.getTracks();
-                            for (int i = 0; i < tracks.size(); i++) {
-                                Track track = tracks.get(i);
-                                Log.d("track ", i + ":");
-                                List<TrackSegment> segments = track.getTrackSegments();
-                                for (int j = 0; j < segments.size(); j++) {
-                                    TrackSegment segment = segments.get(j);
-
-                                    for (TrackPoint trackPoint : segment.getTrackPoints()) {
-
-                                        polyline.addPoint(MapPoint.mapPointWithGeoCoord(trackPoint.getLatitude(), trackPoint.getLongitude()));
-                                        Log.d("point: lat ", + trackPoint.getLatitude() + ", lon " + trackPoint.getLongitude());
-                                    }
-                                }
-                            }
-                            // Polyline 지도에 올리기.
-                            mMapView.addPolyline(polyline);
-
-                            // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
-                            MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
-                            int padding = 100; // px
-                            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
-                        } else {
-                            Log.e("error","Error parsing gpx track!");
-                        }
-
-
-                    } catch (IOException | XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            uThread.start();
-        }
-
-
-        //이동시간 핸들러
+        // Course detail and competition detail used different extra names in the legacy UI.
+        // Normalize them before restoring a previously active follow session.
+        c_name = firstNotBlank(intentt.getStringExtra("comp_name"), intentt.getStringExtra("c_name"));
+        gpx_name = firstNotBlank(intentt.getStringExtra("gpx"), intentt.getStringExtra("comp_gpx"));
         boolean restoredSession = restoreRideSession();
         if (!restoredSession) {
             BaseTime = SystemClock.elapsedRealtime();
@@ -341,6 +271,17 @@ public class FollowStart extends AppCompatActivity
         }
         if (cur_status == Run) {
             RidingTimer.sendEmptyMessage(0);
+        }
+
+        courseFollowStatus = binding.courseFollowStatus;
+        courseFollowProgress = binding.courseFollowProgress;
+        if(isBlank(gpx_name)){
+            binding.flowInfo.setVisibility(View.GONE);
+        }else{
+            binding.flowInfo.setVisibility(View.VISIBLE);
+            binding.couseInfo.setText(c_name);
+            binding.courseFollowStatus.setText("코스를 준비하는 중입니다");
+            loadCourseRoute();
         }
         startRideTracking();
 
@@ -383,7 +324,7 @@ public class FollowStart extends AppCompatActivity
                 intent.putExtra("resttime", rest); //휴식시간
                 intent.putExtra("addr", adress_value);
                 intent.putExtra("address_dong",address_dong);
-                intent.putExtra("comp_name", intentt.getStringExtra("comp_name"));
+                intent.putExtra("comp_name", c_name);
                 if ( check == 1 ) {
                     intent.putExtra("rr_comp", comp_num);
                     intent.putExtra("comp_point", comp_point);
@@ -393,7 +334,7 @@ public class FollowStart extends AppCompatActivity
                     intent.putExtra("comp_point", "0");
                 }
                 intent.putExtra("check", check);
-                intent.putExtra("course_name",course_name);
+                intent.putExtra("course_name", c_name);
 
                 try {
                     intent.putExtra(
@@ -458,6 +399,124 @@ public class FollowStart extends AppCompatActivity
         }
 
     }
+
+    private void loadCourseRoute() {
+        final String requestedGpx = gpx_name;
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            InputStream input = null;
+            ArrayList<CourseGuidanceEngine.Point> points = new ArrayList<>();
+            boolean usedCache = false;
+            String errorMessage = null;
+            try {
+                if (CourseRouteStore.exists(this, requestedGpx)) {
+                    usedCache = true;
+                    input = CourseRouteStore.open(this, requestedGpx);
+                } else if (CourseRouteStore.isLocalReference(requestedGpx)) {
+                    errorMessage = "불러온 GPX 파일을 찾을 수 없습니다.";
+                } else {
+                    connection = Server.openConnection("app/getGPX/gpx/" + requestedGpx);
+                    input = connection.getInputStream();
+                    CourseRouteStore.save(this, requestedGpx, input);
+                    input.close();
+                    input = CourseRouteStore.open(this, requestedGpx);
+                }
+                if (errorMessage == null) {
+                    parsedGpx = mParser.parse(input);
+                    CourseGpxAnalyzer.Summary summary = CourseGpxAnalyzer.analyze(parsedGpx, c_name);
+                    points.addAll(summary.guidancePoints);
+                }
+                if (errorMessage == null && points.size() < 2) {
+                    errorMessage = "코스 GPX에 유효한 경로가 없습니다.";
+                }
+            } catch (IOException | XmlPullParserException error) {
+                Log.w("CourseFollow", "Unable to load course GPX", error);
+                errorMessage = CourseRouteStore.isLocalReference(requestedGpx)
+                        ? "불러온 GPX 파일을 읽지 못했습니다. 다른 파일을 선택해 주세요."
+                        : "코스 GPX를 불러오지 못했습니다. 인터넷 연결 후 다시 시작해 주세요.";
+            } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+                if (connection != null) connection.disconnect();
+            }
+
+            final ArrayList<CourseGuidanceEngine.Point> routePoints = points;
+            final boolean fromCache = usedCache;
+            final String failure = errorMessage;
+            runOnUiThread(() -> {
+                if (isFinishing()) return;
+                if (failure != null) {
+                    courseFollowStatus.setText(failure);
+                    courseFollowProgress.setText("주행 기록은 계속됩니다");
+                    return;
+                }
+                courseGuidance.setRoute(routePoints);
+                if (!courseGuidance.hasRoute()) {
+                    courseFollowStatus.setText("코스 GPX에 유효한 경로가 없습니다.");
+                    return;
+                }
+                MapPolyline routeLine = new MapPolyline();
+                routeLine.setTag(1000);
+                routeLine.setLineColor(Color.argb(255, 0, 74, 196));
+                for (CourseGuidanceEngine.Point point : routePoints) {
+                    routeLine.addPoint(MapPoint.mapPointWithGeoCoord(point.latitude, point.longitude));
+                }
+                if (mMapView != null) {
+                    mMapView.addPolyline(routeLine);
+                    mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(
+                            new MapPointBounds(routeLine.getMapPoints()), 100));
+                }
+                courseFollowStatus.setText(fromCache ? "저장된 GPX 코스 준비 완료" : "코스 준비 완료");
+                courseFollowProgress.setText("진행률 0% · 남은 거리 "
+                        + formatCourseDistance(courseGuidance.update(routePoints.get(0).latitude,
+                        routePoints.get(0).longitude, false, 0f).totalMeters));
+            });
+        }).start();
+    }
+
+    private void updateCourseGuidance(Location location) {
+        if (!courseGuidance.hasRoute() || courseFollowStatus == null) return;
+        CourseGuidanceEngine.Update update = courseGuidance.update(
+                location.getLatitude(), location.getLongitude(), location.hasAccuracy(), location.getAccuracy());
+        if (!update.usableLocation) {
+            courseFollowStatus.setText("GPS 정확도 낮음 · 코스 이탈 판정 대기");
+            return;
+        }
+        if (update.offRoute) {
+            courseFollowStatus.setText("코스 이탈 · 경로까지 " + formatCourseDistance(update.distanceToRouteMeters));
+        } else {
+            courseFollowStatus.setText("코스 정상 · 경로까지 " + formatCourseDistance(update.distanceToRouteMeters));
+        }
+        courseFollowProgress.setText("진행률 " + update.progressPercent() + "% · 남은 거리 "
+                + formatCourseDistance(update.remainingMeters()));
+        if (update.event == CourseGuidanceEngine.Event.OFF_ROUTE) {
+            RideTrackingService.announceCourseGuidance(this,
+                    "코스에서 벗어났습니다. GPX 경로를 확인해 주세요.");
+        } else if (update.event == CourseGuidanceEngine.Event.BACK_ON_ROUTE) {
+            RideTrackingService.announceCourseGuidance(this, "코스 경로로 다시 진입했습니다.");
+        }
+    }
+
+    private static String formatCourseDistance(double meters) {
+        if (meters >= 1000d) return String.format(Locale.KOREA, "%.1f km", meters / 1000d);
+        return String.format(Locale.KOREA, "%d m", Math.round(meters));
+    }
+
+    private static String firstNotBlank(String... values) {
+        for (String value : values) {
+            if (!isBlank(value)) return value.trim();
+        }
+        return null;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
     private void changeView(int index) {
         switch (index) {
             case 0:
@@ -742,6 +801,8 @@ public class FollowStart extends AppCompatActivity
         latitude = location.getLatitude();
         lonngitude = location.getLongitude();
 
+        updateCourseGuidance(location);
+
         // 위도 경도 정보 배열 저장
         witch_lat.add(latitude);
         witch_lon.add(lonngitude);
@@ -860,7 +921,7 @@ public class FollowStart extends AppCompatActivity
                 latitude, lonngitude,
                 mLastlocation != null && mLastlocation.hasAltitude() ? mLastlocation.getAltitude() : 0d,
                 adress_value, address_dong,
-                witch_lat, witch_lon, ele, godoArray
+                witch_lat, witch_lon, ele, godoArray, gpx_name, c_name
         ));
         lastSessionCheckpointMillis = SystemClock.elapsedRealtime();
     }
@@ -888,6 +949,8 @@ public class FollowStart extends AppCompatActivity
         lonngitude = snapshot.lastLongitude;
         adress_value = snapshot.address == null ? "" : snapshot.address;
         address_dong = snapshot.addressDong;
+        if (isBlank(gpx_name)) gpx_name = snapshot.courseGpxName;
+        if (isBlank(c_name)) c_name = snapshot.courseName;
         witch_lat = new ArrayList<>(snapshot.latitudes);
         witch_lon = new ArrayList<>(snapshot.longitudes);
         ele = new ArrayList<>(snapshot.elevations);
@@ -934,7 +997,9 @@ public class FollowStart extends AppCompatActivity
 
     @Override
     public void onProviderDisabled(String provider) {
-
+        if (courseFollowStatus != null) {
+            courseFollowStatus.setText("GPS 신호 없음 · 코스 이탈 판정 대기");
+        }
     }
 
     @Override
@@ -959,7 +1024,9 @@ public class FollowStart extends AppCompatActivity
 
     @Override
     public void onCurrentLocationUpdateFailed(MapView mapView) {
-
+        if (courseFollowStatus != null) {
+            courseFollowStatus.setText("현재 위치를 확인할 수 없습니다");
+        }
     }
 
     @Override

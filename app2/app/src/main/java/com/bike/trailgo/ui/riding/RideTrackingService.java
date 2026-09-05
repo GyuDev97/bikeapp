@@ -36,8 +36,10 @@ public class RideTrackingService extends Service implements LocationListener {
     public static final String ACTION_STOP = "com.bike.trailgo.action.STOP_RIDE_TRACKING";
     public static final String ACTION_PAUSE = "com.bike.trailgo.action.PAUSE_RIDE_ASSISTANT";
     public static final String ACTION_RESUME = "com.bike.trailgo.action.RESUME_RIDE_ASSISTANT";
+    public static final String ACTION_COURSE_GUIDANCE = "com.bike.trailgo.action.COURSE_GUIDANCE";
     public static final String ACTION_LOCATION_UPDATE = "com.bike.trailgo.action.RIDE_LOCATION_UPDATE";
     public static final String EXTRA_LOCATION = "ride_location";
+    public static final String EXTRA_COURSE_GUIDANCE_MESSAGE = "course_guidance_message";
 
     private static final String CHANNEL_ID = "ride_tracking";
     private static final int NOTIFICATION_ID = 3102;
@@ -80,6 +82,15 @@ public class RideTrackingService extends Service implements LocationListener {
         sendCommand(context, ACTION_RESUME);
     }
 
+    public static void announceCourseGuidance(Context context, String message) {
+        if (message == null || message.trim().isEmpty()) return;
+        Intent intent = new Intent(context, RideTrackingService.class)
+                .setAction(ACTION_COURSE_GUIDANCE)
+                .putExtra(EXTRA_COURSE_GUIDANCE_MESSAGE, message.trim());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
+        else context.startService(intent);
+    }
+
     private static void sendCommand(Context context, String action) {
         Intent intent = new Intent(context, RideTrackingService.class).setAction(action);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
@@ -120,6 +131,12 @@ public class RideTrackingService extends Service implements LocationListener {
         }
         if (ACTION_RESUME.equals(action)) {
             rideAssistant.resume(System.currentTimeMillis());
+            return START_STICKY;
+        }
+        if (ACTION_COURSE_GUIDANCE.equals(action)) {
+            if (rideAssistant != null) {
+                rideAssistant.announceCourseGuidance(intent.getStringExtra(EXTRA_COURSE_GUIDANCE_MESSAGE));
+            }
             return START_STICKY;
         }
 

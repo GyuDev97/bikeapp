@@ -194,6 +194,27 @@
                 android:textColor="#1B5E20"
                 android:textSize="15sp"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/guest_start"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/auth_secondary_button"
+                android:stateListAnimator="@null"
+                android:text="비회원으로 시작하기"
+                android:textAllCaps="false"
+                android:textColor="#4E5A51"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="9dp"
+                android:gravity="center"
+                android:text="주행 기록은 이 기기에만 저장됩니다."
+                android:textColor="#929892"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <TextView

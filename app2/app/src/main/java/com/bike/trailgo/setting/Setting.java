@@ -232,7 +232,15 @@ public class Setting extends BaseFragment {
     }
 
     private void logout(SharedPreferences auto) {
-        auto.edit().clear().apply();
+        if (UserSessionManager.hasUnfinishedRide(requireContext())) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("주행 기록 중")
+                    .setMessage("진행 중인 주행을 먼저 종료하고 저장한 뒤 로그아웃하세요.")
+                    .setPositiveButton("확인", null)
+                    .show();
+            return;
+        }
+        UserSessionManager.clearLocalUserData(requireContext());
         Intent intent = new Intent(requireContext(), LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

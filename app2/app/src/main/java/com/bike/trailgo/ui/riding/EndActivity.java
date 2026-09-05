@@ -25,11 +25,14 @@ import com.bike.trailgo.gpx.GpxInfo;
 import com.bike.trailgo.R;
 import com.bike.trailgo.SendGPXFile;
 import com.bike.trailgo.databinding.FragmentRidingEndBinding;
+import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
 import com.bike.trailgo.dto.Tag_Status;
 import com.bike.trailgo.net.HttpClient;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.net.ServerApi;
+import com.bike.trailgo.setting.RideSettings;
+import com.bike.trailgo.setting.AccountSession;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -45,6 +48,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -195,6 +199,19 @@ public class EndActivity extends AppCompatActivity {
 
         Button save = (Button) findViewById(R.id.saveriding);
         RadioGroup openselect = (RadioGroup)findViewById(R.id.selectgroup);
+        RideSettings.migrate(this);
+        open = RideSettings.isRecordPublic(this) ? "1" : "0";
+        if (AccountSession.isGuest(this)) {
+            open = "0";
+        }
+        openselect.check("0".equals(open) ? R.id.NoOpen : R.id.AllOpen);
+        if (AccountSession.isGuest(this)) {
+            openselect.setEnabled(false);
+            for (int i = 0; i < openselect.getChildCount(); i++) {
+                openselect.getChildAt(i).setEnabled(false);
+            }
+            android.widget.Toast.makeText(this, "비회원 기록은 이 기기에만 비공개로 저장됩니다.", android.widget.Toast.LENGTH_LONG).show();
+        }
         findViewById(R.id.cancelriding).setOnClickListener(v -> confirmDiscardRide());
         findViewById(R.id.cancelriding_bottom).setOnClickListener(v -> confirmDiscardRide());
 
@@ -254,7 +271,7 @@ public class EndActivity extends AppCompatActivity {
         // gpx???????筌먯룄肄????ш낄援????ш끽維????癰???????엮??堉?
         long now = System.currentTimeMillis();
         Date date = new Date(now);
-        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
         String nowTime = sdfNow.format(date);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -339,6 +356,10 @@ public class EndActivity extends AppCompatActivity {
             if (rideName.isEmpty()) {
                 rideName = "라이딩 기록";
             }
+            if (AccountSession.isGuest(this)) {
+                saveGuestRide(xmlFile, rideName, save);
+                return;
+            }
             if (LoginId == null || LoginId.trim().isEmpty()) {
                 android.widget.Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
                 return;
@@ -389,6 +410,47 @@ public class EndActivity extends AppCompatActivity {
         });
     }
 
+    private void saveGuestRide(File xmlFile, String rideName, Button save) {
+        if (!xmlFile.isFile() || xmlFile.length() == 0L) {
+            android.widget.Toast.makeText(this, "GPX 파일을 만들지 못해 이 기기에 저장할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        save.setEnabled(false);
+        new Thread(() -> {
+            try {
+                LocalRideStore.save(
+                        EndActivity.this,
+                        rideName,
+                        Distence,
+                        MaxSpeed,
+                        AvgSpeed,
+                        Getgodo,
+                        RestTime,
+                        IngTime,
+                        adress_value,
+                        xmlFile
+                );
+                runOnUiThread(() -> finishGuestSave(save));
+            } catch (IOException error) {
+                Log.e("GuestRideSave", "Unable to save local guest ride", error);
+                runOnUiThread(() -> {
+                    save.setEnabled(true);
+                    android.widget.Toast.makeText(EndActivity.this, "이 기기에 기록을 저장하지 못했습니다. 저장공간을 확인해 주세요.", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+    private void finishGuestSave(Button save) {
+        android.widget.Toast.makeText(this, "주행 기록을 이 기기에 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+        RideSessionStore.clear(this);
+        RideRouteCache.clear(this);
+        Intent home = new Intent(this, com.bike.trailgo.MainActivity.class);
+        home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(home);
+        finish();
+    }
+
     private void saveRideRecord(HashMap<String, Object> insert, Button save) {
         serverApi.InsertRecord(insert).enqueue(new Callback<Void>() {
             @Override
@@ -400,6 +462,9 @@ public class EndActivity extends AppCompatActivity {
                 }
 
                 android.widget.Toast.makeText(EndActivity.this, "라이딩 기록을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                // Keep the recovery checkpoint until both GPX upload and record insert succeed.
+                RideSessionStore.clear(EndActivity.this);
+                RideRouteCache.clear(EndActivity.this);
                 Intent home = new Intent(EndActivity.this, com.bike.trailgo.MainActivity.class);
                 home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(home);
@@ -782,7 +847,11 @@ public class EndActivity extends AppCompatActivity {
                 .setTitle("저장하지 않고 나갈까요?")
                 .setMessage("이번 주행 기록은 저장되지 않습니다.")
                 .setNegativeButton("계속 작성", null)
-                .setPositiveButton("나가기", (dialog, which) -> finish())
+                .setPositiveButton("나가기", (dialog, which) -> {
+                    RideSessionStore.clear(EndActivity.this);
+                    RideRouteCache.clear(EndActivity.this);
+                    finish();
+                })
                 .show();
     }
 

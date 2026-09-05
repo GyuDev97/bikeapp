@@ -29,7 +29,6 @@ import com.bike.trailgo.ui.member.LoginActivity;
 import com.bike.trailgo.ui.riding.StartActivity;
 
 public class AppSettingsFragment extends BaseFragment {
-    private static final String PREFS = "trailgo_settings";
     private static final String STATE_PAGE = "settings_page";
     private static final int GREEN = Color.rgb(46, 125, 50);
     private static final int TEXT = Color.rgb(20, 27, 23);
@@ -55,7 +54,8 @@ public class AppSettingsFragment extends BaseFragment {
         title = view.findViewById(R.id.settings_title);
         back = view.findViewById(R.id.settings_back);
         bottomNav = view.findViewById(R.id.settings_bottom_nav);
-        prefs = requireContext().getSharedPreferences(PREFS, Activity.MODE_PRIVATE);
+        RideSettings.migrate(requireContext());
+        prefs = RideSettings.preferences(requireContext());
         back.setOnClickListener(v -> showPage("main"));
         bindBottomNavigation(view);
         showPage(state == null ? "main" : state.getString(STATE_PAGE, "main"));
@@ -81,58 +81,49 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void buildMain() {
-        addMainRow("일반", "언어, 단위, 기본 화면", R.drawable.ic_setting_home, () -> showPage("general"));
-        addMainRow("알림", "라이딩, 위험지역, 배터리", R.drawable.profile_ic_bell, () -> showPage("notifications"));
-        addMainRow("화면 표시", "테마, 지도, 밝기", R.drawable.profile_ic_theme, () -> showPage("display"));
-        addMainRow("주행 설정", "GPS, 자동 일시정지, 음성", R.drawable.profile_ic_bicycle, () -> showPage("riding"));
-        addMainRow("개인정보", "공개 범위, 데이터, 위치", R.drawable.profile_ic_lock, () -> showPage("privacy"));
+        addMainRow("일반", "1.0 기본 동작", R.drawable.ic_setting_home, () -> showPage("general"));
+        addMainRow("알림", "위험지역 알림", R.drawable.profile_ic_bell, () -> showPage("notifications"));
+        addMainRow("화면 표시", "화면 꺼짐·밝기 유지", R.drawable.profile_ic_theme, () -> showPage("display"));
+        addMainRow("주행 설정", "기록 주기, 배터리, 음성", R.drawable.profile_ic_bicycle, () -> showPage("riding"));
+        addMainRow("개인정보", "기본 공개 범위", R.drawable.profile_ic_lock, () -> showPage("privacy"));
         addMainRow("연동 서비스", "GPX, 외부 서비스", R.drawable.profile_ic_data, () -> showPage("services"));
         addMainRow("버전 정보", "앱 버전, 정책, 라이선스", R.drawable.profile_ic_help, () -> showPage("version"));
-        TextView logout = simpleAction("로그아웃", Color.rgb(229, 57, 53));
-        logout.setOnClickListener(v -> confirmLogout());
+        if (AccountSession.isGuest(requireContext())) {
+            TextView login = simpleAction("로그인 또는 회원가입", GREEN);
+            login.setOnClickListener(v -> startActivity(new Intent(requireContext(), LoginActivity.class)));
+        } else {
+            TextView logout = simpleAction("로그아웃", Color.rgb(229, 57, 53));
+            logout.setOnClickListener(v -> confirmLogout());
+        }
     }
 
     private void buildGeneral() {
-        addChoiceRow("언어", null, "language", "한국어", new String[]{"한국어", "English"});
-        addChoiceRow("단위 설정", null, "units", "km, m, km/h", new String[]{"km, m, km/h", "mi, ft, mph"});
-        addChoiceRow("기본 화면", null, "default_screen", "홈", new String[]{"홈", "기록", "코스", "프로필"});
-        addSwitchRow("자동 저장", "라이딩 종료 시 자동으로 기록을 저장합니다.", "auto_save", true);
-        addChoiceRow("앱 시작 시 기본 화면", null, "launch_screen", "홈", new String[]{"홈", "기록", "코스"});
-        addSwitchRow("백그라운드 실행", "앱이 백그라운드에서도 계속 실행되도록 합니다.", "background_run", true);
+        addUnavailableRow("언어와 단위", "한국어 · km 단위로 고정되어 있습니다.");
+        addUnavailableRow("시작 화면", "현재는 홈 화면으로 고정되어 있습니다.");
+        addUnavailableRow("자동 저장", "저장 전 기록 요약 화면에서 사용자가 확인합니다.");
+        addUnavailableRow("백그라운드 주행", "주행 중에는 위치 기록 서비스가 항상 유지됩니다.");
     }
 
     private void buildNotifications() {
-        addSwitchRow("라이딩 시작/종료 알림", "라이딩 시작과 종료를 알립니다.", "notify_ride", true);
-        addSwitchRow("코스 이탈 알림", "설정한 코스를 벗어나면 알립니다.", "notify_course", true);
-        addSwitchRow("위험지역 접근 알림", "위험지역에 접근하면 알립니다.", "notify_danger", true);
-        addSwitchRow("배터리 부족 알림", "배터리 잔량이 낮으면 알립니다.", "notify_battery", true);
-        addSwitchRow("긴급 알림", "긴급 상황 발생 시 알림을 보냅니다.", "notify_emergency", true);
-        addChoiceRow("알림 시간대", null, "notify_time", "항상", new String[]{"항상", "주간", "사용 안 함"});
-        addChoiceRow("알림 진동", null, "notify_vibration", "기본 진동", new String[]{"기본 진동", "강하게", "진동 없음"});
+        addSwitchRow("위험지역 접근 음성 안내", "위험지역에 접근하면 주행 중 음성으로 안내합니다.", RideSettings.KEY_DANGER_ALERTS, true);
+        addUnavailableRow("코스 이탈 알림", "코스 이탈 판정 기능이 준비되면 제공됩니다.");
+        addUnavailableRow("배터리 부족 알림", "1.0에서는 시스템 배터리 알림을 사용합니다.");
+        addUnavailableRow("알림 시간대·진동", "1.0에서는 기기 기본 설정을 따릅니다.");
     }
 
     private void buildDisplay() {
-        addSectionLabel("테마 모드");
-        addSegments("theme", new String[]{"라이트", "다크", "시스템"}, "라이트");
-        addChoiceRow("지도 테마", null, "map_theme", "기본 지도", new String[]{"기본 지도", "지형 지도", "위성 지도"});
-        addChoiceRow("지도 표시 요소", "경로, POI 등", "map_elements", "기본", new String[]{"기본", "간소화", "상세"});
-        addSwitchRow("주행 중 화면 자동 꺼짐 방지", "화면이 꺼지지 않도록 유지합니다.", "keep_screen", true);
-        addChoiceRow("속도계 숫자 크기", null, "speed_size", "크게", new String[]{"보통", "크게", "매우 크게"});
-        addSwitchRow("밝기 유지", "주행 중 화면 밝기를 최대로 유지합니다.", "keep_brightness", true);
-        addPreview();
+        addSwitchRow("주행 중 화면 자동 꺼짐 방지", "주행 화면이 보이는 동안 화면을 켜 둡니다.", RideSettings.KEY_KEEP_SCREEN, true);
+        addSwitchRow("밝기 유지", "주행 화면이 보이는 동안 밝기를 최대로 유지합니다.", RideSettings.KEY_KEEP_BRIGHTNESS, true);
+        addUnavailableRow("테마·지도 표시·속도계 크기", "1.0 화면은 기본 표시로 고정되어 있습니다.");
     }
 
     private void buildRiding() {
-        addSwitchRow("자동 일시정지", "신호나 정지 시 자동으로 일시정지합니다.", "auto_pause", true);
-        addChoiceRow("이동 감지 민감도", null, "motion_sensitivity", "보통", new String[]{"낮음", "보통", "높음"});
-        addChoiceRow("GPS 기록 정밀도", null, "gps_accuracy", "높음 (1초)", new String[]{"절전 (5초)", "보통 (3초)", "높음 (1초)"});
-        addChoiceRow("위치 기록 주기", null, "location_interval", "1초", new String[]{"1초", "3초", "5초"});
-        addSwitchRow("배터리 절약 모드", "배터리 사용을 줄여 더 오래 기록합니다.", "battery_saver", false);
-        addSwitchRow("음성 안내", "주행 정보와 알림을 음성으로 안내합니다.", "voice_guide", true);
-        addChoiceRow("주행 중 화면 회전", null, "screen_rotation", "자동", new String[]{"자동", "세로 고정", "가로 고정"});
-        addSwitchRow("고도 보정", "시작 시 고도를 보정합니다.", "altitude_correction", true);
-        TextView test = simpleAction("기록 품질 테스트  ›", TEXT);
-        test.setOnClickListener(v -> Toast.makeText(requireContext(), "GPS와 센서 상태가 양호합니다.", Toast.LENGTH_SHORT).show());
+        addChoiceRow("위치 기록 주기", "다음 위치 요청부터 반영됩니다.", RideSettings.KEY_LOCATION_INTERVAL, "1초", new String[]{"1초", "3초", "5초"});
+        addSwitchRow("배터리 절약 모드", "켜면 위치 기록 주기를 5초로 사용합니다.", RideSettings.KEY_BATTERY_SAVER, false);
+        addSwitchRow("음성 안내", "위험지역 및 Ride Assistant 안내 음성을 켜거나 끕니다.", RideSettings.KEY_VOICE_GUIDE, true);
+        addUnavailableRow("자동 일시정지", "주행 시간과 기록 정확도를 보장하기 위해 1.0에서는 수동 일시정지만 지원합니다.");
+        addUnavailableRow("GPS 기록 정밀도", "위치 기록 주기 설정으로 통합되었습니다.");
+        addUnavailableRow("이동 감지·화면 회전·고도 보정", "1.0에서는 기기 기본값과 GPS 고도값을 사용합니다.");
         if (BuildConfig.DEBUG) {
             TextView simulator = simpleAction("Ride Assistant 테스트  ›\n시뮬레이션 주행으로 AI 안내 흐름을 점검합니다.", TEXT);
             simulator.setOnClickListener(v -> {
@@ -144,18 +135,9 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void buildPrivacy() {
-        addChoiceRow("기본 기록 공개 범위", null, "record_visibility", "전체 공개", new String[]{"전체 공개", "친구 공개", "비공개"});
-        addSwitchRow("위치정보 저장", "라이딩 경로를 저장합니다.", "save_location", true);
-        addSwitchRow("사진 위치정보 포함", "사진에 위치정보를 포함합니다.", "photo_location", true);
-        TextView export = simpleAction("데이터 내보내기  ›\n내 기록 데이터를 내보냅니다.", TEXT);
-        export.setOnClickListener(v -> Toast.makeText(requireContext(), "데이터 내보내기는 준비 중입니다.", Toast.LENGTH_SHORT).show());
-        TextView delete = simpleAction("계정 삭제  ›\n계정과 모든 데이터를 삭제합니다.", Color.rgb(229, 57, 53));
-        delete.setOnClickListener(v -> new AlertDialog.Builder(requireContext())
-                .setTitle("계정을 삭제할까요?")
-                .setMessage("서버에 저장된 기록과 계정 정보가 모두 삭제됩니다.")
-                .setNegativeButton("취소", null)
-                .setPositiveButton("삭제", (dialog, which) -> Toast.makeText(requireContext(), "계정 삭제 API 연결이 필요합니다.", Toast.LENGTH_SHORT).show())
-                .show());
+        addChoiceRow("기본 기록 공개 범위", "저장 화면의 초기 공개 범위에 반영됩니다.", RideSettings.KEY_RECORD_VISIBILITY, "전체 공개", new String[]{"전체 공개", "비공개"});
+        addValueRow("개인정보·위치정보 안내", "›", this::openPrivacyCenter);
+        addValueRow("계정 삭제", "삭제 범위 및 처리 상태  ›", this::openPrivacyCenter);
         addSecurityNotice();
     }
 
@@ -182,7 +164,7 @@ public class AppSettingsFragment extends BaseFragment {
         content.addView(brand);
         addDivider();
         addValueRow("업데이트 확인", "최신 버전입니다", this::comingSoon);
-        addValueRow("개인정보처리방침", "›", this::comingSoon);
+        addValueRow("개인정보처리방침", "›", this::openPrivacyCenter);
         addValueRow("이용약관", "›", this::comingSoon);
         addValueRow("오픈소스 라이선스", "›", this::comingSoon);
         TextView copyright = text("© 2026 TrailGo. All rights reserved.", 11, MUTED);
@@ -226,6 +208,19 @@ public class AppSettingsFragment extends BaseFragment {
         TextView value = text(valueText, 12, MUTED);
         row.addView(value);
         row.setOnClickListener(v -> action.run());
+        content.addView(row);
+        addDivider();
+    }
+
+    /** A visible status row avoids presenting an unimplemented feature as a working switch. */
+    private void addUnavailableRow(String heading, String detail) {
+        LinearLayout row = baseRow(dp(68));
+        row.setClickable(false);
+        row.setFocusable(false);
+        addLabels(row, heading, detail);
+        TextView status = text("준비 중", 12, MUTED);
+        status.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        row.addView(status, new LinearLayout.LayoutParams(dp(58), ViewGroup.LayoutParams.MATCH_PARENT));
         content.addView(row);
         addDivider();
     }
@@ -329,7 +324,7 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void addSecurityNotice() {
-        TextView notice = text("개인정보 보호를 위해 안전하게 관리됩니다.", 12, MUTED);
+        TextView notice = text("주행 기록에는 위치 경로와 고도값이 포함될 수 있습니다. 수집·보관·삭제 기준은 개인정보 안내에서 확인하세요.", 12, MUTED);
         notice.setGravity(Gravity.CENTER_VERTICAL);
         notice.setBackgroundColor(Color.rgb(245, 247, 246));
         notice.setPadding(dp(16), dp(20), dp(16), dp(20));
@@ -397,17 +392,29 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void confirmLogout() {
+        if (UserSessionManager.hasUnfinishedRide(requireContext())) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("주행 기록 중")
+                    .setMessage("진행 중인 주행을 먼저 종료하고 저장한 뒤 로그아웃하세요. 기록 유실을 막기 위해 지금은 로그아웃할 수 없습니다.")
+                    .setPositiveButton("확인", null)
+                    .show();
+            return;
+        }
         new AlertDialog.Builder(requireContext())
                 .setTitle("로그아웃")
-                .setMessage("TrailGo에서 로그아웃할까요?")
+                .setMessage("이 기기의 로그인·프로필·SOS 연락처와 임시 주행 데이터를 지웁니다. 서버의 계정과 저장된 기록은 유지됩니다.")
                 .setNegativeButton("취소", null)
                 .setPositiveButton("로그아웃", (dialog, which) -> {
-                    requireActivity().getSharedPreferences("auto", Activity.MODE_PRIVATE).edit().clear().apply();
+                    UserSessionManager.clearLocalUserData(requireContext());
                     Intent intent = new Intent(requireContext(), LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     requireActivity().finish();
                 }).show();
+    }
+
+    private void openPrivacyCenter() {
+        startActivity(new Intent(requireContext(), PrivacyCenterActivity.class));
     }
 
     private void openGpx() {

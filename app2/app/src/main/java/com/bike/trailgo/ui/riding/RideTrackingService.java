@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -15,13 +16,13 @@ import android.os.Build;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.bike.trailgo.R;
 import com.bike.trailgo.dto.DangerousArea;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.rideassistant.RideAssistant;
+import com.bike.trailgo.setting.RideSettings;
 
 import java.util.List;
 
@@ -45,6 +46,18 @@ public class RideTrackingService extends Service implements LocationListener {
     private RideAssistant rideAssistant;
     private Call<List<DangerousArea>> dangerAreaCall;
     private boolean tracking;
+    private SharedPreferences rideSettings;
+    private final SharedPreferences.OnSharedPreferenceChangeListener settingsListener = (preferences, key) -> {
+        if (RideSettings.KEY_LOCATION_INTERVAL.equals(key) || RideSettings.KEY_BATTERY_SAVER.equals(key)) {
+            restartTracking();
+        } else if (RideSettings.KEY_VOICE_GUIDE.equals(key) && rideAssistant != null) {
+            rideAssistant.setVoiceGuidanceEnabled(RideSettings.isVoiceGuidanceEnabled(this));
+        } else if (RideSettings.KEY_DANGER_ALERTS.equals(key) && rideAssistant != null) {
+            boolean enabled = RideSettings.areDangerAlertsEnabled(this);
+            rideAssistant.setDangerAlertsEnabled(enabled);
+            if (enabled) loadDangerAreas();
+        }
+    };
 
     public static void start(Context context) {
         Intent intent = new Intent(context, RideTrackingService.class).setAction(ACTION_START);
@@ -78,9 +91,14 @@ public class RideTrackingService extends Service implements LocationListener {
         super.onCreate();
         createNotificationChannel();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        RideSettings.migrate(this);
+        rideSettings = RideSettings.preferences(this);
+        rideSettings.registerOnSharedPreferenceChangeListener(settingsListener);
         rideAssistant = new RideAssistant(this);
+        rideAssistant.setVoiceGuidanceEnabled(RideSettings.isVoiceGuidanceEnabled(this));
+        rideAssistant.setDangerAlertsEnabled(RideSettings.areDangerAlertsEnabled(this));
         rideAssistant.start();
-        loadDangerAreas();
+        if (RideSettings.areDangerAlertsEnabled(this)) loadDangerAreas();
     }
 
     @Override
@@ -92,31 +110,38 @@ public class RideTrackingService extends Service implements LocationListener {
             stopSelf();
             return START_NOT_STICKY;
         }
+
+        // A pause/resume command can also recreate a killed foreground service.  Promote it
+        // before handling the command so Android's foreground-service deadline is always met.
+        startForeground(NOTIFICATION_ID, buildNotification());
         if (ACTION_PAUSE.equals(action)) {
             rideAssistant.pause(System.currentTimeMillis());
-            return START_NOT_STICKY;
+            return START_STICKY;
         }
         if (ACTION_RESUME.equals(action)) {
             rideAssistant.resume(System.currentTimeMillis());
-            return START_NOT_STICKY;
+            return START_STICKY;
         }
 
-        startForeground(NOTIFICATION_ID, buildNotification());
+        RideSessionStore.Snapshot snapshot = RideSessionStore.load(this);
+        if (snapshot != null && snapshot.status == 2) {
+            rideAssistant.pause(System.currentTimeMillis());
+        }
         startTracking();
-        return START_NOT_STICKY;
+        // The OS may reclaim this process while the screen is off.  Restarting the foreground
+        // service is safer than silently ending an unfinished ride; ACTION_STOP remains explicit.
+        return START_STICKY;
     }
 
     private void startTracking() {
-        if (tracking || locationManager == null
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (tracking || locationManager == null || !RidePermissionFlow.hasPreciseLocation(this)) {
             return;
         }
 
         try {
             locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
-                    1000L,
+                    RideSettings.locationIntervalMillis(this),
                     2f,
                     this
             );
@@ -136,6 +161,12 @@ public class RideTrackingService extends Service implements LocationListener {
             locationManager.removeUpdates(this);
         }
         tracking = false;
+    }
+
+    private void restartTracking() {
+        if (!tracking) return;
+        stopTracking();
+        startTracking();
     }
 
     @Override
@@ -164,6 +195,9 @@ public class RideTrackingService extends Service implements LocationListener {
     @Override
     public void onDestroy() {
         stopTracking();
+        if (rideSettings != null) {
+            rideSettings.unregisterOnSharedPreferenceChangeListener(settingsListener);
+        }
         if (dangerAreaCall != null) dangerAreaCall.cancel();
         if (rideAssistant != null) rideAssistant.shutdown();
         super.onDestroy();
@@ -203,6 +237,9 @@ public class RideTrackingService extends Service implements LocationListener {
     }
 
     private void loadDangerAreas() {
+        if (!RideSettings.areDangerAlertsEnabled(this)) {
+            return;
+        }
         try {
             dangerAreaCall = Server.getInstance().getApi().getDangerArea();
             dangerAreaCall.enqueue(new Callback<List<DangerousArea>>() {

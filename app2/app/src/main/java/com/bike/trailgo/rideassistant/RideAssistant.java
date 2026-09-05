@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.bike.trailgo.BuildConfig;
 import com.bike.trailgo.dto.DangerousArea;
+import com.bike.trailgo.setting.AccountSession;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -26,6 +27,8 @@ public final class RideAssistant {
     private final Observer observer;
     private final Map<RideEventType, Long> nextServerSpeakMillis = new EnumMap<>(RideEventType.class);
     private boolean paused;
+    private boolean voiceGuidanceEnabled = true;
+    private boolean dangerAlertsEnabled = true;
     private RideState lastLoggedState = RideState.FLAT;
 
     public interface Observer {
@@ -49,12 +52,14 @@ public final class RideAssistant {
                 BuildConfig.GYUVIS_BASE_URL,
                 BuildConfig.GYUVIS_API_TOKEN
         );
-        this.gyuvisEnabled = gyuvisEnabled;
+        // Guest rides remain fully usable without an account or a network connection.
+        // Local safety alerts continue; only optional remote coaching is skipped.
+        this.gyuvisEnabled = gyuvisEnabled && !AccountSession.isGuest(context);
         this.observer = observer;
     }
 
     public void start() {
-        voiceManager.start();
+        if (voiceGuidanceEnabled) voiceManager.start();
     }
 
     public void pause(long nowMs) {
@@ -71,6 +76,19 @@ public final class RideAssistant {
         dangerMonitor.setAreas(areas);
     }
 
+    public void setVoiceGuidanceEnabled(boolean enabled) {
+        voiceGuidanceEnabled = enabled;
+        if (enabled) {
+            voiceManager.start();
+        } else {
+            voiceManager.stop();
+        }
+    }
+
+    public void setDangerAlertsEnabled(boolean enabled) {
+        dangerAlertsEnabled = enabled;
+    }
+
     public void onLocation(Location location) {
         if (paused || location == null) return;
         long timestamp = location.getTime() > 0L ? location.getTime() : System.currentTimeMillis();
@@ -83,9 +101,9 @@ public final class RideAssistant {
         logContext(context);
         if (observer != null) observer.onContext(context);
         for (RideEvent event : eventDetector.detect(context)) submit(event);
-        RideEvent danger = dangerMonitor.evaluate(context);
+        RideEvent danger = dangerAlertsEnabled ? dangerMonitor.evaluate(context) : null;
         if (danger != null) {
-            voiceManager.speak(danger.localSafetyMessage, VoicePriority.HIGH);
+            speakIfEnabled(danger.localSafetyMessage, VoicePriority.HIGH);
             submit(danger);
         }
     }
@@ -116,7 +134,7 @@ public final class RideAssistant {
                 if (nextAllowed != null && returnedEvent.timestampMs < nextAllowed) return;
                 long cooldownMillis = Math.max(0L, response.cooldownSec) * 1000L;
                 nextServerSpeakMillis.put(returnedEvent.type, returnedEvent.timestampMs + cooldownMillis);
-                voiceManager.speak(response.message, VoicePriority.fromServerValue(response.priority));
+                speakIfEnabled(response.message, VoicePriority.fromServerValue(response.priority));
             }
 
             @Override
@@ -136,6 +154,12 @@ public final class RideAssistant {
                 + context.continuousDescentSeconds + " elevation_gain=" + context.elevationGain10mMeters);
         Log.d(TAG, "[STATE] previous_state=" + lastLoggedState + " current_state=" + context.currentRideState);
         lastLoggedState = context.currentRideState;
+    }
+
+    private void speakIfEnabled(String message, VoicePriority priority) {
+        if (voiceGuidanceEnabled) {
+            voiceManager.speak(message, priority);
+        }
     }
 
     private String eventReason(RideEvent event) {

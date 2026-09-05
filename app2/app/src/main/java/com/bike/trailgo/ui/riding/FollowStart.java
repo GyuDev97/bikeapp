@@ -17,7 +17,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.SoundPool;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
@@ -26,7 +25,6 @@ import android.os.SystemClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +49,7 @@ import com.bike.trailgo.gpx.TrackPoint;
 import com.bike.trailgo.gpx.TrackSegment;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.net.ServerApi;
+import com.bike.trailgo.setting.RideSettings;
 import com.google.android.material.tabs.TabLayout;
 import net.daum.mf.map.api.CalloutBalloonAdapter;
 import net.daum.mf.map.api.CameraUpdateFactory;
@@ -67,8 +66,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -79,6 +76,7 @@ import retrofit2.Response;
 @SuppressLint("HandlerLeak")
 public class FollowStart extends AppCompatActivity
         implements LocationListener, MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.MapViewEventListener, MapView.POIItemEventListener {
+    private static final long SESSION_CHECKPOINT_INTERVAL_MS = 10_000L;
     private SoundPool soundPool;
     private SoundManager soundManager;
     private boolean play;
@@ -97,6 +95,7 @@ public class FollowStart extends AppCompatActivity
         }
     };
     private Location mLastlocation = null;
+    private long lastSessionCheckpointMillis = 0L;
     private int cnt=0;
 
     private String getDalat, getDalon, getDacon, address_dong;
@@ -124,14 +123,12 @@ public class FollowStart extends AppCompatActivity
     long PauseTime;
     private Thread timeThread = null;
     private Boolean isRunning = true;
-    String tel2="";
     private Spinner spinner;
     private ArrayList<String> list;
     private String number;
     Intent intent;
     SpeechRecognizer mRecognizer;
-    private SmsManager smsManager;
-    private String tel="";
+    private boolean voicePermissionOfferShown;
     private String gpx_name;
     private String c_name, comp_point, comp_name;
 
@@ -176,15 +173,11 @@ public class FollowStart extends AppCompatActivity
         SharedPreferences phone = getSharedPreferences("auto", MODE_PRIVATE);
         number = phone.getString("sosphone", "");
 
-        smsManager = SmsManager.getDefault();
         //음성인식
         intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
 
-        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        mRecognizer.setRecognitionListener(listener);
-        mRecognizer.startListening(intent);
         //id refernece for wizet
         spinner = (Spinner) findViewById(R.id.help);
 
@@ -199,19 +192,6 @@ public class FollowStart extends AppCompatActivity
 
         String course_name = intentt.getStringExtra("c_name");
 
-
-        if (a == "전화") {
-            try {
-                SmsManager smsManager = SmsManager.getDefault();
-                String sms = "" +
-                        "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                smsManager.sendTextMessage(number, null, sms, null, null);
-                Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
-                e.printStackTrace();
-            }
-        }
 
         //input array data
         list = new ArrayList<>();
@@ -232,40 +212,18 @@ public class FollowStart extends AppCompatActivity
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Toast.makeText(getApplicationContext(),"선택된 아이템 : "+position+spinner.getItemAtPosition(position),Toast.LENGTH_SHORT).show();
-                tel = "tel:01047527613";
-                tel2 = "tel:" + number;
-                Log.d("전화번호", tel2);
                 switch (position) {
                     case 1:
-                        startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
+                        SosHelper.confirmEmergencyServiceCall(FollowStart.this);
                         break;
                     case 2:
-                        try {
-                            SmsManager smsManager = SmsManager.getDefault();
-                            String sms = "" +
-                                    "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                            smsManager.sendTextMessage("010-4752-7613", null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
-
+                        SosHelper.confirmEmergencyServiceMessage(FollowStart.this, emergencyMessage());
                         break;
                     case 3:
-                        startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel2)));
+                        SosHelper.confirmContactCall(FollowStart.this);
                         break;
                     case 4:
-                        try {
-                            SmsManager smsManager = SmsManager.getDefault();
-                            String sms = "" +
-                                    "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                            smsManager.sendTextMessage(number, null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "전송에 실패하였습니다. 내장전화앱으로 전환합니다.", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
+                        SosHelper.confirmContactMessage(FollowStart.this, emergencyMessage());
                         break;
                 }
             }
@@ -321,11 +279,10 @@ public class FollowStart extends AppCompatActivity
                         polyline.setTag(1000);
                         polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline 컬러 지정.
                         //서버에 올려둔 이미지 URL
-                        URL url = new URL(Server.getUrl("app/getGPX/gpx/" + gpx_name));
                         //Web에서 이미지 가져온 후 ImageView에 지정할 Bitmap 만들기
                     /* URLConnection 생성자가 protected로 선언되어 있으므로
                      개발자가 직접 HttpURLConnection 객체 생성 불가 */
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        HttpURLConnection conn = Server.openConnection("app/getGPX/gpx/" + gpx_name);
                     /* openConnection()메서드가 리턴하는 urlConnection 객체는
                     HttpURLConnection의 인스턴스가 될 수 있으므로 캐스팅해서 사용한다*/
 
@@ -366,8 +323,6 @@ public class FollowStart extends AppCompatActivity
                         }
 
 
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -378,12 +333,18 @@ public class FollowStart extends AppCompatActivity
 
 
         //이동시간 핸들러
-        BaseTime = SystemClock.elapsedRealtime();
-        RidingTimer.sendEmptyMessage(0);
+        boolean restoredSession = restoreRideSession();
+        if (!restoredSession) {
+            BaseTime = SystemClock.elapsedRealtime();
+            cur_status = Run;
+            persistRideSession();
+        }
+        if (cur_status == Run) {
+            RidingTimer.sendEmptyMessage(0);
+        }
         startRideTracking();
 
         //send_sms = (Button) findViewById(R.id.help);
-        cur_status = Run; //현재상태를 런상태로 변경
         binding.mapLayout.setVisibility(View.VISIBLE); //지도
         binding.speedPre.setVisibility(View.VISIBLE); //지도탭에서 보여지는거
         binding.speedTap.setVisibility(View.GONE); //속도계
@@ -447,20 +408,23 @@ public class FollowStart extends AppCompatActivity
                 }
 
                 stopRideTracking();
+                persistRideSession();
 
                 Log.d("로그랑",total_time+ " " + hap + " " + maX + " " + avg + " " + getgodo + " " +rest + " " + adress_value + " " );
                 startActivity(intent);
                 finish();
         });
 
-        DangerGet = serverApi.getDangerArea();
+        if (RideSettings.areDangerAlertsEnabled(this)) {
+            DangerGet = serverApi.getDangerArea();
         DangerGet.enqueue(new Callback<List<DangerousArea>>() {
             @Override
             public void onResponse(Call<List<DangerousArea>> call, Response<List<DangerousArea>> response) {
-                if(response.code()==200) {
+                if(response.isSuccessful() && response.body() != null) {
                     getDanger= response.body();
 
                     for (DangerousArea danger : getDanger) {
+                        try {
                         getDalat = danger.getDa_latitude();
                         getDalon = danger.getDa_longitude();
                         getDacon = danger.getDa_content();
@@ -479,15 +443,19 @@ public class FollowStart extends AppCompatActivity
                         mCustomMarker.setCustomImageAnchor(0.5f, 1.0f);
 
                         mMapView.addPOIItem(mCustomMarker);
+                        } catch (RuntimeException error) {
+                            Log.w("RideDanger", "Skipping invalid danger marker", error);
+                        }
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<List<DangerousArea>> call, Throwable t) {
-                t.printStackTrace();
+                Log.w("RideDanger", "Danger markers unavailable; ride tracking continues", t);
             }
         });
+        }
 
     }
     private void changeView(int index) {
@@ -510,13 +478,16 @@ public class FollowStart extends AppCompatActivity
     }
 
     private void startRideTracking() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3101);
+        if (!RidePermissionFlow.hasPreciseLocation(this)) {
+            RidePermissionFlow.requestRideLocation(this);
             return;
         }
         RideTrackingService.start(this);
+        RidePermissionFlow.requestBackgroundLocationForLongRide(this);
+        if (!voicePermissionOfferShown) {
+            voicePermissionOfferShown = true;
+            offerVoiceCommands();
+        }
     }
 
     private void registerRideLocationReceiver() {
@@ -541,9 +512,19 @@ public class FollowStart extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 3101 && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startRideTracking();
+        if (requestCode == RidePermissionFlow.REQUEST_RIDE_LOCATION) {
+            if (RidePermissionFlow.hasPreciseLocation(this)) {
+                startRideTracking();
+            } else {
+                RidePermissionFlow.showDenied(this, "정확한 위치");
+            }
+        } else if (requestCode == RidePermissionFlow.REQUEST_MICROPHONE) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                    == PackageManager.PERMISSION_GRANTED) {
+                startVoiceRecognition();
+            } else {
+                RidePermissionFlow.showDenied(this, "음성 명령");
+            }
         }
     }
 
@@ -575,6 +556,7 @@ public class FollowStart extends AppCompatActivity
                     RideTrackingService.pauseAssistant(this);
 
                         cur_status = Pause;
+                        persistRideSession();
                         binding.resumeBt.setVisibility(View.VISIBLE);
                         binding.pausebt.setVisibility(View.GONE);
                         Log.d("cur_status", "실행");
@@ -587,6 +569,7 @@ public class FollowStart extends AppCompatActivity
                     BaseTime += (now2 - PauseTime);
                     RideTrackingService.resumeAssistant(this);
                     cur_status = Run;
+                    persistRideSession();
                         binding.resumeBt.setVisibility(View.GONE);
                         binding.pausebt.setVisibility(View.VISIBLE);
                         Log.d("cur_status", "중지");
@@ -752,6 +735,10 @@ public class FollowStart extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
+        if (cur_status != Run) {
+            mLastlocation = null;
+            return;
+        }
         latitude = location.getLatitude();
         lonngitude = location.getLongitude();
 
@@ -778,13 +765,17 @@ public class FollowStart extends AppCompatActivity
         polyline.setLineColor(Color.argb(128, 255, 51, 0));
 
         polyline.addPoint(MapPoint.mapPointWithGeoCoord(latitude, lonngitude));
-        mMapView.addPolyline(polyline);
-        mMapView.isShowingCurrentLocationMarker();
+        if (mMapView != null) {
+            mMapView.addPolyline(polyline);
+            mMapView.isShowingCurrentLocationMarker();
+        }
 
         // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
         MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
         int padding = 50; // px
-        mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding, 2, 3));
+        if (mMapView != null) {
+            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding, 2, 3));
+        }
 
         gCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
         try {
@@ -804,11 +795,15 @@ public class FollowStart extends AppCompatActivity
             MapPolyline polyline2 = new MapPolyline();
             polyline.setLineColor(Color.argb(128, 255, 51, 0));
             polyline.addPoint(MapPoint.mapPointWithGeoCoord(mLastlocation.getLatitude(), mLastlocation.getLongitude()));
-            mMapView.addPolyline(polyline);
+            if (mMapView != null) {
+                mMapView.addPolyline(polyline);
+            }
 
             // 지도뷰의 중심좌표와 줌레벨을 Polyline이 모두 나오도록 조정.
             MapPointBounds mapPointBounds2 = new MapPointBounds(polyline.getMapPoints());
-            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds2, padding, 2, 3));
+            if (mMapView != null) {
+                mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds2, padding, 2, 3));
+            }
 
             if (getSpeed > maX) {
                 maX = getSpeed;
@@ -824,13 +819,13 @@ public class FollowStart extends AppCompatActivity
 
             double killlo;
             if (hap >= 1000) {
-                killlo = hap / 0;
+                killlo = hap / 1000.0;
                 binding.dis.setText(String.format("%.1f", killlo));
                 binding.mDistance.setText(String.format("%.1f", killlo) + "km");
             }
 
             //평균속도
-            avg = hap / total_time;
+            avg = total_time > 0 ? (hap / total_time) * 3.6 : 0;
             binding.avgspeed.setText(String.format("%.1f", Double.parseDouble(String.valueOf(avg))));
             cha_avg = String.format("%.0f", (avg));
 
@@ -847,6 +842,72 @@ public class FollowStart extends AppCompatActivity
         }
         // 현재위치를 지난 위치로 변경
         mLastlocation = location;
+        checkpointRideSessionIfDue();
+    }
+
+    private void checkpointRideSessionIfDue() {
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastSessionCheckpointMillis >= SESSION_CHECKPOINT_INTERVAL_MS) {
+            persistRideSession();
+        }
+    }
+
+    private void persistRideSession() {
+        RideSessionStore.save(this, new RideSessionStore.Snapshot(
+                true, cur_status, BaseTime, PauseTime, rest, total_time,
+                hap, maX, avg, getgodo, 0,
+                maxLat, maxLon, minLat, minLon,
+                latitude, lonngitude,
+                mLastlocation != null && mLastlocation.hasAltitude() ? mLastlocation.getAltitude() : 0d,
+                adress_value, address_dong,
+                witch_lat, witch_lon, ele, godoArray
+        ));
+        lastSessionCheckpointMillis = SystemClock.elapsedRealtime();
+    }
+
+    private boolean restoreRideSession() {
+        RideSessionStore.Snapshot snapshot = RideSessionStore.load(this);
+        if (snapshot == null || !snapshot.followMode) {
+            return false;
+        }
+
+        cur_status = snapshot.status;
+        BaseTime = snapshot.baseTime;
+        PauseTime = snapshot.pauseTime;
+        rest = snapshot.restSeconds;
+        total_time = snapshot.activeSeconds;
+        hap = snapshot.distanceMeters;
+        maX = snapshot.maxSpeedKmh;
+        avg = snapshot.averageSpeedKmh;
+        getgodo = snapshot.elevationGainMeters;
+        maxLat = snapshot.maxLat;
+        maxLon = snapshot.maxLon;
+        minLat = snapshot.minLat;
+        minLon = snapshot.minLon;
+        latitude = snapshot.lastLatitude;
+        lonngitude = snapshot.lastLongitude;
+        adress_value = snapshot.address == null ? "" : snapshot.address;
+        address_dong = snapshot.addressDong;
+        witch_lat = new ArrayList<>(snapshot.latitudes);
+        witch_lon = new ArrayList<>(snapshot.longitudes);
+        ele = new ArrayList<>(snapshot.elevations);
+        godoArray = new ArrayList<>(snapshot.elevationSamples);
+        if (!witch_lat.isEmpty()) {
+            Location last = new Location(LocationManager.GPS_PROVIDER);
+            last.setLatitude(latitude);
+            last.setLongitude(lonngitude);
+            last.setAltitude(snapshot.lastAltitude);
+            mLastlocation = last;
+        }
+        binding.resttime.setText(formatDuration(rest));
+        binding.getgodo.setText(String.valueOf(getgodo));
+        binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f", maX));
+        binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f", avg));
+        if (cur_status == Pause) {
+            binding.resumeBt.setVisibility(View.VISIBLE);
+            binding.pausebt.setVisibility(View.GONE);
+        }
+        return true;
     }
 
 
@@ -858,7 +919,7 @@ public class FollowStart extends AppCompatActivity
     @Override
     public void onProviderEnabled(String provider) {
         // 위치정보 업데이트
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (!RidePermissionFlow.hasPreciseLocation(this)) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -914,6 +975,7 @@ public class FollowStart extends AppCompatActivity
                 .setNegativeButton("계속 주행", null)
                 .setNeutralButton("기록 없이 종료", (dialog, which) -> {
                     stopRideTracking();
+                    RideSessionStore.clear(this);
                     finish();
                 })
                 .setPositiveButton("종료 후 저장", (dialog, which) -> binding.endriding.performClick())
@@ -930,6 +992,10 @@ public class FollowStart extends AppCompatActivity
             rideLocationReceiverRegistered = false;
         }
         RidingTimer.removeCallbacksAndMessages(null);
+        if (mRecognizer != null) {
+            mRecognizer.destroy();
+            mRecognizer = null;
+        }
         super.onDestroy();
         Log.d("onDestroy", "onDestroy");
 
@@ -937,6 +1003,7 @@ public class FollowStart extends AppCompatActivity
 
     @Override
     protected void onPause() {
+        persistRideSession();
         super.onPause();
         Log.d("onPause", "onPause");
     }
@@ -944,6 +1011,7 @@ public class FollowStart extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        RideSettings.applyRidingDisplay(this);
         Log.d("onResume", "OnResume");
     }
 
@@ -956,6 +1024,32 @@ public class FollowStart extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         Log.d("다른화면임", "다른화면임");
+    }
+
+    private void offerVoiceCommands() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED) {
+            startVoiceRecognition();
+        } else {
+            RidePermissionFlow.requestMicrophone(this);
+        }
+    }
+
+    private void startVoiceRecognition() {
+        if (mRecognizer != null || !SpeechRecognizer.isRecognitionAvailable(this)) {
+            return;
+        }
+        try {
+            mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            mRecognizer.setRecognitionListener(listener);
+            mRecognizer.startListening(intent);
+        } catch (SecurityException exception) {
+            RidePermissionFlow.showDenied(this, "음성 명령");
+        }
+    }
+
+    private String emergencyMessage() {
+        return SosHelper.buildEmergencyMessage(address_dong, latitude, lonngitude);
     }
 
     private RecognitionListener listener = new RecognitionListener() {
@@ -1026,27 +1120,26 @@ public class FollowStart extends AppCompatActivity
             ArrayList<String> matches =
                     results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
+            if (matches == null || matches.isEmpty()) {
+                return;
+            }
+
             for (int i = 0; i < matches.size(); i++) {
                 a = matches.get(i);
                 Log.d("a의값은", a);
             }
             switch (a) {
                 case "위치전송":
-                    String sms = "" +
-                            "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                    smsManager.sendTextMessage(number, null, sms, null, null);
-                    Toast.makeText(getApplicationContext(), "긴급문자를 전송하였습니다.", Toast.LENGTH_LONG).show();
+                    SosHelper.confirmContactMessage(FollowStart.this, emergencyMessage());
                     break;
                 case "119에 전화":
-                    startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
+                    SosHelper.confirmEmergencyServiceCall(FollowStart.this);
                     break;
                 case "지인에게 문자":
-                    String sms2 = "" +
-                            "산에서 다쳤어요! 도와주세요! 제 위치는 " + latitude + ", " + lonngitude + "이고 주소는 " + address_dong + "에요. " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                    smsManager.sendTextMessage(number, null, sms2, null, null);
+                    SosHelper.confirmContactMessage(FollowStart.this, emergencyMessage());
                     break;
                 case "지인에게 통화":
-                    startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel2)));
+                    SosHelper.confirmContactCall(FollowStart.this);
                     break;
                 default:
                     break;

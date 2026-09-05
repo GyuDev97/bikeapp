@@ -31,7 +31,10 @@ final class RideRouteCache {
             double minLat,
             double minLon
     ) throws IOException {
-        File file = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, context.getCacheDir());
+        // The end screen is part of an unfinished ride until the user saves it. Cache files
+        // can be reclaimed by Android under memory pressure, so keep this short-lived handoff
+        // in private app storage and clear it explicitly after the ride is finished.
+        File file = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, context.getFilesDir());
         RouteData data = new RouteData(
                 latitudes,
                 longitudes,
@@ -42,8 +45,11 @@ final class RideRouteCache {
                 minLat,
                 minLon
         );
-        try (ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(file))) {
+        try (FileOutputStream output = new FileOutputStream(file);
+             ObjectOutputStream stream = new ObjectOutputStream(output)) {
             stream.writeObject(data);
+            stream.flush();
+            output.getFD().sync();
         }
         return file.getName();
     }
@@ -53,7 +59,7 @@ final class RideRouteCache {
             return null;
         }
 
-        File file = new File(context.getCacheDir(), fileName);
+        File file = new File(context.getFilesDir(), fileName);
         if (!file.isFile()) {
             return null;
         }
@@ -63,6 +69,20 @@ final class RideRouteCache {
             return data instanceof RouteData ? (RouteData) data : null;
         } catch (IOException | ClassNotFoundException ignored) {
             return null;
+        }
+    }
+
+    static void clear(Context context) {
+        File[] files = context.getFilesDir().listFiles((directory, name) ->
+                name.startsWith(FILE_PREFIX) && name.endsWith(FILE_SUFFIX));
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            // These files are only the short-lived handoff between the ride and end screen.
+            // Failure is harmless because Android may also clear its cache directory at any time.
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
         }
     }
 

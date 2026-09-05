@@ -38,7 +38,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -316,8 +315,7 @@ public class registerActivity extends AppCompatActivity {
                 }
 
                 FileInputStream fis = new FileInputStream(tempFile);
-                URL url = new URL(url_address);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                HttpURLConnection conn = Server.openUrlConnection(url_address);
                 //웹서버를 통해 입출력 가능하도록 설정
                 conn.setDoInput(true);
                 conn.setDoOutput(true);

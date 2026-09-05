@@ -18,7 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
+import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.recycler.MyReportAdapter;
 import com.bike.trailgo.ui.riding.StartActivity;
@@ -90,7 +92,8 @@ public class RecordFragment extends BaseFragment {
     private void bindBottomNavigation(View view) {
         view.findViewById(R.id.bottom_nav_home).setOnClickListener(v -> navigateTo(R.id.nav_home));
         view.findViewById(R.id.bottom_nav_course).setOnClickListener(v -> navigateTo(R.id.nav_course_view));
-        view.findViewById(R.id.bottom_nav_profile).setOnClickListener(v -> navigateTo(R.id.setting));
+        view.findViewById(R.id.bottom_nav_profile).setOnClickListener(v ->
+                navigateTo(AccountSession.isGuest(requireContext()) ? R.id.app_settings : R.id.setting));
         view.findViewById(R.id.bottom_nav_ride).setOnClickListener(
                 v -> startActivity(new Intent(requireContext(), StartActivity.class))
         );
@@ -106,6 +109,15 @@ public class RecordFragment extends BaseFragment {
     }
 
     private void loadRecords() {
+        if (AccountSession.isGuest(requireContext())) {
+            ArrayList<RidingRecord> localRecords = LocalRideStore.load(requireContext());
+            if (localRecords.isEmpty()) {
+                showEmptyState(false);
+            } else {
+                showRecords(localRecords);
+            }
+            return;
+        }
         if (request != null) {
             request.cancel();
         }
@@ -190,7 +202,7 @@ public class RecordFragment extends BaseFragment {
         }
 
         SharedPreferences auto = requireContext().getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        return auto.getString("LoginId", "admin");
+        return auto.getString("LoginId", "");
     }
 
     private void bindSummary(ArrayList<RidingRecord> records) {

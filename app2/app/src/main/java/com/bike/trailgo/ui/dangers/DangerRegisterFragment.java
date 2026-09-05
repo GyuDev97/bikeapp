@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.bike.trailgo.R;
 import com.bike.trailgo.dto.DangerousArea;
 import com.bike.trailgo.net.Server;
+import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -76,6 +77,10 @@ public class DangerRegisterFragment extends BaseFragment implements OnMapReadyCa
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (!AccountSession.requireMember(requireActivity(), "위험지역 제보")) {
+            controller.popBackStack();
+            return;
+        }
 
         searchEdit = view.findViewById(R.id.editText4);
         searchButton = view.findViewById(R.id.button7);

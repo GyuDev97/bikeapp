@@ -17,20 +17,40 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        def trailgoServerBaseUrl = project.findProperty("TRAILGO_SERVER_BASE_URL") ?: "http://192.168.0.5:8000/"
-        def gyuvisBaseUrl = project.findProperty("GYUVIS_BASE_URL") ?: ""
         def gyuvisApiToken = project.findProperty("GYUVIS_API_TOKEN") ?: ""
         def rideAssistantTestMode = project.findProperty("RIDE_ASSISTANT_TEST_MODE") ?: "false"
-        buildConfigField "String", "TRAILGO_SERVER_BASE_URL", "\"${trailgoServerBaseUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
-        buildConfigField "String", "GYUVIS_BASE_URL", "\"${gyuvisBaseUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
+        def privacyPolicyUrl = project.findProperty("TRAILGO_PRIVACY_POLICY_URL") ?: ""
+        def accountDeletionUrl = project.findProperty("TRAILGO_ACCOUNT_DELETION_URL") ?: ""
         buildConfigField "String", "GYUVIS_API_TOKEN", "\"${gyuvisApiToken.replace('\\', '\\\\').replace('\"', '\\\"')}\""
         buildConfigField "boolean", "RIDE_ASSISTANT_TEST_MODE", rideAssistantTestMode
+        buildConfigField "String", "TRAILGO_PRIVACY_POLICY_URL", "\"${privacyPolicyUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
+        buildConfigField "String", "TRAILGO_ACCOUNT_DELETION_URL", "\"${accountDeletionUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
     }
 
+    def quoteBuildConfigValue = { value ->
+        "\"${value.toString().replace('\\', '\\\\').replace('\"', '\\\"')}\""
+    }
+    def trailgoBaseUrl = project.findProperty("TRAILGO_SERVER_BASE_URL")
+    if (trailgoBaseUrl == null || trailgoBaseUrl.trim().isEmpty()) {
+        throw new GradleException("TRAILGO_SERVER_BASE_URL must be set in gradle.properties or with -P")
+    }
+    def gyuvisBaseUrl = project.findProperty("GYUVIS_BASE_URL") ?: trailgoBaseUrl
+
     buildTypes {
+        debug {
+            def debugTrailgoUrl = project.findProperty("TRAILGO_SERVER_BASE_URL_DEBUG") ?: trailgoBaseUrl
+            def debugGyuvisUrl = project.findProperty("GYUVIS_BASE_URL_DEBUG") ?: gyuvisBaseUrl
+            buildConfigField "String", "TRAILGO_SERVER_BASE_URL", quoteBuildConfigValue(debugTrailgoUrl)
+            buildConfigField "String", "GYUVIS_BASE_URL", quoteBuildConfigValue(debugGyuvisUrl)
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Until a production endpoint exists, release deliberately inherits the configured dev URL.
+            def releaseTrailgoUrl = project.findProperty("TRAILGO_SERVER_BASE_URL_RELEASE") ?: trailgoBaseUrl
+            def releaseGyuvisUrl = project.findProperty("GYUVIS_BASE_URL_RELEASE") ?: gyuvisBaseUrl
+            buildConfigField "String", "TRAILGO_SERVER_BASE_URL", quoteBuildConfigValue(releaseTrailgoUrl)
+            buildConfigField "String", "GYUVIS_BASE_URL", quoteBuildConfigValue(releaseGyuvisUrl)
         }
     }
     compileOptions {

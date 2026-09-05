@@ -20,7 +20,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.Navigation;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
+import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.riding.StartActivity;
 
@@ -95,7 +97,7 @@ public class HomeFragment extends BaseFragment {
         }
 
         SharedPreferences auto = requireContext().getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        return auto.getString("LoginId", "admin");
+        return auto.getString("LoginId", "");
     }
 
     private void bindKoreanLabels(View view) {
@@ -114,7 +116,15 @@ public class HomeFragment extends BaseFragment {
         setNavigationClick(view, R.id.home_recent_more, R.id.action_nav_home_to_nav_records);
         setNavigationClick(view, R.id.bottom_nav_records, R.id.action_nav_home_to_nav_records);
         setNavigationClick(view, R.id.bottom_nav_course, R.id.action_nav_home_to_nav_course_view);
-        setNavigationClick(view, R.id.bottom_nav_profile, R.id.action_nav_home_to_setting);
+        View profile = view.findViewById(R.id.bottom_nav_profile);
+        if (profile != null) {
+            profile.setOnClickListener(v -> {
+                int target = AccountSession.isGuest(requireContext()) ? R.id.app_settings : R.id.setting;
+                if (controller.getCurrentDestination() == null || controller.getCurrentDestination().getId() != target) {
+                    controller.navigate(target);
+                }
+            });
+        }
         TextView home = view.findViewById(R.id.bottom_nav_home);
         if (home != null) {
             home.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
@@ -154,6 +164,10 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void loadRidingSummary(String riderId) {
+        if (AccountSession.isGuest(requireContext())) {
+            updateSummary(LocalRideStore.load(requireContext()));
+            return;
+        }
         if (myInfo != null) {
             myInfo.cancel();
         }

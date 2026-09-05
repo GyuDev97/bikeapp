@@ -17,6 +17,9 @@ public class RidingRecord {
     private int rr_like;
     private String rr_name;
     private String r_image;
+    // Device-only id used to make an interrupted guest save safe to retry.
+    // The field is never sent as part of the legacy server record form.
+    private String local_source_id;
 
     public String getR_image() {
         return r_image;
@@ -24,6 +27,14 @@ public class RidingRecord {
 
     public void setR_image(String r_image) {
         this.r_image = r_image;
+    }
+
+    public String getLocal_source_id() {
+        return local_source_id;
+    }
+
+    public void setLocal_source_id(String local_source_id) {
+        this.local_source_id = local_source_id;
     }
 
     public int getRr_num() {

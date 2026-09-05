@@ -4,11 +4,12 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bike.trailgo.net.Server;
+
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class SendGPXFile extends AppCompatActivity implements Runnable {
 
@@ -27,11 +28,10 @@ public class SendGPXFile extends AppCompatActivity implements Runnable {
     public void run() {
 
         try {
-            url_address ="/app/fileUpload/gpx/" + fileName;
+            url_address = Server.getUrl("app/fileUpload/gpx/" + fileName);
             Log.e("파일네임", fileName);
             FileInputStream fis = new FileInputStream(filepath + fileName);
-            URL url = new URL(url_address);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection conn = Server.openUrlConnection(url_address);
             //웹서버를 통해 입출력 가능하도록 설정
             conn.setDoInput(true);
             conn.setDoOutput(true);

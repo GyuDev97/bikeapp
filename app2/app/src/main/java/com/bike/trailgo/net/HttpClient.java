@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,21 +36,30 @@ public class HttpClient {
 
     public void request() {
         HttpURLConnection conn = getConnection();
-        setHeader(conn);
-        setBody(conn);
-        httpStatusCode = getStatusCode(conn);
-        body = readStream(conn);
-        conn.disconnect();
+        httpStatusCode = -1;
+        body = "";
+        if (conn == null) {
+            return;
+        }
+        try {
+            setHeader(conn);
+            setBody(conn);
+            httpStatusCode = getStatusCode(conn);
+            body = readStream(conn, httpStatusCode);
+        } catch (RuntimeException error) {
+            Log.w("HttpClient", "Request setup failed", error);
+        } finally {
+            conn.disconnect();
+        }
     }
 
     private HttpURLConnection getConnection() {
         try {
-            URL url = new URL(builder.getUrl());
-            return (HttpURLConnection) url.openConnection();
+            return Server.openUrlConnection(builder.getUrl());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            Log.w("HttpClient", "Invalid request URL", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w("HttpClient", "Unable to open server connection", e);
         }
         return null;
     }
@@ -60,7 +68,8 @@ public class HttpClient {
         setContentType(connection);
         setRequestMethod(connection);
 
-        connection.setConnectTimeout(5000);
+        connection.setConnectTimeout(Server.CONNECT_TIMEOUT_MILLIS);
+        connection.setReadTimeout(Server.READ_TIMEOUT_MILLIS);
         connection.setDoOutput(true);
         connection.setDoInput(true);
     }
@@ -110,17 +119,22 @@ public class HttpClient {
         return -10;
     }
 
-    private String readStream(HttpURLConnection connection) {
-        String result = "";
+    private String readStream(HttpURLConnection connection, int statusCode) {
+        StringBuilder result = new StringBuilder();
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            java.io.InputStream stream = statusCode >= 400
+                    ? connection.getErrorStream() : connection.getInputStream();
+            if (stream == null) {
+                return "";
+            }
+            reader = new BufferedReader(new InputStreamReader(stream));
             String line = null;
             while ((line = reader.readLine()) != null) {
-                result += line;
+                result.append(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w("HttpClient", "Unable to read server response", e);
         } finally {
             try {
                 if (reader != null)
@@ -129,7 +143,7 @@ public class HttpClient {
             }
         }
 
-        return result;
+        return result.toString();
     }
 
     public static class Builder {

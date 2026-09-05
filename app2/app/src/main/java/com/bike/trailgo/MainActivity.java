@@ -31,6 +31,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.bike.trailgo.dto.LoginInfo;
 import com.bike.trailgo.net.Server;
+import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.member.LoginActivity;
 import com.bike.trailgo.ui.riding.StartActivity;
 import com.squareup.picasso.Picasso;
@@ -131,10 +132,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindDrawerHeader(MainViewModel model) {
-        String riderId = valueOrDefault(model.r_Id.getValue(), "admin");
+        boolean guest = AccountSession.isGuest(this);
+        String riderId = valueOrDefault(model.r_Id.getValue(), guest ? "게스트" : "회원");
         String nickname = valueOrDefault(model.r_Nickname.getValue(), riderId);
         lay.setText(nickname);
-        userMeta.setText("내 정보 보기  ›");
+        userMeta.setText(guest ? "로그인하면 기록을 동기화할 수 있어요  ›" : "내 정보 보기  ›");
 
         String imageName = model.r_Image.getValue();
         if (imageName != null && imageName.length() > 0) {
@@ -149,13 +151,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupDrawerClicks(DrawerLayout drawer, NavController navController) {
-        setDrawerClick(R.id.drawer_profile_header, drawer, () -> navigateTo(navController, R.id.setting));
+        setDrawerClick(R.id.drawer_profile_header, drawer, () -> {
+            if (AccountSession.isGuest(this)) {
+                startActivity(new Intent(this, LoginActivity.class));
+            } else {
+                navigateTo(navController, R.id.setting);
+            }
+        });
         setDrawerClick(R.id.nav_home, drawer, () -> navigateTo(navController, R.id.nav_home));
         setDrawerClick(R.id.nav_records, drawer, () -> navigateTo(navController, R.id.nav_records));
         setDrawerClick(R.id.nav_ride, drawer, () -> startActivity(new Intent(this, StartActivity.class)));
         setDrawerClick(R.id.nav_course_search, drawer, () -> navigateTo(navController, R.id.nav_course_view));
-        setDrawerClick(R.id.nav_course_scrap, drawer, () -> navigateTo(navController, R.id.nav_course_scrap));
-        setDrawerClick(R.id.nav_badge, drawer, () -> navigateTo(navController, R.id.nav_mission_view));
+        setDrawerClick(R.id.nav_course_scrap, drawer, () -> {
+            if (AccountSession.requireMember(this, "스크랩 보관함")) {
+                navigateTo(navController, R.id.nav_course_scrap);
+            }
+        });
+        setDrawerClick(R.id.nav_badge, drawer, () -> {
+            if (AccountSession.requireMember(this, "미션과 랭킹")) {
+                navigateTo(navController, R.id.nav_mission_view);
+            }
+        });
         setDrawerClick(R.id.nav_sett, drawer, () -> navigateTo(navController, R.id.app_settings));
         setDrawerClick(R.id.nav_help, drawer, () -> Toast.makeText(this, "고객센터는 준비 중입니다.", Toast.LENGTH_SHORT).show());
     }
@@ -185,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshProfile(MainViewModel model) {
+        if (AccountSession.isGuest(this)) {
+            return;
+        }
         String loginId = auto.getString("LoginId", "");
         if (loginId.isEmpty()) {
             return;

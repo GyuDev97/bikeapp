@@ -20,7 +20,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.SoundPool;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
@@ -29,7 +28,6 @@ import android.os.SystemClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -54,6 +52,7 @@ import com.bike.trailgo.gpx.TrackPoint;
 import com.bike.trailgo.gpx.TrackSegment;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.net.ServerApi;
+import com.bike.trailgo.setting.RideSettings;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
 import com.kakao.vectormap.LatLng;
@@ -87,8 +86,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -136,11 +133,13 @@ public class StartActivity extends AppCompatActivity
     private double latitude, lonngitude, getSpeed = 0, hap = 0, avg = 0, maX = 0, maxLat = 0, maxLon = 0, minLat = 1000, minLon = 1000;
     private static final double MIN_ELEVATION_GAIN_METERS = 3.0;
     private static final double MAX_REASONABLE_RIDE_SPEED_KMH = 100.0;
+    private static final long SESSION_CHECKPOINT_INTERVAL_MS = 10_000L;
     private int getgodo = 0;
     private int totalDescentMeters = 0;
     private Double elevationBaselineMeters = null;
     private Location gradeBaselineLocation = null;
     private long lastSpeedLocationReceivedAtMillis = 0L;
+    private long lastSessionCheckpointMillis = 0L;
     private int  total_time=0, rest=0;
     private ArrayList<Double> witch_lat = new ArrayList<>();
     private ArrayList<Double> witch_lon = new ArrayList<>();
@@ -162,14 +161,12 @@ public class StartActivity extends AppCompatActivity
     long PauseTime;
     private Thread timeThread = null;
     private Boolean isRunning = true;
-    String tel2="";
     private Spinner spinner;
     private ArrayList<String> list;
     private String number;
     Intent intent;
     SpeechRecognizer mRecognizer;
-    private SmsManager smsManager;
-    private String tel="";
+    private boolean voicePermissionOfferShown;
     private String gpx_name;
     private String c_name;
 
@@ -219,30 +216,13 @@ public class StartActivity extends AppCompatActivity
         SharedPreferences phone = getSharedPreferences("auto", MODE_PRIVATE);
         number = phone.getString("sosphone", "");
 
-        smsManager = SmsManager.getDefault();
         //?????癲ル슢???彛?
         intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
 
-        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        mRecognizer.setRecognitionListener(listener);
-        mRecognizer.startListening(intent);
         //id refernece for wizet
         spinner = (Spinner) findViewById(R.id.help);
-
-        if ("\uC804\uD654".equals(a)) {
-            try {
-                SmsManager smsManager = SmsManager.getDefault();
-                String sms = "" +
-                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                smsManager.sendTextMessage(number, null, sms, null, null);
-                Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), "\uC804\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
-                e.printStackTrace();
-            }
-        }
 
         //input array data
         list = new ArrayList<>();
@@ -263,40 +243,18 @@ public class StartActivity extends AppCompatActivity
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Toast.makeText(getApplicationContext(),"????ｋ???????썹땟?㈑??: "+position+spinner.getItemAtPosition(position),Toast.LENGTH_SHORT).show();
-                tel = "tel:01047527613";
-                tel2 = "tel:" + number;
-                Log.d("PhoneNumber", tel2);
                 switch (position) {
                     case 1:
-                        startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
+                        SosHelper.confirmEmergencyServiceCall(StartActivity.this);
                         break;
                     case 2:
-                        try {
-                            SmsManager smsManager = SmsManager.getDefault();
-                            String sms = "" +
-                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                            smsManager.sendTextMessage("010-4752-7613", null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "????썹땟戮щ빝???????곌숯????????? ????ㅼ굣亦????꾣뤃??嚥싲갭큔?源띿춻??뽯뮋?????꾣뤃???嶺뚮ㅎ????", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
-
+                        SosHelper.confirmEmergencyServiceMessage(StartActivity.this, emergencyMessage());
                         break;
                     case 3:
-                        startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel2)));
+                        SosHelper.confirmContactCall(StartActivity.this);
                         break;
                     case 4:
-                        try {
-                            SmsManager smsManager = SmsManager.getDefault();
-                            String sms = "" +
-                                    "???????援??????????ㅼ굡?? ??????녿뮝???ル튉?? ??????썹땟???" + latitude + ", " + lonngitude + "????댁삩?????녿뮝????" + address_dong + "????? " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                            smsManager.sendTextMessage(number, null, sms, null, null);
-                            Toast.makeText(getApplicationContext(), "???궰???亦??湲븐땡筌뚯뼚維???????썹땟戮щ빝?????????", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), "????썹땟戮щ빝???????곌숯????????? ????ㅼ굣亦????꾣뤃??嚥싲갭큔?源띿춻??뽯뮋?????꾣뤃???嶺뚮ㅎ????", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
+                        SosHelper.confirmContactMessage(StartActivity.this, emergencyMessage());
                         break;
                 }
             }
@@ -329,11 +287,10 @@ public class StartActivity extends AppCompatActivity
                         polyline.setTag(1000);
                         polyline.setLineColor(Color.argb(255, 0, 74, 196)); // Polyline ??嚥▲꺂????꿔꺂?????
                         //??嶺뚮Ĳ?됭짆????????????꿔꺂??? URL
-                        URL url = new URL(Server.getUrl("app/getGPX/gpx/" + gpx_name));
                         //Web??????????꿔꺂??? ??醫딆쓧??癲ル슢???몄쒜???ImageView???꿔꺂????癲ル슢怡??뱀떫 Bitmap ?꿔꺂??????筌뚯솃?
                     // Open the GPX file from the server.
 
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        HttpURLConnection conn = Server.openConnection("app/getGPX/gpx/" + gpx_name);
                     // Configure and open the HTTP connection.
 
 
@@ -378,8 +335,6 @@ public class StartActivity extends AppCompatActivity
                         }
 
 
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -390,11 +345,17 @@ public class StartActivity extends AppCompatActivity
 
 
         //???????????癲ル슢??蹂좊쨨??
-        BaseTime = SystemClock.elapsedRealtime();
-        RidingTimer.sendEmptyMessage(0);
+        boolean restoredSession = restoreRideSession();
+        if (!restoredSession) {
+            BaseTime = SystemClock.elapsedRealtime();
+            cur_status = Run;
+            persistRideSession();
+        }
+        if (cur_status == Run) {
+            RidingTimer.sendEmptyMessage(0);
+        }
 
         //send_sms = (Button) findViewById(R.id.help);
-        cur_status = Run; //????썹땟?????븐뻤??????????????嶺뚮Ĳ?됲걫 ??⑤슢堉???
         binding.mapLayout.setVisibility(View.VISIBLE); //?꿔꺂?????
         binding.speedPre.setVisibility(View.VISIBLE); //?꿔꺂???????꾣뤃????????⑤슢??????鶯????됰Ŧ???
         binding.speedTap.setVisibility(View.GONE); //????戮?덫??
@@ -447,19 +408,22 @@ public class StartActivity extends AppCompatActivity
                 }
 
                 Log.d("RideEnd", "time=" + total_time + ", distance=" + hap + ", max=" + maX + ", avg=" + avg + ", high=" + getgodo + ", rest=" + rest + ", addr=" + adress_value);
+                persistRideSession();
                 stopRideTracking();
                 startActivity(intent);
                 finish();
         });
 
+        if (RideSettings.areDangerAlertsEnabled(this)) {
             DangerGet = serverApi.getDangerArea();
             DangerGet.enqueue(new Callback<List<DangerousArea>>() {
                 @Override
                 public void onResponse(Call<List<DangerousArea>> call, Response<List<DangerousArea>> response) {
-                    if(response.code()==200) {
+                    if(response.isSuccessful() && response.body() != null) {
                         getDanger= response.body();
 
                         for (DangerousArea danger : getDanger) {
+                            try {
                             getDalat = danger.getDa_latitude();
                             getDalon = danger.getDa_longitude();
                             getDacon = danger.getDa_content();
@@ -479,15 +443,19 @@ public class StartActivity extends AppCompatActivity
 
                                 mMapView.addPOIItem(mCustomMarker);
                             }
+                            } catch (RuntimeException error) {
+                                Log.w("RideDanger", "Skipping invalid danger marker", error);
+                            }
                         }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<List<DangerousArea>> call, Throwable t) {
-                    t.printStackTrace();
+                    Log.w("RideDanger", "Danger markers unavailable; ride tracking continues", t);
                 }
             });
+        }
 
     }
 
@@ -532,6 +500,11 @@ public class StartActivity extends AppCompatActivity
                         )
                 );
                 binding.mapStatus.setVisibility(View.GONE);
+                drawRestoredRoute();
+                if (!ridingRoutePoints.isEmpty()) {
+                    LatLng lastPoint = ridingRoutePoints.get(ridingRoutePoints.size() - 1);
+                    updateCurrentPosition(lastPoint.getLatitude(), lastPoint.getLongitude(), false);
+                }
                 Log.d("KakaoMapV2", "Map ready");
             }
 
@@ -592,6 +565,20 @@ public class StartActivity extends AppCompatActivity
         }
     }
 
+    private void drawRestoredRoute() {
+        if (ridingRouteLayer == null || ridingRouteStyles == null || ridingRoutePoints.size() < 2) {
+            return;
+        }
+        RouteLineSegment segment = RouteLineSegment.from(
+                new ArrayList<>(ridingRoutePoints),
+                ridingRouteStyles
+        );
+        RouteLineStylesSet stylesSet = RouteLineStylesSet.from(ridingRouteStyles);
+        ridingRouteLine = ridingRouteLayer.addRouteLine(
+                RouteLineOptions.from(segment).setStylesSet(stylesSet)
+        );
+    }
+
     private Bitmap drawableToBitmap(int drawableId, int sizeDp) {
         int sizePx = Math.round(sizeDp * getResources().getDisplayMetrics().density);
         Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
@@ -622,20 +609,20 @@ public class StartActivity extends AppCompatActivity
 
                 private void startLocationTracking() {
                     locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED) {
+                    if (!RidePermissionFlow.hasPreciseLocation(this)) {
                         binding.gpsStatus.setText("GPS 권한 필요");
-                        ActivityCompat.requestPermissions(
-                                this,
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                LOCATION_PERMISSION_REQUEST
-                        );
+                        RidePermissionFlow.requestRideLocation(this);
                         return;
                     }
 
                     RideTrackingService.start(this);
                     locationUpdatesStarted = true;
+                    RidePermissionFlow.requestBackgroundLocationForLongRide(this);
                     requestNotificationPermissionIfNeeded();
+                    if (!voicePermissionOfferShown) {
+                        voicePermissionOfferShown = true;
+                        offerVoiceCommands();
+                    }
                 }
 
                 private void registerRideLocationReceiver() {
@@ -675,14 +662,22 @@ public class StartActivity extends AppCompatActivity
                         @NonNull int[] grantResults
                 ) {
                     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                    if (requestCode == LOCATION_PERMISSION_REQUEST
-                            && grantResults.length > 0
-                            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        startLocationTracking();
-                    } else if (requestCode == LOCATION_PERMISSION_REQUEST) {
-                        binding.gpsStatus.setText("GPS 권한 필요");
-                        binding.mapStatus.setVisibility(View.VISIBLE);
-                        binding.mapStatus.setText("현재 위치 기록을 위해 위치 권한이 필요합니다");
+                    if (requestCode == LOCATION_PERMISSION_REQUEST) {
+                        if (RidePermissionFlow.hasPreciseLocation(this)) {
+                            startLocationTracking();
+                        } else {
+                            binding.gpsStatus.setText("정확한 GPS 권한 필요");
+                            binding.mapStatus.setVisibility(View.VISIBLE);
+                            binding.mapStatus.setText("주행 거리와 경로 기록에는 정확한 위치 권한이 필요합니다");
+                            RidePermissionFlow.showDenied(this, "정확한 위치");
+                        }
+                    } else if (requestCode == RidePermissionFlow.REQUEST_MICROPHONE) {
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            startVoiceRecognition();
+                        } else {
+                            RidePermissionFlow.showDenied(this, "음성 명령");
+                        }
                     }
                 }
 
@@ -714,6 +709,7 @@ public class StartActivity extends AppCompatActivity
                                     RideTrackingService.pauseAssistant(this);
 
                                     cur_status = Pause;
+                                    persistRideSession();
                                     binding.resumeBt.setVisibility(View.VISIBLE);
                                     binding.pausebt.setVisibility(View.GONE);
                                     Log.d("cur_status", "?????덊떀");
@@ -726,6 +722,7 @@ public class StartActivity extends AppCompatActivity
                                     BaseTime += (now2 - PauseTime);
                                     RideTrackingService.resumeAssistant(this);
                                     cur_status = Run;
+                                    persistRideSession();
                                     binding.resumeBt.setVisibility(View.GONE);
                                     binding.pausebt.setVisibility(View.VISIBLE);
                                     Log.d("cur_status", "嚥싳쉶瑗??꾧틡?");
@@ -1002,6 +999,80 @@ public class StartActivity extends AppCompatActivity
                     }
                     // ????썹땟?????썹땟????꿔꺂?????????썹땟?熬?????⑤슢堉???
                     mLastlocation = location;
+                    checkpointRideSessionIfDue();
+                }
+
+                private void checkpointRideSessionIfDue() {
+                    long now = SystemClock.elapsedRealtime();
+                    if (now - lastSessionCheckpointMillis >= SESSION_CHECKPOINT_INTERVAL_MS) {
+                        persistRideSession();
+                    }
+                }
+
+                private void persistRideSession() {
+                    RideSessionStore.save(this, new RideSessionStore.Snapshot(
+                            false, cur_status, BaseTime, PauseTime, rest, total_time,
+                            hap, maX, avg, getgodo, totalDescentMeters,
+                            maxLat, maxLon, minLat, minLon,
+                            latitude, lonngitude,
+                            mLastlocation != null && mLastlocation.hasAltitude() ? mLastlocation.getAltitude() : 0d,
+                            adress_value, address_dong,
+                            witch_lat, witch_lon, ele, godoArray
+                    ));
+                    lastSessionCheckpointMillis = SystemClock.elapsedRealtime();
+                }
+
+                private boolean restoreRideSession() {
+                    RideSessionStore.Snapshot snapshot = RideSessionStore.load(this);
+                    if (snapshot == null || snapshot.followMode) {
+                        return false;
+                    }
+
+                    cur_status = snapshot.status;
+                    BaseTime = snapshot.baseTime;
+                    PauseTime = snapshot.pauseTime;
+                    rest = snapshot.restSeconds;
+                    total_time = snapshot.activeSeconds;
+                    hap = snapshot.distanceMeters;
+                    maX = snapshot.maxSpeedKmh;
+                    avg = snapshot.averageSpeedKmh;
+                    getgodo = snapshot.elevationGainMeters;
+                    totalDescentMeters = snapshot.descentMeters;
+                    maxLat = snapshot.maxLat;
+                    maxLon = snapshot.maxLon;
+                    minLat = snapshot.minLat;
+                    minLon = snapshot.minLon;
+                    latitude = snapshot.lastLatitude;
+                    lonngitude = snapshot.lastLongitude;
+                    adress_value = snapshot.address == null ? "" : snapshot.address;
+                    address_dong = snapshot.addressDong;
+                    witch_lat = new ArrayList<>(snapshot.latitudes);
+                    witch_lon = new ArrayList<>(snapshot.longitudes);
+                    ele = new ArrayList<>(snapshot.elevations);
+                    godoArray = new ArrayList<>(snapshot.elevationSamples);
+                    ridingRoutePoints.clear();
+                    int pointCount = Math.min(witch_lat.size(), witch_lon.size());
+                    for (int index = 0; index < pointCount; index++) {
+                        ridingRoutePoints.add(LatLng.from(witch_lat.get(index), witch_lon.get(index)));
+                    }
+                    if (!witch_lat.isEmpty()) {
+                        Location last = new Location(LocationManager.GPS_PROVIDER);
+                        last.setLatitude(latitude);
+                        last.setLongitude(lonngitude);
+                        last.setAltitude(snapshot.lastAltitude);
+                        mLastlocation = last;
+                        elevationBaselineMeters = snapshot.lastAltitude;
+                    }
+                    binding.resttime.setText(formatDuration(rest));
+                    binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
+                    binding.totalDescent.setText(String.format(Locale.KOREA, "%d m", totalDescentMeters));
+                    binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));
+                    binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
+                    if (cur_status == Pause) {
+                        binding.resumeBt.setVisibility(View.VISIBLE);
+                        binding.pausebt.setVisibility(View.GONE);
+                    }
+                    return true;
                 }
 
                 private void updateElevationStats(Location location) {
@@ -1094,7 +1165,7 @@ public class StartActivity extends AppCompatActivity
                 public void onProviderEnabled(String provider) {
                     binding.gpsStatus.setText("GPS 연결 중");
                 // ????썹땟??癲ル슢???ъ쒜??????욍걛???ш끽維??
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (!RidePermissionFlow.hasPreciseLocation(this)) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
                         // here to request the missing permissions, and then overriding
@@ -1150,6 +1221,7 @@ public class StartActivity extends AppCompatActivity
                             .setNegativeButton("계속 주행", null)
                             .setNeutralButton("기록 없이 종료", (dialog, which) -> {
                                 stopRideTracking();
+                                RideSessionStore.clear(this);
                                 finish();
                             })
                             .setPositiveButton("종료 후 저장", (dialog, which) -> binding.endriding.performClick())
@@ -1179,6 +1251,10 @@ public class StartActivity extends AppCompatActivity
                     ridingRouteLayer = null;
                     currentLocationLabel = null;
                     currentLocationLayer = null;
+                    if (mRecognizer != null) {
+                        mRecognizer.destroy();
+                        mRecognizer = null;
+                    }
                     super.onDestroy();
                     Log.d("onDestroy", "onDestroy");
 
@@ -1186,6 +1262,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 protected void onPause() {
+                    persistRideSession();
                     super.onPause();
                     if (kakaoV2MapView != null) {
                         kakaoV2MapView.pause();
@@ -1196,6 +1273,7 @@ public class StartActivity extends AppCompatActivity
                 @Override
                 protected void onResume() {
                     super.onResume();
+                    RideSettings.applyRidingDisplay(this);
                     if (kakaoV2MapView != null) {
                         kakaoV2MapView.resume();
                     }
@@ -1211,6 +1289,32 @@ public class StartActivity extends AppCompatActivity
                 protected void onStop() {
                     super.onStop();
                     Log.d("SpeechRecognizer", "stopped");
+                }
+
+                private void offerVoiceCommands() {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        startVoiceRecognition();
+                    } else {
+                        RidePermissionFlow.requestMicrophone(this);
+                    }
+                }
+
+                private void startVoiceRecognition() {
+                    if (mRecognizer != null || !SpeechRecognizer.isRecognitionAvailable(this)) {
+                        return;
+                    }
+                    try {
+                        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                        mRecognizer.setRecognitionListener(listener);
+                        mRecognizer.startListening(intent);
+                    } catch (SecurityException exception) {
+                        RidePermissionFlow.showDenied(this, "음성 명령");
+                    }
+                }
+
+                private String emergencyMessage() {
+                    return SosHelper.buildEmergencyMessage(adress_value, latitude, lonngitude);
                 }
 
                 private RecognitionListener listener = new RecognitionListener() {
@@ -1281,27 +1385,26 @@ public class StartActivity extends AppCompatActivity
                         ArrayList<String> matches =
                                 results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
+                        if (matches == null || matches.isEmpty()) {
+                            return;
+                        }
+
                         for (int i = 0; i < matches.size(); i++) {
                             a = matches.get(i);
                             Log.d("a????????", a);
                         }
                         switch (a) {
                             case "\uC704\uCE58\uC804\uC1A1":
-                                String sms = "" +
-                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                                smsManager.sendTextMessage(number, null, sms, null, null);
-                                Toast.makeText(getApplicationContext(), "\uAE34\uAE09\uBB38\uC790\uB97C \uC804\uC1A1\uD588\uC2B5\uB2C8\uB2E4.", Toast.LENGTH_LONG).show();
+                                SosHelper.confirmContactMessage(StartActivity.this, emergencyMessage());
                                 break;
                             case "119\uC5D0 \uC804\uD654":
-                                startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel)));
+                                SosHelper.confirmEmergencyServiceCall(StartActivity.this);
                                 break;
                             case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC704\uCE58\uC804\uC1A1":
-                                String sms2 = "" +
-                                        "\uC704\uAE09\uD569\uB2C8\uB2E4. \uD604\uC7AC \uC704\uCE58: " + latitude + ", " + lonngitude + " \uC8FC\uC18C: " + address_dong + " " + Server.getUrl("app/dangergps/" + latitude + "/" + lonngitude);
-                                smsManager.sendTextMessage(number, null, sms2, null, null);
+                                SosHelper.confirmContactMessage(StartActivity.this, emergencyMessage());
                                 break;
                             case "\uC9C0\uC815\uBC88\uD638\uC5D0 \uC804\uD654":
-                                startActivity(new Intent("android.intent.action.CALL", Uri.parse(tel2)));
+                                SosHelper.confirmContactCall(StartActivity.this);
                                 break;
                             default:
                                 break;

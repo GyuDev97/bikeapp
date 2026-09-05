@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bike.trailgo.R;
+import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
 import com.bike.trailgo.gpx.GPXParser;
 import com.bike.trailgo.gpx.Gpx;
@@ -53,8 +54,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -101,6 +100,7 @@ public class MyDetailFragment extends BaseFragment {
     private Label finishMarker;
     private final ArrayList<LatLng> routePoints = new ArrayList<>();
     private boolean waitingForGpx;
+    private boolean gpxRequestFailed;
     private TextView mapStatus;
     private ImageView mapFallback;
     private LinearLayout set_noopen, set_open;
@@ -189,12 +189,7 @@ public class MyDetailFragment extends BaseFragment {
 
         view.findViewById(R.id.detail_more).setOnClickListener(v ->
                 Toast.makeText(requireContext(), "기록 메뉴", Toast.LENGTH_SHORT).show());
-        view.findViewById(R.id.detail_delete_button).setOnClickListener(v ->
-                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setTitle("기록 삭제")
-                        .setMessage("삭제 기능은 서버 연결 후 사용할 수 있습니다.")
-                        .setPositiveButton("확인", null)
-                        .show());
+        view.findViewById(R.id.detail_delete_button).setOnClickListener(v -> showDeleteConfirmation());
 
         setTextIfPresent(detailTitle, firstNotEmpty(model.my_rec_name.getValue(), model.my_rec_adress.getValue(), "라이딩 기록"));
         setTextIfPresent(detailDate, formatDate(model.my_rec_date.getValue()));
@@ -221,6 +216,11 @@ public class MyDetailFragment extends BaseFragment {
     }
 
     private void renderVisibilityControl() {
+        if (isLocalRecord()) {
+            set_open.setVisibility(View.GONE);
+            set_noopen.setVisibility(View.GONE);
+            return;
+        }
         boolean isPublic = rr_open != 0;
         set_open.setVisibility(isPublic ? View.VISIBLE : View.GONE);
         set_noopen.setVisibility(isPublic ? View.GONE : View.VISIBLE);
@@ -248,6 +248,10 @@ public class MyDetailFragment extends BaseFragment {
     }
 
     private void updateRecordVisibility(int nextOpenValue) {
+        if (isLocalRecord()) {
+            Toast.makeText(requireContext(), "게스트 기록은 이 기기에만 비공개로 저장됩니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (isPreviewRecord()) {
             Toast.makeText(requireContext(), "저장된 기록에서만 공개 설정을 변경할 수 있습니다.", Toast.LENGTH_SHORT).show();
             return;
@@ -352,15 +356,16 @@ public class MyDetailFragment extends BaseFragment {
         new Thread(() -> {
             ArrayList<LatLng> loadedPoints = new ArrayList<>();
             HttpURLConnection connection = null;
+            InputStream input = null;
+            boolean loadFailed = false;
             try {
-                URL url = new URL(Server.getUrl("app/getGPX/gpx/" + gpxFile));
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(7000);
-                connection.setReadTimeout(7000);
-                connection.setDoInput(true);
-                try (InputStream input = connection.getInputStream()) {
-                    parsedGpx = mParser.parse(input);
+                if (LocalRideStore.isLocalGpxReference(gpxFile)) {
+                    input = LocalRideStore.openGpx(requireContext(), gpxFile);
+                } else {
+                    connection = Server.openConnection("app/getGPX/gpx/" + gpxFile);
+                    input = connection.getInputStream();
                 }
+                parsedGpx = mParser.parse(input);
                 if (parsedGpx != null) {
                     tracks = parsedGpx.getTracks();
                     for (Track track : tracks) {
@@ -372,8 +377,15 @@ public class MyDetailFragment extends BaseFragment {
                     }
                 }
             } catch (IOException | XmlPullParserException error) {
+                loadFailed = true;
                 Log.e("RecordDetailMap", "Unable to load GPX route", error);
             } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException ignored) {
+                    }
+                }
                 if (connection != null) {
                     connection.disconnect();
                 }
@@ -382,7 +394,9 @@ public class MyDetailFragment extends BaseFragment {
             if (!isAdded()) {
                 return;
             }
+            final boolean didFail = loadFailed;
             requireActivity().runOnUiThread(() -> {
+                gpxRequestFailed = didFail;
                 routePoints.clear();
                 routePoints.addAll(loadedPoints);
                 waitingForGpx = false;
@@ -398,7 +412,13 @@ public class MyDetailFragment extends BaseFragment {
         if (routePoints.size() < 2) {
             mapFallback.setVisibility(View.VISIBLE);
             mapStatus.setVisibility(View.VISIBLE);
-            mapStatus.setText("저장된 GPX 경로를 불러오지 못했습니다");
+            if (gpxRequestFailed) {
+                mapStatus.setText("저장된 GPX 파일을 불러오지 못했습니다");
+            } else if (routePoints.size() == 1) {
+                mapStatus.setText("이 기록은 위치 포인트가 1개라 경로를 표시할 수 없습니다");
+            } else {
+                mapStatus.setText("이 기록에는 표시할 GPX 위치 정보가 없습니다");
+            }
             return;
         }
 
@@ -465,6 +485,56 @@ public class MyDetailFragment extends BaseFragment {
         } catch (NumberFormatException e) {
             return true;
         }
+    }
+
+    private void showDeleteConfirmation() {
+        if (!isLocalRecord()) {
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("기록 삭제")
+                    .setMessage("회원 기록 삭제는 서버 기능이 준비된 뒤 사용할 수 있습니다.")
+                    .setPositiveButton("확인", null)
+                    .show();
+            return;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("기기 기록 삭제")
+                .setMessage("이 기기에 저장된 주행 요약과 GPX 경로를 삭제합니다. 되돌릴 수 없습니다.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제", (dialog, which) -> deleteLocalRecord())
+                .show();
+    }
+
+    private void deleteLocalRecord() {
+        final int localId;
+        try {
+            localId = Integer.parseInt(rr_num);
+        } catch (NumberFormatException error) {
+            Toast.makeText(requireContext(), "기록 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new Thread(() -> {
+            try {
+                boolean deleted = LocalRideStore.delete(requireContext().getApplicationContext(), localId);
+                if (!isAdded()) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (deleted) {
+                        Toast.makeText(requireContext(), "기기 기록을 삭제했습니다.", Toast.LENGTH_SHORT).show();
+                        controller.popBackStack();
+                    } else {
+                        Toast.makeText(requireContext(), "이미 삭제되었거나 찾을 수 없는 기록입니다.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (IOException error) {
+                Log.e("RecordDetail", "Unable to delete local ride", error);
+                if (!isAdded()) return;
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "기록을 삭제하지 못했습니다. 저장공간을 확인해 주세요.", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private boolean isLocalRecord() {
+        return LocalRideStore.isLocalGpxReference(model.my_rec_gpx.getValue());
     }
     private String firstNotEmpty(String... values) {
         for (String value : values) {

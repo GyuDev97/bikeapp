@@ -531,6 +531,7 @@
                 android:layout_width="50dp"
                 android:layout_height="55dp"
                 android:background="@drawable/sos_sound"
+                android:contentDescription="긴급 경보음"
                 tools:ignore="MissingConstraints" />
 
             <Spinner
@@ -538,6 +539,7 @@
                 android:layout_width="50dp"
                 android:layout_height="55dp"
                 android:background="@drawable/help"
+                android:contentDescription="긴급 도움 요청"
                 android:layout_marginLeft="50dp"
                 android:spinnerMode="dialog"
                 android:layout_weight="1" />

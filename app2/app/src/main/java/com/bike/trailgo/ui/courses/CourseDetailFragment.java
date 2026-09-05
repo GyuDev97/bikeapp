@@ -44,6 +44,7 @@ import com.bike.trailgo.gpx.TrackPoint;
 import com.bike.trailgo.gpx.TrackSegment;
 import com.bike.trailgo.net.HttpClient;
 import com.bike.trailgo.net.Server;
+import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.riding.StartActivity;
 import com.squareup.picasso.Picasso;
@@ -65,8 +66,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -183,8 +182,7 @@ public class CourseDetailFragment extends BaseFragment {
             @Override
             public void run() {
                 try {
-                    URL url = new URL(Server.getUrl("app/getGPX/gpx/" + model.my_rec_gpx.getValue()));
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    HttpURLConnection conn = Server.openConnection("app/getGPX/gpx/" + model.my_rec_gpx.getValue());
                     conn.setDoInput(true); //Server 통신에서 입력 가능한 상태로 만듦
                     conn.connect(); //연결된 곳에 접속할 때 (connect() 호출해야 실제 통신 가능함)
                     InputStream is = conn.getInputStream(); //inputStream 값 가져오기
@@ -218,8 +216,6 @@ public class CourseDetailFragment extends BaseFragment {
                     } else {
                         Log.e("error","Error parsing gpx track!");
                     }
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
                 } catch (IOException | XmlPullParserException e) {
                     e.printStackTrace();
                 }
@@ -272,6 +268,9 @@ public class CourseDetailFragment extends BaseFragment {
 
         //스크랩 보관함
         scrap_bt.setOnClickListener(v -> {
+            if (!AccountSession.requireMember(requireActivity(), "코스 스크랩")) {
+                return;
+            }
             Log.d("스크랩",rr_num+" "+LoginId);
             ScrapTask scrap = new ScrapTask();
             Map<String, String> params = new HashMap<String, String>();
@@ -293,6 +292,9 @@ public class CourseDetailFragment extends BaseFragment {
         });
 
         register_image.setOnClickListener(v -> {
+            if (!AccountSession.requireMember(requireActivity(), "리뷰 작성")) {
+                return;
+            }
             register = true;
             Intent register = new Intent();
             register.setType("image/*");
@@ -302,6 +304,9 @@ public class CourseDetailFragment extends BaseFragment {
 
         //등록 버튼 클릭 시
         register_button.setOnClickListener(v -> {
+            if (!AccountSession.requireMember(requireActivity(), "리뷰 작성")) {
+                return;
+            }
             HashMap<String, Object> params = new HashMap<String, Object>();
 
             params.put("cr_rider", LoginId);

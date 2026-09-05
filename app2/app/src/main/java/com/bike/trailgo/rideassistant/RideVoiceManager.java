@@ -57,6 +57,13 @@ public final class RideVoiceManager implements TextToSpeech.OnInitListener {
         }
     }
 
+    public synchronized void stop() {
+        pending = null;
+        if (tts != null) {
+            tts.stop();
+        }
+    }
+
     private static final class PendingMessage {
         final String message;
         final VoicePriority priority;

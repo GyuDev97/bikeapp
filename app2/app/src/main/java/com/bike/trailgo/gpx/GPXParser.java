@@ -60,8 +60,12 @@ public class GPXParser {
     }
 
     public Gpx parse(InputStream in) throws XmlPullParserException, IOException {
+        return parse(in, Xml.newPullParser());
+    }
+
+    /** Package-visible for JVM parser tests; production callers use Android's Xml parser above. */
+    Gpx parse(InputStream in, XmlPullParser parser) throws XmlPullParserException, IOException {
         try {
-            XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
             parser.setInput(in, null);
             parser.nextTag();
@@ -93,7 +97,8 @@ public class GPXParser {
                     builder.setMetadata(readMetadata(parser));
                     break;
                 case TAG_WAY_POINT:
-                    wayPoints.add(readWayPoint(parser));
+                    WayPoint wayPoint = readWayPoint(parser);
+                    if (wayPoint != null) wayPoints.add(wayPoint);
                     break;
                 case TAG_ROUTE:
                     routes.add(readRoute(parser));
@@ -215,7 +220,8 @@ public class GPXParser {
             }
             String name = parser.getName();
             if (TAG_TRACK_POINT.equals(name)) {
-                points.add(readTrackPoint(parser));
+                TrackPoint point = readTrackPoint(parser);
+                if (point != null) points.add(point);
             } else {
                 skip(parser);
             }
@@ -238,7 +244,8 @@ public class GPXParser {
             String name = parser.getName();
             switch (name) {
                 case TAG_ROUTE_POINT:
-                    points.add(readRoutePoint(parser));
+                    RoutePoint point = readRoutePoint(parser);
+                    if (point != null) points.add(point);
                     break;
                 case TAG_NAME:
                     routeBuilder.setRouteName(readName(parser));
@@ -282,8 +289,8 @@ public class GPXParser {
     private Point readPoint(Point.Builder builder, XmlPullParser parser, String tagName) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, namespace, tagName);
 
-        builder.setLatitude(Double.valueOf(parser.getAttributeValue(namespace, TAG_LAT)));
-        builder.setLongitude(Double.valueOf(parser.getAttributeValue(namespace, TAG_LON)));
+        Double latitude = parseCoordinate(parser.getAttributeValue(namespace, TAG_LAT));
+        Double longitude = parseCoordinate(parser.getAttributeValue(namespace, TAG_LON));
 
         while (loopMustContinue(parser.next())) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -313,6 +320,11 @@ public class GPXParser {
         }
 
         parser.require(XmlPullParser.END_TAG, namespace, tagName);
+        // Do not return before the closing tag: child tags must still be consumed so the caller can
+        // safely continue at the next GPX sibling. A bad position only discards this one point.
+        if (latitude == null || longitude == null) return null;
+        builder.setLatitude(latitude);
+        builder.setLongitude(longitude);
         return builder.build();
     }
 
@@ -466,16 +478,34 @@ public class GPXParser {
 
     private Double readElevation(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, namespace, TAG_ELEVATION);
-        Double ele = Double.valueOf(readText(parser));
+        Double ele = parseCoordinate(readText(parser));
         parser.require(XmlPullParser.END_TAG, namespace, TAG_ELEVATION);
         return ele;
     }
 
     private DateTime readTime(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, namespace, TAG_TIME);
-        DateTime time = ISODateTimeFormat.dateTimeParser().parseDateTime(readText(parser));
+        String value = readText(parser);
         parser.require(XmlPullParser.END_TAG, namespace, TAG_TIME);
-        return time;
+        if (value == null || value.trim().isEmpty()) return null;
+        try {
+            return ISODateTimeFormat.dateTimeParser().parseDateTime(value.trim());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    /** Returns a finite numeric GPX coordinate/value, or null when this optional input is malformed. */
+    static Double parseCoordinate(String value) {
+        if (value == null) return null;
+        String normalized = value.trim();
+        if (normalized.isEmpty()) return null;
+        try {
+            Double parsed = Double.valueOf(normalized);
+            return parsed.isNaN() || parsed.isInfinite() ? null : parsed;
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {

@@ -118,6 +118,6 @@ public class RideAssistantTest {
         RideSample sample = new RideSample(timestamp, latitude, longitude, speed, 100.0d, 5.0d);
         return new RideContext(sample.timestampMs, sample, speed, avgSpeed5m, avgSpeed5m,
                 100.0d, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                100, 1000, 50, grade, state);
+                100, 0, 0, grade, state);
     }
 }

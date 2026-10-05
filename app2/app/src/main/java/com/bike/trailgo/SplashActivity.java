@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
-import com.bike.trailgo.ui.member.LoginActivity;
 
 public class SplashActivity extends Activity {
 
@@ -22,7 +21,9 @@ public class SplashActivity extends Activity {
 
     private class SplashHandler implements Runnable{
         public void run(){
-            startActivity(new Intent(getApplication(), LoginActivity.class)); //로딩이 끝난 후, ChoiceFunction 이동
+            // Store MVP starts locally.  Account-backed sync remains deliberately unreachable
+            // until its authentication and ownership model ships.
+            startActivity(new Intent(getApplication(), MainActivity.class));
             finish(); // 로딩페이지 Activity stack에서 제거
         }
     }

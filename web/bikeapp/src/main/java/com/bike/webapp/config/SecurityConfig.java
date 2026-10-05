@@ -34,9 +34,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
+                .antMatchers("/", "/index", "/privacy", "/terms", "/support", "/css/**", "/js/**", "/images/**").permitAll()
+                .antMatchers("/api/public/**").permitAll()
                 .antMatchers("/admin/login", "/admin/css/**", "/admin/js/**", "/admin/images/**").permitAll()
                 .antMatchers("/admin/api/**", "/admin/**").hasRole("ADMIN")
-                .antMatchers("/**").permitAll()
                 .anyRequest().authenticated()
             .and()
             .formLogin()
@@ -55,7 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .accessDeniedPage("/403")
             .and()
             .csrf()
-                .ignoringAntMatchers("/api/**", "/riding/**", "/android/**", "/app/**");
+                .ignoringAntMatchers("/api/public/**");
     }
 
     @Override

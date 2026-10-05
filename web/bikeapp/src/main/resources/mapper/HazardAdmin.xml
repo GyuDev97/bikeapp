@@ -104,6 +104,17 @@
     LIMIT #{limit}
   </select>
 
+  <select id="findPublicApproved" resultMap="hazardReviewMap">
+    SELECT <include refid="baseColumns"/>
+    FROM dangerous_area d
+    INNER JOIN trailgo_hazard_review r ON r.hazard_id = d.idx
+    WHERE r.status = 'APPROVED'
+      AND r.is_active = 1
+      AND r.merged_into IS NULL
+      AND (r.expires_at IS NULL OR r.expires_at &gt; CURRENT_TIMESTAMP)
+    ORDER BY r.updated_at DESC, d.idx DESC
+  </select>
+
   <select id="findById" resultMap="hazardReviewMap">
     SELECT <include refid="baseColumns"/>
     FROM dangerous_area d

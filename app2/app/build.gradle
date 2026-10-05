@@ -13,7 +13,7 @@ android {
         applicationId "com.bike.trailgo"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 7
+        versionCode 8
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -25,6 +25,10 @@ android {
         buildConfigField "boolean", "RIDE_ASSISTANT_TEST_MODE", rideAssistantTestMode
         buildConfigField "String", "TRAILGO_PRIVACY_POLICY_URL", "\"${privacyPolicyUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
         buildConfigField "String", "TRAILGO_ACCOUNT_DELETION_URL", "\"${accountDeletionUrl.replace('\\', '\\\\').replace('\"', '\\\"')}\""
+        manifestPlaceholders = [
+                KAKAO_APP_KEY: project.findProperty("KAKAO_APP_KEY") ?: "",
+                GOOGLE_MAPS_API_KEY: project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
+        ]
     }
 
     def quoteBuildConfigValue = { value ->
@@ -35,6 +39,7 @@ android {
         throw new GradleException("TRAILGO_SERVER_BASE_URL must be set in gradle.properties or with -P")
     }
     def gyuvisBaseUrl = project.findProperty("GYUVIS_BASE_URL") ?: trailgoBaseUrl
+    // Keep provider keys out of source control.  Release CI must provide these values.
 
     buildTypes {
         debug {

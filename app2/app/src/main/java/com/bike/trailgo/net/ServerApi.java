@@ -71,7 +71,7 @@ public interface ServerApi {
     Call<Tag_Status> tagInsert(@FieldMap Map<String, String> param);
 
     //위험지역가져오기
-    @GET("app/riding/danger")
+    @GET("api/public/hazards")
     Call<List<DangerousArea>> getDangerArea();
 
     //라이딩 기록

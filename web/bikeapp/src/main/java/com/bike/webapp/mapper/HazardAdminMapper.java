@@ -17,6 +17,7 @@ public interface HazardAdminMapper {
                                @Param("reported") String reported,
                                @Param("sort") String sort);
     List<HazardReview> findRecent(@Param("limit") int limit);
+    List<HazardReview> findPublicApproved();
     HazardReview findById(@Param("id") int id);
     int countAll();
     int countByStatus(@Param("status") String status);

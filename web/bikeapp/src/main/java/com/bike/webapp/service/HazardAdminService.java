@@ -38,6 +38,12 @@ public class HazardAdminService {
         return mapper.findRecent(limit);
     }
 
+    /** Only these reviewed, active and unexpired hazards are safe for rider devices. */
+    @Transactional(readOnly = true)
+    public List<HazardReview> findPublicApproved() {
+        return mapper.findPublicApproved();
+    }
+
     @Transactional(readOnly = true)
     public HazardReview findById(int id) {
         return mapper.findById(id);

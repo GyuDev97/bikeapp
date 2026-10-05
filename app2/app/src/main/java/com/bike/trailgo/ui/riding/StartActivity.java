@@ -926,50 +926,10 @@ public class StartActivity extends AppCompatActivity
                     binding.mSpeed.setText(String.format("%.1f", getSpeed) + "km/h");
                     binding.speedGauge.setSpeedKmh((float) getSpeed);
 
-                    MapPolyline polyline = new MapPolyline();
-                    polyline.setLineColor(Color.argb(128, 255, 51, 0));
-
-                    polyline.addPoint(MapPoint.mapPointWithGeoCoord(latitude, lonngitude));
-                    if (mMapView != null) {
-                        mMapView.addPolyline(polyline);
-                        mMapView.isShowingCurrentLocationMarker();
-                    }
-
-                    // ?꿔꺂???????썹땟????嚥싳쉶瑗??꾧틡?嶺?????ㅽ떝椰?? 嚥싳쉶瑗??裕???⑤즾逾???묆궘?Polyline???꿔꺂??袁ㅻ븶?癲?????볥궖?????썹땟怨⒲뀋???됰슦????
-                    MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
-                    int padding = 50; // px
-                    if (mMapView != null) {
-                        mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding, 2, 3));
-                    }
-
-                    gCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                    try {
-                        addr = gCoder.getFromLocation(latitude, lonngitude, 1);
-                        List<Address> addr2 = gCoder.getFromLocation(latitude, lonngitude, 2);
-                        List<Address> addr3 = gCoder.getFromLocation(latitude, lonngitude, 3);
-
-                        Address a = addr.get(0);
-                        address_dong = a.getThoroughfare();
-                        adress_value = a.getAddressLine(0);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    // Keep legacy map rendering off the hot GPS path.  The bounded Kakao route
+                    // layer below owns visual updates; address lookup happens at finish time.
 
                     if (mLastlocation != null) {
-                        /*??????濚밸Ŧ??????녾컯嶺????틓楹?*/
-                        MapPolyline polyline2 = new MapPolyline();
-                        polyline.setLineColor(Color.argb(128, 255, 51, 0));
-                        polyline.addPoint(MapPoint.mapPointWithGeoCoord(mLastlocation.getLatitude(), mLastlocation.getLongitude()));
-                        if (mMapView != null) {
-                            mMapView.addPolyline(polyline);
-                        }
-
-                        // ?꿔꺂???????썹땟????嚥싳쉶瑗??꾧틡?嶺?????ㅽ떝椰?? 嚥싳쉶瑗??裕???⑤즾逾???묆궘?Polyline???꿔꺂??袁ㅻ븶?癲?????볥궖?????썹땟怨⒲뀋???됰슦????
-                        MapPointBounds mapPointBounds2 = new MapPointBounds(polyline.getMapPoints());
-                        if (mMapView != null) {
-                            mMapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds2, padding, 2, 3));
-                        }
-
                         if (getSpeed > maX) {
                             maX = getSpeed;
                             binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));

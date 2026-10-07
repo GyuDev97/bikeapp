@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
+import com.bike.trailgo.setting.AccountSession;
 
 public class SplashActivity extends Activity {
 
@@ -13,6 +14,12 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.splash_activity);
+
+        // The store MVP is local-first.  Older installs may retain a member id from
+        // the retired server-sync flow; without this migration the records screen
+        // attempts a legacy account endpoint instead of reading private device data.
+        // beginGuest preserves LocalRideStore files while clearing only stale session metadata.
+        AccountSession.beginGuest(this);
 
         Handler hd = new Handler();
         hd.postDelayed(new SplashHandler(), 1000); // 1초 후에 hd handler 실행  3000ms = 3초

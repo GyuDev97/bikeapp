@@ -13,8 +13,8 @@ android {
         applicationId "com.bike.trailgo"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 8
-        versionName "1.0"
+        versionCode 10
+        versionName "1.0.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         def gyuvisApiToken = project.findProperty("GYUVIS_API_TOKEN") ?: ""

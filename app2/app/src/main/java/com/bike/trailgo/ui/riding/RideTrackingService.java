@@ -14,6 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -23,6 +24,11 @@ import com.bike.trailgo.dto.DangerousArea;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.rideassistant.RideAssistant;
 import com.bike.trailgo.setting.RideSettings;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import java.util.List;
 
@@ -45,9 +51,19 @@ public class RideTrackingService extends Service implements LocationListener {
     private static final int NOTIFICATION_ID = 3102;
 
     private LocationManager locationManager;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationRequest fusedLocationRequest;
     private RideAssistant rideAssistant;
     private Call<List<DangerousArea>> dangerAreaCall;
     private boolean tracking;
+    private boolean usingFusedLocation;
+    private final LocationCallback fusedLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult result) {
+            if (result == null || result.getLastLocation() == null) return;
+            dispatchLocation(result.getLastLocation());
+        }
+    };
     private SharedPreferences rideSettings;
     private final SharedPreferences.OnSharedPreferenceChangeListener settingsListener = (preferences, key) -> {
         if (RideSettings.KEY_LOCATION_INTERVAL.equals(key) || RideSettings.KEY_BATTERY_SAVER.equals(key)) {
@@ -102,6 +118,7 @@ public class RideTrackingService extends Service implements LocationListener {
         super.onCreate();
         createNotificationChannel();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         RideSettings.migrate(this);
         rideSettings = RideSettings.preferences(this);
         rideSettings.registerOnSharedPreferenceChangeListener(settingsListener);
@@ -151,10 +168,43 @@ public class RideTrackingService extends Service implements LocationListener {
     }
 
     private void startTracking() {
-        if (tracking || locationManager == null || !RidePermissionFlow.hasPreciseLocation(this)) {
+        if (tracking || !RidePermissionFlow.hasPreciseLocation(this)) {
             return;
         }
 
+        try {
+            long intervalMillis = RideSettings.locationIntervalMillis(this);
+            fusedLocationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(intervalMillis)
+                    .setFastestInterval(Math.min(intervalMillis, 1_000L));
+            tracking = true;
+            usingFusedLocation = true;
+            fusedLocationClient.requestLocationUpdates(
+                    fusedLocationRequest,
+                    fusedLocationCallback,
+                    Looper.getMainLooper()
+            ).addOnFailureListener(error -> {
+                // Some devices disable Google Play services or fused delivery.  Preserve the
+                // previous GPS-provider path as a fallback instead of leaving the ride waiting.
+                if (!tracking || !usingFusedLocation) return;
+                usingFusedLocation = false;
+                startGpsFallback();
+            });
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null && tracking && usingFusedLocation) {
+                    dispatchLocation(location);
+                }
+            });
+        } catch (SecurityException ignored) {
+            tracking = false;
+            usingFusedLocation = false;
+            stopSelf();
+        }
+    }
+
+    private void startGpsFallback() {
+        if (locationManager == null || !RidePermissionFlow.hasPreciseLocation(this)) return;
         try {
             locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
@@ -162,22 +212,25 @@ public class RideTrackingService extends Service implements LocationListener {
                     2f,
                     this
             );
-            tracking = true;
-
             Location lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastKnown != null) {
                 dispatchLocation(lastKnown);
             }
         } catch (SecurityException ignored) {
+            tracking = false;
             stopSelf();
         }
     }
 
     private void stopTracking() {
-        if (locationManager != null && tracking) {
+        if (fusedLocationClient != null) {
+            fusedLocationClient.removeLocationUpdates(fusedLocationCallback);
+        }
+        if (locationManager != null) {
             locationManager.removeUpdates(this);
         }
         tracking = false;
+        usingFusedLocation = false;
     }
 
     private void restartTracking() {

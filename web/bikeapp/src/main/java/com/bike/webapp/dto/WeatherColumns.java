@@ -19,11 +19,12 @@ public abstract class WeatherColumns {
 	private String rr_weather_sky_code;
 	private String rr_weather_precipitation_code;
 	private String rr_weather_label;
+	private Double rr_weather_precipitation_mm;
 
 	/** Weather at ride time; {@code {"available": false}} for old rides or when none was captured. */
 	public RecordWeather getWeather() {
 		return RecordWeather.from(rr_weather_observed_at, rr_weather_temperature_c,
-				rr_weather_sky_code, rr_weather_precipitation_code, rr_weather_label);
+				rr_weather_sky_code, rr_weather_precipitation_code, rr_weather_precipitation_mm, rr_weather_label);
 	}
 
 	@JsonIgnore
@@ -87,5 +88,14 @@ public abstract class WeatherColumns {
 
 	public void setRr_weather_label(String rr_weather_label) {
 		this.rr_weather_label = rr_weather_label;
+	}
+
+	@JsonIgnore
+	public Double getRr_weather_precipitation_mm() {
+		return rr_weather_precipitation_mm;
+	}
+
+	public void setRr_weather_precipitation_mm(Double rr_weather_precipitation_mm) {
+		this.rr_weather_precipitation_mm = rr_weather_precipitation_mm;
 	}
 }

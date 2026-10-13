@@ -22,6 +22,26 @@ public class RidingRecord {
     private String local_source_id;
     // Optional: absent for guest records, old records and older servers.
     private RecordWeather weather;
+    // Optional rider memo (max 500 chars) and photos; null/empty for records saved before they existed.
+    private String rr_memo;
+    private java.util.List<RecordPhoto> photos;
+
+    public String getRr_memo() {
+        return rr_memo;
+    }
+
+    public void setRr_memo(String rr_memo) {
+        this.rr_memo = rr_memo;
+    }
+
+    /** Never null: records without photos give an empty list. */
+    public java.util.List<RecordPhoto> getPhotos() {
+        return photos == null ? java.util.Collections.<RecordPhoto>emptyList() : photos;
+    }
+
+    public void setPhotos(java.util.List<RecordPhoto> photos) {
+        this.photos = photos;
+    }
 
     public RecordWeather getWeather() {
         return weather;

@@ -101,6 +101,42 @@ public final class RecordFormatter {
         return label.trim() + " · " + temperature;
     }
 
+    /** "18:00 관측" style time of an ISO timestamp such as 2026-10-10T18:00:00+09:00, or null when unreadable. */
+    public static String formatObservedTime(String isoTimestamp) {
+        if (isoTimestamp == null || isoTimestamp.length() < 16 || isoTimestamp.charAt(10) != 'T' || isoTimestamp.charAt(13) != ':') {
+            return null;
+        }
+        String hhmm = isoTimestamp.substring(11, 16);
+        if (!hhmm.matches("[0-2][0-9]:[0-5][0-9]")) {
+            return null;
+        }
+        return hhmm + " 관측";
+    }
+
+    /** "1.5mm" / "2mm" for a measured precipitation amount; null when there was none or it is unknown. */
+    public static String formatPrecipitationAmount(Double mm) {
+        if (mm == null || mm.isNaN() || mm.isInfinite() || mm <= 0.0) {
+            return null;
+        }
+        double rounded = Math.round(mm * 10.0) / 10.0;
+        return rounded == Math.rint(rounded)
+                ? String.format(Locale.KOREA, "%dmm", (long) rounded)
+                : String.format(Locale.KOREA, "%.1fmm", rounded);
+    }
+
+    /** "시작 시각 기준 · 18:00 관측 · 1시간 강수 1.5mm": what the weather line says about its source. */
+    public static String formatWeatherNote(String observedAtIso, Double precipitationMm) {
+        StringBuilder note = new StringBuilder("시작 시각 기준");
+        String observed = formatObservedTime(observedAtIso);
+        if (observed != null) {
+            note.append(" · ").append(observed);
+        }
+        String amount = formatPrecipitationAmount(precipitationMm);
+        if (amount != null) {
+            note.append(" · 1시간 강수 ").append(amount);
+        }
+        return note.toString();
+    }
     public static boolean hasMeasurement(int meters, int seconds) {
         return meters > 0 && seconds > 0;
     }

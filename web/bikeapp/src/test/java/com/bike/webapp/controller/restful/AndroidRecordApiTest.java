@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -44,6 +45,7 @@ class AndroidRecordApiTest {
 		AndroidController controller = new AndroidController();
 		ReflectionTestUtils.setField(controller, "androidService", androidService);
 		ReflectionTestUtils.setField(controller, "weatherCaptureService", weatherCaptureService);
+		ReflectionTestUtils.setField(controller, "recordPhotoService", mock(com.bike.webapp.service.RecordPhotoService.class));
 		ReflectionTestUtils.setField(controller, "storageRoot", "build/test-storage");
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}
@@ -82,7 +84,7 @@ class AndroidRecordApiTest {
 
 		ArgumentCaptor<Double> lat = ArgumentCaptor.forClass(Double.class);
 		ArgumentCaptor<Double> lon = ArgumentCaptor.forClass(Double.class);
-		verify(weatherCaptureService).captureAsync(eq(77), lat.capture(), lon.capture(), any(LocalDateTime.class));
+		verify(weatherCaptureService).captureAsync(eq(77), isNull(), lat.capture(), lon.capture(), any(LocalDateTime.class));
 		assertEquals(35.8329, lat.getValue(), 0.0);
 		assertEquals(128.565, lon.getValue(), 0.0);
 	}
@@ -93,14 +95,14 @@ class AndroidRecordApiTest {
 		mvc.perform(post("/app/riding/upload").param("rr_rider", "rider1").param("rr_distance", "5000"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.saved").value("1"));
-		verify(weatherCaptureService).captureAsync(eq(78), eq((Double) null), eq((Double) null), any(LocalDateTime.class));
+		verify(weatherCaptureService).captureAsync(eq(78), isNull(), isNull(), isNull(), any(LocalDateTime.class));
 	}
 
 	@Test
 	void weatherSchedulingFailureNeverFailsTheSave() throws Exception {
 		doThrowIdOnInsert(79);
 		doThrow(new IllegalStateException("boom")).when(weatherCaptureService)
-				.captureAsync(anyInt(), any(), any(), any());
+				.captureAsync(anyInt(), any(), any(), any(), any());
 		mvc.perform(post("/app/riding/upload").param("rr_rider", "rider1")
 				.param("rr_start_lat", "35.8").param("rr_start_lon", "128.5"))
 				.andExpect(status().isOk())
@@ -113,7 +115,7 @@ class AndroidRecordApiTest {
 		mvc.perform(post("/app/riding/upload").param("rr_rider", "rider1")
 				.param("rr_start_lat", "35.8").param("rr_start_lon", "128.5"))
 				.andExpect(status().isInternalServerError());
-		verify(weatherCaptureService, never()).captureAsync(anyInt(), any(), any(), any());
+		verify(weatherCaptureService, never()).captureAsync(anyInt(), any(), any(), any(), any());
 	}
 
 	private void doThrowIdOnInsert(int id) throws Exception {
@@ -178,7 +180,7 @@ class AndroidRecordApiTest {
 		String second = mvc.perform(get("/app/riding/records/rider1/123")).andReturn().getResponse().getContentAsString();
 		assertEquals(first, second);
 		// reading never triggers a weather lookup
-		verify(weatherCaptureService, never()).captureAsync(anyInt(), any(), any(), any());
+		verify(weatherCaptureService, never()).captureAsync(anyInt(), any(), any(), any(), any());
 	}
 
 	@Test

@@ -3,14 +3,15 @@ package com.bike.trailgo.ui.home;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,31 +28,48 @@ import com.bike.trailgo.ui.BaseFragment;
 import com.bike.trailgo.ui.records.RecordFormatter;
 import com.bike.trailgo.ui.riding.StartActivity;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
+import java.util.Set;
+import java.util.TimeZone;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Home: this month's rides (count, distance, climbing, time) and the latest rides.
+ *
+ * <p>Members read their rides from the server, guests from the device; both end up as the same
+ * list of {@link RidingRecord}. Nothing is invented: with no rides the screen says so, and while
+ * loading or after a failure the numbers show "-" instead of zeros.</p>
+ */
 public class HomeFragment extends BaseFragment {
+    private static final int RECENT_COUNT = 3;
+    private static final float UNIT_SCALE = 0.62f;
+
+    private enum State { LOADING, READY, ERROR }
+
     private Call<List<RidingRecord>> myInfo;
-    private View ridingStart;
-    private TextView mainTime;
-    private TextView mainKm;
-    private TextView rider;
-    private TextView mainDistance;
-    private TextView goalPercent;
-    private LinearLayout recentRecordList;
+    private final Handler main = new Handler(Looper.getMainLooper());
+    private int loadGeneration;
+    private boolean hasData;
+
+    private TextView monthLabel;
     private TextView monthCount;
-    private TextView totalHeight;
-    private TextView totalTime;
-    private ProgressBar goalProgress;
+    private TextView statCount;
+    private TextView statDistance;
+    private TextView statHeight;
+    private TextView statTime;
+    private TextView sourceNote;
+    private LinearLayout recentRecordList;
+
+    private int savedStatusBarColor;
+    private int savedSystemUiVisibility;
+    private boolean statusBarStyled;
 
     public static HomeFragment newInstance() {
         return new HomeFragment();
@@ -66,51 +84,34 @@ public class HomeFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ridingStart = view.findViewById(R.id.bottom_nav_ride);
-        mainTime = view.findViewById(R.id.main_time);
-        mainKm = view.findViewById(R.id.main_km);
-        rider = view.findViewById(R.id.idinfo);
-        mainDistance = view.findViewById(R.id.main_dis);
-        goalPercent = view.findViewById(R.id.home_goal_percent);
-        goalProgress = view.findViewById(R.id.home_goal_progress);
-        recentRecordList = view.findViewById(R.id.home_recent_list);
+        monthLabel = view.findViewById(R.id.home_month_label);
         monthCount = view.findViewById(R.id.home_month_count);
-        totalHeight = view.findViewById(R.id.home_total_height);
-        totalTime = view.findViewById(R.id.home_total_time);
+        statCount = view.findViewById(R.id.home_stat_count);
+        statDistance = view.findViewById(R.id.main_dis);
+        statHeight = view.findViewById(R.id.home_total_height);
+        statTime = view.findViewById(R.id.home_total_time);
+        sourceNote = view.findViewById(R.id.home_source_note);
+        recentRecordList = view.findViewById(R.id.home_recent_list);
 
-        String riderId = getRiderId();
-        bindKoreanLabels(view);
         bindNavigation(view);
         bindHeader(view);
-
-        ridingStart.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), StartActivity.class);
-            startActivity(intent);
-        });
-
-        loadRidingSummary(riderId);
+        bindStartButtons(view);
+        hasData = false;
+        showState(State.LOADING, null);
+        // the records are (re)loaded in onResume, which always follows
     }
+
+    // ---------------------------------------------------------------------------------------
+    // Header / navigation (same actions as before)
+    // ---------------------------------------------------------------------------------------
 
     private String getRiderId() {
         String riderId = model.r_Id.getValue();
         if (riderId != null && riderId.length() > 0) {
             return riderId;
         }
-
         SharedPreferences auto = requireContext().getSharedPreferences("auto", Activity.MODE_PRIVATE);
         return auto.getString("LoginId", "");
-    }
-
-    private void bindKoreanLabels(View view) {
-        setText(view, R.id.home_recent_title, "최근 기록");
-        setText(view, R.id.home_recent_more, "전체 보기");
-    }
-
-    private void setText(View root, int textViewId, String text) {
-        TextView textView = root.findViewById(textViewId);
-        if (textView != null) {
-            textView.setText(text);
-        }
     }
 
     private void bindNavigation(View view) {
@@ -128,7 +129,7 @@ public class HomeFragment extends BaseFragment {
         }
         TextView home = view.findViewById(R.id.bottom_nav_home);
         if (home != null) {
-            home.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
+            home.setSelected(true);
             home.setTypeface(null, android.graphics.Typeface.BOLD);
         }
     }
@@ -141,22 +142,32 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void bindHeader(View view) {
-        View menuButton = view.findViewById(R.id.home_menu_button);
-        if (menuButton != null) {
-            SpannableString brand = new SpannableString("TrailGO");
-            brand.setSpan(
-                    new ForegroundColorSpan(android.graphics.Color.parseColor("#1F7A2E")),
-                    5,
-                    brand.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            ((TextView) menuButton).setText(brand);
-            menuButton.setOnClickListener(v -> {
-                DrawerLayout drawerLayout = requireActivity().findViewById(R.id.drawer_layout);
-                if (drawerLayout != null) {
-                    drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
-                }
-            });
+        View.OnClickListener openDrawer = v -> {
+            DrawerLayout drawerLayout = requireActivity().findViewById(R.id.drawer_layout);
+            if (drawerLayout != null) {
+                drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
+            }
+        };
+        View icon = view.findViewById(R.id.home_menu_icon);
+        if (icon != null) {
+            icon.setOnClickListener(openDrawer);
+        }
+        View title = view.findViewById(R.id.home_menu_button);
+        if (title != null) {
+            title.setOnClickListener(openDrawer);
+        }
+    }
+
+    /** The round button of the bottom bar and the quick-start card do exactly the same thing. */
+    private void bindStartButtons(View view) {
+        View.OnClickListener start = v -> startActivity(new Intent(getActivity(), StartActivity.class));
+        View ride = view.findViewById(R.id.bottom_nav_ride);
+        if (ride != null) {
+            ride.setOnClickListener(start);
+        }
+        View quick = view.findViewById(R.id.home_quick_start);
+        if (quick != null) {
+            quick.setOnClickListener(start);
         }
     }
 
@@ -164,149 +175,209 @@ public class HomeFragment extends BaseFragment {
         Navigation.findNavController(view).navigate(actionId);
     }
 
-    private void loadRidingSummary(String riderId) {
-        if (AccountSession.isGuest(requireContext())) {
-            updateSummary(LocalRideStore.load(requireContext()));
-            return;
-        }
+    // ---------------------------------------------------------------------------------------
+    // Loading
+    // ---------------------------------------------------------------------------------------
+
+    private void loadRidingSummary() {
+        final int generation = ++loadGeneration;
         if (myInfo != null) {
             myInfo.cancel();
+            myInfo = null;
         }
-        myInfo = serverApi.getMyRecord(riderId);
+        if (!hasData) {
+            showState(State.LOADING, null);
+        }
+
+        if (AccountSession.isGuest(requireContext())) {
+            final android.content.Context context = requireContext().getApplicationContext();
+            new Thread(() -> {
+                final ArrayList<RidingRecord> records = LocalRideStore.load(context);
+                main.post(() -> {
+                    if (generation == loadGeneration && isAdded() && getView() != null) {
+                        onRecords(records, true);
+                    }
+                });
+            }).start();
+            return;
+        }
+
+        myInfo = serverApi.getMyRecord(getRiderId());
         myInfo.enqueue(new Callback<List<RidingRecord>>() {
             @Override
             public void onResponse(Call<List<RidingRecord>> call, Response<List<RidingRecord>> response) {
+                if (generation != loadGeneration || !isAdded() || getView() == null) {
+                    return;
+                }
                 if (response.code() == 200 && response.body() != null) {
-                    updateSummary(response.body());
-                } else if (!call.isCanceled()) {
-                    showRecordLoadFailure();
+                    onRecords(response.body(), false);
+                } else {
+                    onLoadFailed(false);
                 }
             }
 
             @Override
             public void onFailure(Call<List<RidingRecord>> call, Throwable t) {
-                if (!call.isCanceled()) {
-                    t.printStackTrace();
-                    showRecordLoadFailure();
+                if (!call.isCanceled() && generation == loadGeneration && isAdded() && getView() != null) {
+                    onLoadFailed(true);
                 }
             }
         });
     }
 
-    private void updateSummary(List<RidingRecord> records) {
-        if (records == null) {
-            return;
+    private void onLoadFailed(boolean networkProblem) {
+        if (hasData) {
+            // keep showing what is already there, and say it may be out of date
+            sourceNote.setText("최신 기록을 불러오지 못해 이전에 불러온 내용을 보여드립니다.");
+            sourceNote.setVisibility(View.VISIBLE);
+        } else {
+            showState(State.ERROR, networkProblem ? "서버에 연결하지 못했습니다. 네트워크 연결을 확인해 주세요."
+                    : "기록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
         }
+    }
 
-        ArrayList<RidingRecord> sorted = new ArrayList<>(records);
+    // ---------------------------------------------------------------------------------------
+    // Showing
+    // ---------------------------------------------------------------------------------------
+
+    private void onRecords(List<RidingRecord> records, boolean guest) {
+        hasData = true;
+        // Guest rides carry the phone's local time, member rides the server's (Korea) time.
+        TimeZone zone = guest ? TimeZone.getDefault() : RecordDates.SEOUL;
+        int month = RecordDates.currentMonthKey(zone, System.currentTimeMillis());
+        MonthlySummary summary = MonthlySummary.of(records, month, zone);
+
+        monthLabel.setText(HomeFormat.monthLabel(month));
+        HomeUnitText.set(monthCount, HomeFormat.count(summary.rideCount), 0.45f);
+        HomeUnitText.set(statCount, HomeFormat.count(summary.rideCount), UNIT_SCALE);
+        HomeUnitText.set(statDistance, HomeFormat.distance(summary.distanceMeters), UNIT_SCALE);
+        HomeUnitText.set(statHeight, HomeFormat.elevation(summary.elevationGainMeters), UNIT_SCALE);
+        HomeUnitText.set(statTime, HomeFormat.duration(summary.ridingSeconds), UNIT_SCALE);
+
+        sourceNote.setVisibility(View.GONE);
+
+        List<RidingRecord> sorted = sortNewestFirst(records, zone);
+        bindRecentRecords(sorted, zone);
+        if (guest) {
+            Set<String> references = new HashSet<>();
+            for (RidingRecord record : sorted) {
+                if (record.getRr_gpx() != null) {
+                    references.add(record.getRr_gpx());
+                }
+            }
+            // pictures of deleted guest rides are no longer needed
+            RouteThumbnailLoader.get(requireContext()).retainOnly(references);
+        }
+    }
+
+    private void showState(State state, @Nullable String message) {
+        if (state == State.LOADING) {
+            TimeZone zone = AccountSession.isGuest(requireContext()) ? TimeZone.getDefault() : RecordDates.SEOUL;
+            monthLabel.setText(HomeFormat.monthLabel(RecordDates.currentMonthKey(zone, System.currentTimeMillis())));
+        }
+        if (state != State.READY) {
+            monthCount.setText("-");
+            HomeUnitText.clear(statCount);
+            HomeUnitText.clear(statDistance);
+            HomeUnitText.clear(statHeight);
+            HomeUnitText.clear(statTime);
+            sourceNote.setVisibility(View.GONE);
+            recentRecordList.removeAllViews();
+            if (state == State.LOADING) {
+                addMessage("기록을 불러오는 중입니다", null, false);
+            } else {
+                addMessage("기록을 불러오지 못했습니다", message, true);
+            }
+        }
+    }
+
+    private void addMessage(String title, @Nullable String detail, boolean retry) {
+        View card = LayoutInflater.from(requireContext()).inflate(R.layout.item_home_message, recentRecordList, false);
+        ((TextView) card.findViewById(R.id.home_message_title)).setText(title);
+        TextView detailView = card.findViewById(R.id.home_message_detail);
+        if (detail == null || detail.isEmpty()) {
+            detailView.setVisibility(View.GONE);
+        } else {
+            detailView.setText(detail);
+        }
+        View retryView = card.findViewById(R.id.home_message_retry);
+        if (retry) {
+            retryView.setVisibility(View.VISIBLE);
+            retryView.setOnClickListener(v -> loadRidingSummary());
+        }
+        recentRecordList.addView(card);
+    }
+
+    private List<RidingRecord> sortNewestFirst(List<RidingRecord> records, final TimeZone zone) {
+        ArrayList<RidingRecord> sorted = new ArrayList<>();
+        if (records != null) {
+            for (RidingRecord record : records) {
+                if (record != null) {
+                    sorted.add(record);
+                }
+            }
+        }
         Collections.sort(sorted, new Comparator<RidingRecord>() {
             @Override
             public int compare(RidingRecord left, RidingRecord right) {
-                String leftDate = left.getRr_date() == null ? "" : left.getRr_date();
-                String rightDate = right.getRr_date() == null ? "" : right.getRr_date();
-                return rightDate.compareTo(leftDate);
+                return Long.compare(sortKey(right, zone), sortKey(left, zone));
             }
         });
-
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(new Date());
-        int todayDistance = 0;
-        int todaySeconds = 0;
-        int totalDistance = 0;
-        int totalHeightMeters = 0;
-        int totalSeconds = 0;
-        int ridesThisMonth = 0;
-        String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.KOREA).format(new Date());
-
-        for (RidingRecord record : sorted) {
-            int distance = record.getRr_distance();
-            totalDistance += distance;
-            totalHeightMeters += record.getRr_high();
-            totalSeconds += record.getRr_time();
-
-            String date = record.getRr_date();
-            if (date != null && date.startsWith(currentMonth)) {
-                ridesThisMonth++;
-            }
-            if (date != null && date.length() >= 10 && today.equals(date.substring(0, 10))) {
-                todayDistance += distance;
-                todaySeconds += record.getRr_time();
-            }
-        }
-
-        setTextIfPresent(mainKm, formatDistance(todayDistance));
-        setTextIfPresent(mainTime, formatDuration(todaySeconds));
-        setTextIfPresent(mainDistance, formatDistance(totalDistance));
-        setTextIfPresent(monthCount, ridesThisMonth + " 회");
-        setTextIfPresent(totalHeight, String.format(Locale.KOREA, "%,d m", totalHeightMeters));
-        setTextIfPresent(totalTime, formatClockDuration(totalSeconds));
-
-        int distanceGoalMeters = 10000;
-        int goalPercentValue = Math.min(100, (int) Math.round((todayDistance / (double) distanceGoalMeters) * 100.0));
-        if (goalProgress != null) {
-            goalProgress.setProgress(goalPercentValue);
-        }
-        setTextIfPresent(goalPercent, goalPercentValue + "%");
-
-        bindRecentRecords(sorted);
+        return sorted;
     }
 
-    private void bindRecentRecords(List<RidingRecord> records) {
-        if (recentRecordList == null) {
-            return;
+    private static long sortKey(RidingRecord record, TimeZone zone) {
+        RecordDates.Parts p = RecordDates.parse(record.getRr_date(), zone);
+        if (p == null) {
+            return Long.MIN_VALUE;
         }
+        return (((p.year * 100L + p.month) * 100L + p.day) * 100L + Math.max(0, p.hour)) * 100L + p.minute;
+    }
 
+    private void bindRecentRecords(List<RidingRecord> records, TimeZone zone) {
         recentRecordList.removeAllViews();
-        if (records == null || records.isEmpty()) {
-            addRecentRecordRow(null, "저장된 주행 기록이 없습니다", "첫 라이딩을 저장하면 여기에 표시됩니다.");
+        if (records.isEmpty()) {
+            addMessage("아직 라이딩 기록이 없어요", "첫 라이딩을 저장하면 여기에 표시됩니다.", false);
             return;
         }
-
-        int recentCount = Math.min(3, records.size());
-        for (int index = 0; index < recentCount; index++) {
-            RidingRecord record = records.get(index);
-            addRecentRecordRow(record, null, null);
-            if (index < recentCount - 1) {
-                View divider = new View(requireContext());
-                divider.setBackgroundColor(android.graphics.Color.parseColor("#E8EBE8"));
-                recentRecordList.addView(divider, new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        1
-                ));
-            }
+        int count = Math.min(RECENT_COUNT, records.size());
+        for (int index = 0; index < count; index++) {
+            addRecentRecordRow(records.get(index), zone);
         }
     }
 
-    private void addRecentRecordRow(@Nullable RidingRecord record, @Nullable String emptyTitle, @Nullable String emptyDetail) {
-        View row = LayoutInflater.from(requireContext()).inflate(
-                R.layout.item_home_recent_record,
-                recentRecordList,
-                false
-        );
-        TextView course = row.findViewById(R.id.home_recent_item_course);
-        TextView distance = row.findViewById(R.id.home_recent_item_distance);
-        TextView height = row.findViewById(R.id.home_recent_item_height);
-        TextView duration = row.findViewById(R.id.home_recent_item_duration);
-        TextView date = row.findViewById(R.id.home_recent_item_date);
-
-        if (record == null) {
-            course.setText(emptyTitle);
-            distance.setText(emptyDetail);
-            height.setText("");
-            duration.setText("");
-            date.setText("");
-        } else {
-            String courseName = record.getRr_name();
-            if (courseName == null || courseName.trim().isEmpty()) {
-                courseName = record.getRr_area();
-            }
-            course.setText(courseName == null || courseName.trim().isEmpty() ? "이름 없는 주행" : courseName);
-            distance.setText(formatDistance(record.getRr_distance()));
-            height.setText("△ " + record.getRr_high() + " m");
-            duration.setText("~ " + formatDuration(record.getRr_time()));
-            date.setText(formatRecentDate(record.getRr_date()));
-            row.setOnClickListener(v -> openRecordDetail(record));
-        }
+    private void addRecentRecordRow(final RidingRecord record, TimeZone zone) {
+        View row = LayoutInflater.from(requireContext()).inflate(R.layout.item_home_recent_record, recentRecordList, false);
+        ((TextView) row.findViewById(R.id.home_recent_item_course)).setText(HomeFormat.title(record));
+        ((TextView) row.findViewById(R.id.home_recent_item_date)).setText(HomeFormat.dateAndTime(record.getRr_date(), zone));
+        ((TextView) row.findViewById(R.id.home_recent_item_distance)).setText(HomeFormat.rowDistance(record));
+        ((TextView) row.findViewById(R.id.home_recent_item_height)).setText(HomeFormat.rowElevation(record));
+        ((TextView) row.findViewById(R.id.home_recent_item_duration)).setText(HomeFormat.rowDuration(record));
+        row.setContentDescription(HomeFormat.title(record) + ", " + HomeFormat.dateAndTime(record.getRr_date(), zone)
+                + ", 거리 " + HomeFormat.rowDistance(record) + ", 획득 고도 " + HomeFormat.rowElevation(record)
+                + ", 시간 " + HomeFormat.rowDuration(record));
+        row.setOnClickListener(v -> openRecordDetail(record));
+        bindThumbnail((ImageView) row.findViewById(R.id.home_recent_item_thumb), record.getRr_gpx());
         recentRecordList.addView(row);
+    }
+
+    /** The route picture is made once from the ride's GPX, off the main thread, and cached. */
+    private void bindThumbnail(final ImageView thumb, @Nullable final String gpxReference) {
+        final float density = getResources().getDisplayMetrics().density;
+        int widthPx = Math.round(84 * density);
+        int heightPx = Math.round(64 * density);
+        thumb.setImageResource(R.drawable.home_thumb_placeholder);
+        thumb.setTag(gpxReference);
+        RouteThumbnailLoader.get(requireContext()).load(gpxReference, widthPx, heightPx, density,
+                (bitmap, result) -> {
+                    boolean stillWanted = thumb.isAttachedToWindow() || thumb.getParent() != null;
+                    String wanted = (String) thumb.getTag();
+                    boolean same = wanted == null ? gpxReference == null : wanted.equals(gpxReference);
+                    if (bitmap != null && stillWanted && same) {
+                        thumb.setImageBitmap(bitmap);
+                    }
+                    // no GPX / failed download / unreadable file: the neutral placeholder stays
+                });
     }
 
     private void openRecordDetail(RidingRecord record) {
@@ -328,84 +399,57 @@ public class HomeFragment extends BaseFragment {
         controller.navigate(R.id.action_nav_home_to_myDetailFragment);
     }
 
-    private void showRecordLoadFailure() {
-        setTextIfPresent(mainKm, "0 m");
-        setTextIfPresent(mainTime, "0초");
-        setTextIfPresent(mainDistance, "0 m");
-        setTextIfPresent(monthCount, "0 회");
-        setTextIfPresent(totalHeight, "0 m");
-        setTextIfPresent(totalTime, "00:00:00");
-        if (goalProgress != null) {
-            goalProgress.setProgress(0);
-        }
-        setTextIfPresent(goalPercent, "0%");
-        bindRecentRecords(Collections.<RidingRecord>emptyList());
-    }
-
-    private void setTextIfPresent(TextView textView, String text) {
-        if (textView != null) {
-            textView.setText(text);
-        }
-    }
-
-    private String formatDistance(int meters) {
-        if (meters >= 1000) {
-            return String.format(Locale.KOREA, "%.1f km", meters / 1000.0);
-        }
-        return meters + " m";
-    }
-
-    private String formatDuration(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-
-        if (hours > 0) {
-            return hours + "\uC2DC\uAC04 " + minutes + "\uBD84";
-        }
-        if (minutes > 0) {
-            return minutes + "\uBD84";
-        }
-        return seconds + "\uCD08";
-    }
-
-    private String formatClockDuration(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        int remainingSeconds = seconds % 60;
-        return String.format(Locale.KOREA, "%02d:%02d:%02d", hours, minutes, remainingSeconds);
-    }
-
-    private String formatRecentDate(String rawDate) {
-        if (rawDate == null || rawDate.length() < 16) {
-            return rawDate == null ? "-" : rawDate;
-        }
-
-        String datePart = rawDate.substring(0, 10);
-        String timePart = rawDate.substring(11, 16);
-
-        try {
-            Date parsedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA).parse(datePart + " " + timePart);
-            if (parsedDate != null) {
-                return new SimpleDateFormat("yyyy년 M월 d일 · a h:mm", Locale.KOREA).format(parsedDate);
-            }
-        } catch (Exception ignored) {
-        }
-
-        return rawDate;
-    }
+    // ---------------------------------------------------------------------------------------
+    // Lifecycle
+    // ---------------------------------------------------------------------------------------
 
     @Override
     public void onResume() {
         super.onResume();
         setAppBarVisible(false);
+        styleStatusBar(true);
         if (getView() != null) {
-            loadRidingSummary(getRiderId());
+            loadRidingSummary();
         }
     }
 
     @Override
     public void onPause() {
+        styleStatusBar(false);
         super.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        loadGeneration++;
+        if (myInfo != null) {
+            myInfo.cancel();
+            myInfo = null;
+        }
+        super.onDestroyView();
+    }
+
+    /** The dark green header runs up under the status bar while Home is shown. */
+    @SuppressWarnings("deprecation")
+    private void styleStatusBar(boolean home) {
+        android.view.Window window = requireActivity().getWindow();
+        if (window == null) {
+            return;
+        }
+        if (home && !statusBarStyled) {
+            savedStatusBarColor = window.getStatusBarColor();
+            savedSystemUiVisibility = window.getDecorView().getSystemUiVisibility();
+            window.setStatusBarColor(0xFF123425);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                window.getDecorView().setSystemUiVisibility(
+                        savedSystemUiVisibility & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+            statusBarStyled = true;
+        } else if (!home && statusBarStyled) {
+            window.setStatusBarColor(savedStatusBarColor);
+            window.getDecorView().setSystemUiVisibility(savedSystemUiVisibility);
+            statusBarStyled = false;
+        }
     }
 
     private void setAppBarVisible(boolean visible) {

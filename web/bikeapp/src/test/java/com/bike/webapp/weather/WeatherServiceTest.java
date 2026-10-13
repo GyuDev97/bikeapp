@@ -7,145 +7,254 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 class WeatherServiceTest {
 
-	private static final LocalDateTime SAVED_AT = LocalDateTime.of(2026, 10, 10, 19, 49);
-	// Daegu 앞산
+	// Daegu 앞산 -> grid (88, 90)
 	private static final double LAT = 35.8329;
 	private static final double LON = 128.5650;
 
+	/** Answers per base hour; records every upstream call. */
 	static class FakeClient implements KmaWeatherClient {
-		String observation = KmaResponseParserTest.ncst("21.0", "0");
-		String forecast = KmaResponseParserTest.fcst("1", "1");
-		boolean throwOnCall;
-		int observationCalls;
-		int forecastCalls;
-		LocalDateTime lastObservationBase;
-		LocalDateTime lastForecastBase;
+		String body = KmaResponseParserTest.ncst("21.0", "0", "0");
+		int status = 200;
+		boolean timeout;
+		boolean throwUnexpected;
+		/** base hours that answer NODATA (03) */
+		final List<LocalDateTime> noDataFor = new ArrayList<>();
+		final List<LocalDateTime> calls = new ArrayList<>();
 
 		@Override
-		public String fetchObservation(int nx, int ny, LocalDateTime base) {
-			observationCalls++;
-			lastObservationBase = base;
-			if (throwOnCall) {
-				throw new IllegalStateException("simulated timeout");
+		public RawResponse fetchObservation(int nx, int ny, LocalDateTime base) {
+			calls.add(base);
+			if (throwUnexpected) {
+				throw new IllegalStateException("boom");
 			}
-			return observation;
-		}
-
-		@Override
-		public String fetchForecast(int nx, int ny, LocalDateTime base) {
-			forecastCalls++;
-			lastForecastBase = base;
-			if (throwOnCall) {
-				throw new IllegalStateException("simulated timeout");
+			if (timeout) {
+				return null;
 			}
-			return forecast;
+			if (noDataFor.contains(base)) {
+				return new RawResponse(200, KmaResponseParserTest.error("03", "NODATA_ERROR"));
+			}
+			return new RawResponse(status, body);
 		}
 	}
 
-	private static WeatherService service(FakeClient client, boolean configured) {
-		return new WeatherService(client, configured, Clock.fixed(Instant.parse("2026-10-10T10:49:00Z"), WeatherService.KST));
+	/** A service whose clock stands at the given Asia/Seoul wall time. */
+	private static WeatherService service(FakeClient client, boolean configured, String nowKst, CallBudget budget) {
+		Instant instant = LocalDateTime.parse(nowKst).atZone(WeatherService.KST).toInstant();
+		return new WeatherService(client, configured, Clock.fixed(instant, WeatherService.KST), budget);
+	}
+
+	private static WeatherService service(FakeClient client, String nowKst) {
+		return service(client, true, nowKst, new CallBudget(100, 3_600_000L));
+	}
+
+	private static LocalDateTime t(String iso) {
+		return LocalDateTime.parse(iso);
+	}
+
+	// ---- which observation hour --------------------------------------------------------------
+
+	@Test
+	void anObservationIsServedFromFortyMinutesPastTheHour() {
+		// now 19:39 -> 19:00 is not served yet, 18:00 is the newest
+		assertEquals(t("2026-10-10T18:00:00"), WeatherService.observationBase(t("2026-10-10T19:39:00"), t("2026-10-10T19:39:00")));
+		// now 19:40 -> 19:00 is served
+		assertEquals(t("2026-10-10T19:00:00"), WeatherService.observationBase(t("2026-10-10T19:40:00"), t("2026-10-10T19:40:00")));
 	}
 
 	@Test
-	void withoutServiceKeyNothingIsCalledAndNothingFails() {
-		FakeClient client = new FakeClient();
-		Optional<WeatherSnapshot> result = service(client, false).lookup(LAT, LON, SAVED_AT);
-		assertFalse(result.isPresent());
-		assertEquals(0, client.observationCalls);
-		assertEquals(0, client.forecastCalls);
+	void aRideUsesTheObservationAtOrJustBeforeItsStart() {
+		LocalDateTime now = t("2026-10-10T21:15:00");
+		// started 19:20 -> the 19:00 observation (not 20:00, which is after the start)
+		assertEquals(t("2026-10-10T19:00:00"), WeatherService.observationBase(t("2026-10-10T19:20:00"), now));
+		// started exactly at 19:00
+		assertEquals(t("2026-10-10T19:00:00"), WeatherService.observationBase(t("2026-10-10T19:00:00"), now));
 	}
 
 	@Test
-	void withKeyReturnsNormalisedSnapshot() {
+	void aFreshlystartedRideFallsBackToTheNewestServedHour() {
+		// started 19:20, asked at 19:25: the 19:00 observation is not served until 19:40 -> 18:00
+		assertEquals(t("2026-10-10T18:00:00"), WeatherService.observationBase(t("2026-10-10T19:20:00"), t("2026-10-10T19:25:00")));
+	}
+
+	@Test
+	void aStartInTheFutureIsTreatedAsNow() {
+		assertEquals(t("2026-10-10T18:00:00"), WeatherService.observationBase(t("2026-10-10T23:00:00"), t("2026-10-10T19:25:00")));
+	}
+
+	@Test
+	void theHourBeforeMidnightRollsOverTheDate() {
+		assertEquals(t("2026-10-09T23:00:00"), WeatherService.observationBase(t("2026-10-10T00:10:00"), t("2026-10-10T00:10:00")));
+		assertEquals(t("2026-10-10T00:00:00"), WeatherService.observationBase(t("2026-10-10T00:45:00"), t("2026-10-10T00:45:00")));
+	}
+
+	// ---- results -----------------------------------------------------------------------------
+
+	@Test
+	void returnsTheNormalisedObservationWithoutAnySkyCondition() {
 		FakeClient client = new FakeClient();
-		WeatherSnapshot snapshot = service(client, true).lookup(LAT, LON, SAVED_AT).get();
+		client.body = KmaResponseParserTest.ncst("21.0", "1", "2.5");
+		WeatherSnapshot snapshot = service(client, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).get();
+
 		assertEquals(21.0, snapshot.getTemperatureC(), 0.0);
-		assertEquals("CLEAR", snapshot.getSkyCode());
-		assertEquals("NONE", snapshot.getPrecipitationCode());
-		assertEquals("맑음", snapshot.getLabel());
-		assertEquals(LocalDateTime.of(2026, 10, 10, 19, 0), snapshot.getObservedAt());
+		assertEquals("RAIN", snapshot.getPrecipitationCode());
+		assertEquals(2.5, snapshot.getPrecipitationMm(), 0.0);
+		assertEquals("비", snapshot.getLabel());
+		assertEquals(null, snapshot.getSkyCode());
 		assertEquals(88, snapshot.getNx());
 		assertEquals(90, snapshot.getNy());
+		assertEquals(1, client.calls.size());
+		assertEquals(t("2026-10-10T19:00:00"), client.calls.get(0));
 	}
 
 	@Test
-	void usesNearestValidPublishedBaseTimes() {
+	void noPrecipitationIsSaidAsSuchNotAsSunshine() {
 		FakeClient client = new FakeClient();
-		service(client, true).lookup(LAT, LON, SAVED_AT);
-		// 19:49 -> observation of 19:00 (available ~19:10), forecast base 19:30 (available ~19:45)
-		assertEquals(LocalDateTime.of(2026, 10, 10, 19, 0), client.lastObservationBase);
-		assertEquals(LocalDateTime.of(2026, 10, 10, 19, 30), client.lastForecastBase);
-		// 19:20: observation 19:00 still fine, but the 19:30 forecast is not out yet -> 18:30
-		assertEquals(LocalDateTime.of(2026, 10, 10, 18, 30), WeatherService.forecastBase(LocalDateTime.of(2026, 10, 10, 19, 20)));
-		// 19:05: the 19:00 observation is not out yet -> 18:00
-		assertEquals(LocalDateTime.of(2026, 10, 10, 18, 0), WeatherService.observationBase(LocalDateTime.of(2026, 10, 10, 19, 5)));
+		WeatherSnapshot snapshot = service(client, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).get();
+		assertEquals("강수 없음", snapshot.getLabel());
+		assertEquals("NONE", snapshot.getPrecipitationCode());
 	}
 
 	@Test
-	void externalFailureTimeoutOr500YieldsEmptyWithoutThrowing() {
+	void withoutServiceKeyNothingIsCalled() {
+		FakeClient client = new FakeClient();
+		assertFalse(service(client, false, "2026-10-10T19:49:00", new CallBudget(10, 1000)).lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertTrue(client.calls.isEmpty());
+	}
+
+	@Test
+	void badOrMissingPositionNeverCallsTheService() {
+		FakeClient client = new FakeClient();
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		assertFalse(service.lookup(null, null, t("2026-10-10T19:20:00")).isPresent());
+		assertFalse(service.lookup(0.0, 0.0, t("2026-10-10T19:20:00")).isPresent());
+		assertFalse(service.lookup(LAT, LON, null).isPresent());
+		assertTrue(client.calls.isEmpty());
+	}
+
+	@Test
+	void timeoutsAndUnexpectedErrorsGiveNothingAndDoNotThrow() {
 		FakeClient timeout = new FakeClient();
-		timeout.throwOnCall = true;
-		assertFalse(service(timeout, true).lookup(LAT, LON, SAVED_AT).isPresent());
+		timeout.timeout = true;
+		assertFalse(service(timeout, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+
+		FakeClient broken = new FakeClient();
+		broken.throwUnexpected = true;
+		assertFalse(service(broken, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
 
 		FakeClient serverError = new FakeClient();
-		serverError.observation = null; // KmaHttpClient returns null for timeouts and HTTP 5xx
-		assertFalse(service(serverError, true).lookup(LAT, LON, SAVED_AT).isPresent());
+		serverError.status = 500;
+		serverError.body = "<html>500</html>";
+		assertFalse(service(serverError, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
 	}
 
 	@Test
-	void forecastFailureStillKeepsTemperatureAndPrecipitation() {
+	void noDataFallsBackToTheHourBeforeForARecentRideAndSaysWhichHour() {
 		FakeClient client = new FakeClient();
-		client.forecast = null;
-		client.observation = KmaResponseParserTest.ncst("12.5", "1");
-		WeatherSnapshot snapshot = service(client, true).lookup(LAT, LON, SAVED_AT).get();
-		assertEquals("비", snapshot.getLabel());
-		assertEquals("UNKNOWN", snapshot.getSkyCode());
-		assertEquals(12.5, snapshot.getTemperatureC(), 0.0);
+		client.noDataFor.add(t("2026-10-10T19:00:00"));
+		WeatherSnapshot snapshot = service(client, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T19:20:00")).get();
+		assertEquals(2, client.calls.size());
+		assertEquals(t("2026-10-10T18:00:00"), client.calls.get(1));
+		// the body of the fake always says 19:00; the point is the second call, and only one extra
 	}
 
 	@Test
-	void clearSkyIsUnknownWithoutForecastSoNoLabelMeansNoSnapshot() {
+	void noDataForAnOldRideIsNotRetriedEndlessly() {
 		FakeClient client = new FakeClient();
-		client.forecast = null; // no precipitation + no sky -> nothing honest to show
-		assertFalse(service(client, true).lookup(LAT, LON, SAVED_AT).isPresent());
+		client.noDataFor.add(t("2026-10-10T08:00:00"));
+		assertFalse(service(client, "2026-10-10T19:49:00").lookup(LAT, LON, t("2026-10-10T08:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
+	}
+
+	// ---- protecting the key's quota ----------------------------------------------------------
+
+	@Test
+	void sameCellAndHourIsServedFromTheCache() {
+		FakeClient client = new FakeClient();
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		service.lookup(LAT, LON, t("2026-10-10T19:20:00"));
+		service.lookup(LAT + 0.0001, LON + 0.0001, t("2026-10-10T19:35:00"));
+		assertEquals(1, client.calls.size());
+		service.lookup(LAT, LON, t("2026-10-10T18:20:00")); // another hour
+		assertEquals(2, client.calls.size());
 	}
 
 	@Test
-	void missingOrInvalidCoordinatesYieldEmpty() {
+	void failuresAreRememberedBrieflySoTheServiceIsNotHammered() {
 		FakeClient client = new FakeClient();
-		WeatherService service = service(client, true);
-		assertFalse(service.lookup(null, null, SAVED_AT).isPresent());
-		assertFalse(service.lookup(0.0, 0.0, SAVED_AT).isPresent());
-		assertEquals(0, client.observationCalls);
+		client.timeout = true;
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		service.lookup(LAT, LON, t("2026-10-10T19:20:00"));
+		service.lookup(LAT, LON, t("2026-10-10T19:20:00"));
+		assertEquals(1, client.calls.size());
 	}
 
 	@Test
-	void sameGridAndBaseTimeHitsTheCache() {
+	void limitExceededPausesAllUpstreamCalls() {
 		FakeClient client = new FakeClient();
-		WeatherService service = service(client, true);
-		service.lookup(LAT, LON, SAVED_AT);
-		service.lookup(LAT + 0.0001, LON + 0.0001, SAVED_AT.plusMinutes(3));
-		assertEquals(1, client.observationCalls);
-		assertEquals(1, client.forecastCalls);
-		// another hour is a different cache key
-		service.lookup(LAT, LON, SAVED_AT.plusHours(2));
-		assertEquals(2, client.observationCalls);
+		client.body = KmaResponseParserTest.error("22", "LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR");
+		CallBudget budget = new CallBudget(100, 3_600_000L);
+		WeatherService service = service(client, true, "2026-10-10T19:49:00", budget);
+
+		assertFalse(service.lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
+		// another cell and hour while paused: no new call
+		assertFalse(service.lookup(37.5665, 126.9780, t("2026-10-10T17:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
 	}
 
 	@Test
-	void failuresAreCachedBrieflyToAvoidHammeringTheApi() {
+	void aRejectedKeyPausesCallsToo() {
 		FakeClient client = new FakeClient();
-		client.observation = null;
-		WeatherService service = service(client, true);
-		assertFalse(service.lookup(LAT, LON, SAVED_AT).isPresent());
-		assertFalse(service.lookup(LAT, LON, SAVED_AT).isPresent());
-		assertEquals(1, client.observationCalls);
-		assertTrue(client.forecastCalls == 0);
+		client.body = KmaResponseParserTest.error("30", "SERVICE_KEY_IS_NOT_REGISTERED_ERROR");
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		assertFalse(service.lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertFalse(service.lookup(37.5665, 126.9780, t("2026-10-10T19:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
 	}
-}
+
+	@Test
+	void anHttp429WithoutABodyCountsAsLimitExceeded() {
+		FakeClient client = new FakeClient();
+		client.status = 429;
+		client.body = "";
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		assertFalse(service.lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertFalse(service.lookup(37.5665, 126.9780, t("2026-10-10T19:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
+	}
+
+	@Test
+	void theHourlyCallBudgetIsEnforced() {
+		FakeClient client = new FakeClient();
+		WeatherService service = service(client, true, "2026-10-10T19:49:00", new CallBudget(2, 3_600_000L));
+		assertTrue(service.lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertTrue(service.lookup(LAT, LON, t("2026-10-10T18:20:00")).isPresent());
+		assertFalse(service.lookup(LAT, LON, t("2026-10-10T17:20:00")).isPresent());
+		assertEquals(2, client.calls.size());
+	}
+
+	@Test
+	void exposesWhetherAKeyIsConfigured() {
+		assertTrue(service(new FakeClient(), "2026-10-10T19:49:00").isConfigured());
+		assertFalse(service(new FakeClient(), false, "2026-10-10T19:49:00", new CallBudget(1, 1)).isConfigured());
+		assertEquals(Optional.empty(), service(new FakeClient(), false, "2026-10-10T19:49:00", new CallBudget(1, 1)).lookup(LAT, LON, t("2026-10-10T19:00:00")));
+	}
+
+	@Test
+	void anHttp403FromTheGatewayPausesCallsLikeARejectedKey() {
+		FakeClient client = new FakeClient();
+		client.status = 403;
+		client.body = "";
+		WeatherService service = service(client, "2026-10-10T19:49:00");
+		assertFalse(service.lookup(LAT, LON, t("2026-10-10T19:20:00")).isPresent());
+		assertFalse(service.lookup(37.5665, 126.9780, t("2026-10-10T19:20:00")).isPresent());
+		assertEquals(1, client.calls.size());
+	}}

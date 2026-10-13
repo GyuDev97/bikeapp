@@ -1,8 +1,10 @@
 package com.bike.webapp.weather;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,56 +22,81 @@ import com.bike.webapp.service.AndroidService;
 
 class WeatherCaptureServiceTest {
 
-	private static final LocalDateTime SAVED_AT = LocalDateTime.of(2026, 10, 10, 19, 49);
+	private static final LocalDateTime STARTED_AT = LocalDateTime.of(2026, 10, 10, 19, 20);
 	private final Executor direct = Runnable::run;
 
 	private WeatherService weather(WeatherServiceTest.FakeClient client, boolean configured) {
-		return new WeatherService(client, configured, Clock.fixed(Instant.parse("2026-10-10T10:49:00Z"), WeatherService.KST));
+		return new WeatherService(client, configured,
+				Clock.fixed(Instant.parse("2026-10-10T10:49:00Z"), WeatherService.KST), new CallBudget(100, 3_600_000L));
+	}
+
+	private WeatherCaptureService capture(WeatherServiceTest.FakeClient client, boolean configured,
+			AndroidService androidService, WeatherSnapshotTokens tokens) {
+		return new WeatherCaptureService(weather(client, configured), androidService, tokens, direct);
+	}
+
+	private static WeatherSnapshot startSnapshot() {
+		return new WeatherSnapshot(LocalDateTime.of(2026, 10, 10, 19, 0), 88, 90, 18.5, "RAIN", 1.0, "비");
 	}
 
 	@Test
-	void storesTheSnapshotForTheSavedRecord() {
+	void theWeatherLookedUpAtTheStartIsTheOneStoredNotANewLookup() {
 		AndroidService androidService = mock(AndroidService.class);
-		WeatherCaptureService capture = new WeatherCaptureService(
-				weather(new WeatherServiceTest.FakeClient(), true), androidService, direct);
+		WeatherSnapshotTokens tokens = new WeatherSnapshotTokens();
+		String token = tokens.put(startSnapshot());
+		WeatherServiceTest.FakeClient client = new WeatherServiceTest.FakeClient();
 
-		capture.captureAsync(123, 35.8329, 128.5650, SAVED_AT);
+		capture(client, true, androidService, tokens).captureAsync(123, token, 35.8329, 128.565, STARTED_AT);
 
 		ArgumentCaptor<WeatherSnapshot> stored = ArgumentCaptor.forClass(WeatherSnapshot.class);
-		verify(androidService).saveWeatherSnapshot(org.mockito.ArgumentMatchers.eq(123), stored.capture());
-		org.junit.jupiter.api.Assertions.assertEquals("맑음", stored.getValue().getLabel());
-		org.junit.jupiter.api.Assertions.assertEquals(21.0, stored.getValue().getTemperatureC(), 0.0);
+		verify(androidService).saveWeatherSnapshot(eq(123), stored.capture());
+		assertEquals("비", stored.getValue().getLabel());
+		assertEquals(18.5, stored.getValue().getTemperatureC(), 0.0);
+		assertEquals(0, client.calls.size()); // no upstream call needed
 	}
 
 	@Test
-	void noKeyLeavesWeatherNullAndStoresNothing() {
-		AndroidService androidService = mock(AndroidService.class);
-		WeatherCaptureService capture = new WeatherCaptureService(
-				weather(new WeatherServiceTest.FakeClient(), false), androidService, direct);
-
-		assertDoesNotThrow(() -> capture.captureAsync(123, 35.8329, 128.5650, SAVED_AT));
-		verify(androidService, never()).saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class));
-	}
-
-	@Test
-	void missingCoordinatesStoreNothing() {
-		AndroidService androidService = mock(AndroidService.class);
-		WeatherCaptureService capture = new WeatherCaptureService(
-				weather(new WeatherServiceTest.FakeClient(), true), androidService, direct);
-
-		capture.captureAsync(123, null, null, SAVED_AT);
-		capture.captureAsync(123, 35.8, null, SAVED_AT);
-		verify(androidService, never()).saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class));
-	}
-
-	@Test
-	void externalApiTimeoutNeverPropagates() {
+	void anUnknownTokenFallsBackToALookupByPositionAndStartTime() {
 		AndroidService androidService = mock(AndroidService.class);
 		WeatherServiceTest.FakeClient client = new WeatherServiceTest.FakeClient();
-		client.throwOnCall = true;
-		WeatherCaptureService capture = new WeatherCaptureService(weather(client, true), androidService, direct);
 
-		assertDoesNotThrow(() -> capture.captureAsync(123, 35.8329, 128.5650, SAVED_AT));
+		capture(client, true, androidService, new WeatherSnapshotTokens())
+				.captureAsync(123, "0123456789abcdef0123456789abcdef", 35.8329, 128.565, STARTED_AT);
+
+		verify(androidService).saveWeatherSnapshot(eq(123), any(WeatherSnapshot.class));
+		assertEquals(1, client.calls.size());
+	}
+
+	@Test
+	void noTokenAndNoPositionStoresNothing() {
+		AndroidService androidService = mock(AndroidService.class);
+		WeatherServiceTest.FakeClient client = new WeatherServiceTest.FakeClient();
+		WeatherCaptureService service = capture(client, true, androidService, new WeatherSnapshotTokens());
+
+		service.captureAsync(123, null, null, null, STARTED_AT);
+		service.captureAsync(123, "", 35.8, null, STARTED_AT);
+		verify(androidService, never()).saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class));
+		assertEquals(0, client.calls.size());
+	}
+
+	@Test
+	void noKeyAndNoTokenLeavesTheWeatherNullAndTheSaveUntouched() {
+		AndroidService androidService = mock(AndroidService.class);
+		WeatherServiceTest.FakeClient client = new WeatherServiceTest.FakeClient();
+
+		assertDoesNotThrow(() -> capture(client, false, androidService, new WeatherSnapshotTokens())
+				.captureAsync(123, null, 35.8329, 128.565, STARTED_AT));
+		verify(androidService, never()).saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class));
+	}
+
+	@Test
+	void upstreamTimeoutNeverPropagates() {
+		AndroidService androidService = mock(AndroidService.class);
+		WeatherServiceTest.FakeClient client = new WeatherServiceTest.FakeClient();
+		client.timeout = true;
+
+		assertDoesNotThrow(() -> capture(client, true, androidService, new WeatherSnapshotTokens())
+				.captureAsync(123, null, 35.8329, 128.565, STARTED_AT));
 		verify(androidService, never()).saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class));
 	}
 
@@ -78,10 +105,11 @@ class WeatherCaptureServiceTest {
 		AndroidService androidService = mock(AndroidService.class);
 		when(androidService.saveWeatherSnapshot(anyInt(), any(WeatherSnapshot.class)))
 				.thenThrow(new IllegalStateException("db down"));
-		WeatherCaptureService capture = new WeatherCaptureService(
-				weather(new WeatherServiceTest.FakeClient(), true), androidService, direct);
+		WeatherSnapshotTokens tokens = new WeatherSnapshotTokens();
+		String token = tokens.put(startSnapshot());
 
-		assertDoesNotThrow(() -> capture.captureAsync(123, 35.8329, 128.5650, SAVED_AT));
+		assertDoesNotThrow(() -> capture(new WeatherServiceTest.FakeClient(), true, androidService, tokens)
+				.captureAsync(123, token, null, null, STARTED_AT));
 	}
 
 	@Test
@@ -90,9 +118,9 @@ class WeatherCaptureServiceTest {
 		Executor rejecting = task -> {
 			throw new java.util.concurrent.RejectedExecutionException("full");
 		};
-		WeatherCaptureService capture = new WeatherCaptureService(
-				weather(new WeatherServiceTest.FakeClient(), true), androidService, rejecting);
+		WeatherCaptureService service = new WeatherCaptureService(
+				weather(new WeatherServiceTest.FakeClient(), true), androidService, new WeatherSnapshotTokens(), rejecting);
 
-		assertDoesNotThrow(() -> capture.captureAsync(123, 35.8329, 128.5650, SAVED_AT));
+		assertDoesNotThrow(() -> service.captureAsync(123, null, 35.8329, 128.565, STARTED_AT));
 	}
 }

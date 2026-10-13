@@ -49,6 +49,7 @@ import com.bike.trailgo.gps.ElevationGainTracker;
 import com.bike.trailgo.gps.GpsFix;
 import com.bike.trailgo.gps.GpsFixFilter;
 import com.bike.trailgo.gps.GpsQualityConfig;
+import com.bike.trailgo.gps.GpsStatusPolicy;
 import com.bike.trailgo.gpx.GPXParser;
 import com.bike.trailgo.gpx.Gpx;
 import com.bike.trailgo.gpx.Track;
@@ -144,6 +145,29 @@ public class StartActivity extends AppCompatActivity
     private int descentBaseMeters = 0;
     private double lastGoodLatitude = 0.0;
     private double lastGoodLongitude = 0.0;
+    // GPS chip: when a non-stale position last arrived and how accurate it was
+    private long lastFreshFixElapsedMs = -1L;
+    private double lastFixAccuracy = Double.NaN;
+    private final Handler gpsWatchdog = new Handler(android.os.Looper.getMainLooper());
+    private final Runnable gpsWatchdogTask = new Runnable() {
+        @Override
+        public void run() {
+            refreshGpsStatus();
+            gpsWatchdog.postDelayed(this, 2000L);
+        }
+    };
+    // Guards against double taps on the pause/resume and finish buttons
+    private long lastControlClickAt = 0L;
+    private boolean endingRide = false;
+    // Weather at the start of the ride (looked up by the TrailGo server, kept with the session)
+    private static final long WEATHER_RETRY_MS = 90_000L;
+    private static final int WEATHER_MAX_ATTEMPTS = 3;
+    private boolean weatherStored;
+    private boolean weatherInFlight;
+    private int weatherAttempts;
+    private long lastWeatherAttemptAt;
+    private long rideStartedAtMillis;
+    private boolean elevationTotalsShown = false;
     private static final double MAX_REASONABLE_RIDE_SPEED_KMH = 100.0;
     private static final long SESSION_CHECKPOINT_INTERVAL_MS = 10_000L;
     private int getgodo = 0;
@@ -360,8 +384,11 @@ public class StartActivity extends AppCompatActivity
         if (!restoredSession) {
             BaseTime = SystemClock.elapsedRealtime();
             cur_status = Run;
+            // a new ride never inherits the weather of an abandoned earlier one
+            RideWeatherFile.clear(getFilesDir());
             persistRideSession();
         }
+        weatherStored = RideWeatherFile.load(getFilesDir()) != null;
         if (cur_status == Run) {
             RidingTimer.sendEmptyMessage(0);
         }
@@ -392,9 +419,14 @@ public class StartActivity extends AppCompatActivity
             }
         });
         startLocationTracking();
+        gpsWatchdog.post(gpsWatchdogTask);
 
 
         binding.endriding.setOnClickListener(v -> {
+                if (endingRide) {
+                    return; // already finishing: ignore repeated taps
+                }
+                endingRide = true;
                 Intent intent = new Intent(StartActivity.this, EndActivity.class);
                 intent.putExtra("ingtime", total_time); //?嚥▲굧?????????
                 intent.putExtra("distence", (int) hap); //?????룸????좎돦???쎈뼔??
@@ -415,6 +447,7 @@ public class StartActivity extends AppCompatActivity
                 } catch (IOException exception) {
                     Log.e("RideEnd", "Unable to prepare route data", exception);
                     Toast.makeText(this, "주행 데이터를 준비하지 못했습니다. 다시 시도해 주세요.", Toast.LENGTH_LONG).show();
+                    endingRide = false;
                     return;
                 }
 
@@ -622,7 +655,7 @@ public class StartActivity extends AppCompatActivity
                 private void startLocationTracking() {
                     locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     if (!RidePermissionFlow.hasPreciseLocation(this)) {
-                        binding.gpsStatus.setText("GPS 권한 필요");
+                        refreshGpsStatus();
                         RidePermissionFlow.requestRideLocation(this);
                         return;
                     }
@@ -678,7 +711,7 @@ public class StartActivity extends AppCompatActivity
                         if (RidePermissionFlow.hasPreciseLocation(this)) {
                             startLocationTracking();
                         } else {
-                            binding.gpsStatus.setText("정확한 GPS 권한 필요");
+                            refreshGpsStatus();
                             binding.mapStatus.setVisibility(View.VISIBLE);
                             binding.mapStatus.setText("주행 거리와 경로 기록에는 정확한 위치 권한이 필요합니다");
                             RidePermissionFlow.showDenied(this, "정확한 위치");
@@ -697,6 +730,11 @@ public class StartActivity extends AppCompatActivity
 
                 public void myOnClick(View v) {
                     Log.d("RideStatus", String.valueOf(cur_status));
+                    long clickedAt = SystemClock.elapsedRealtime();
+                    if (clickedAt - lastControlClickAt < 600L) {
+                        return; // a double tap must not pause and immediately resume
+                    }
+                    lastControlClickAt = clickedAt;
 
                     switch (v.getId()) {
                         case R.id.pausebt: //?癲??筌???????嶺???
@@ -902,7 +940,8 @@ public class StartActivity extends AppCompatActivity
                 public void onLocationChanged(Location location) {
                     latitude = location.getLatitude();
                     lonngitude = location.getLongitude();
-                    binding.gpsStatus.setText("GPS 연결됨");
+                    noteFixForGpsStatus(location);
+                    refreshGpsStatus();
                     boolean shouldRecord = cur_status == Run;
 
                     if (!shouldRecord) {
@@ -934,6 +973,8 @@ public class StartActivity extends AppCompatActivity
                     updateCurrentPosition(latitude, lonngitude, true);
                     lastGoodLatitude = latitude;
                     lastGoodLongitude = lonngitude;
+                    maybeRequestRideWeather(latitude, lonngitude,
+                            quality.verdict == GpsFixFilter.Verdict.RECORDED_FIRST);
                     witch_lat.add(latitude);
                     witch_lon.add(lonngitude);
                     // Unknown altitude is NaN, never 0 m (GPX then simply has no <ele> for the point).
@@ -947,7 +988,7 @@ public class StartActivity extends AppCompatActivity
                     if (minLon > lonngitude) minLon = lonngitude;
 
                     if (fix.hasAltitude()) {
-                        binding.Nowgodo.setText(String.format(Locale.KOREA, "%.0f m", fix.altitudeMeters));
+                        RideUnitText.set(binding.Nowgodo, String.format(Locale.KOREA, "%.0f m", fix.altitudeMeters));
                     }
                     if (usableAltitude) {
                         updateElevationStats(fix);
@@ -961,24 +1002,24 @@ public class StartActivity extends AppCompatActivity
                     if (quality.verdict == GpsFixFilter.Verdict.RECORDED_MOVE && mLastlocation != null) {
                         if (getSpeed > maX) {
                             maX = getSpeed;
-                            binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));
+                            RideUnitText.set(binding.maxspeed, String.format(Locale.KOREA, "%.1f km/h", maX));
                             cha_max = String.format("%.0f", maX);
                         }
                         hap = hap + mLastlocation.distanceTo(location);
                         cha_dis = String.format("%.0f", hap);
 
-                        binding.dis.setText(String.format("%.1f m", hap));
+                        RideUnitText.set(binding.dis, String.format("%.1f m", hap));
                         binding.mDistance.setText(String.format("%.1f", hap) + "m");
 
                         double killlo = hap / 1000.0;
                         if (hap >= 1000) {
-                            binding.dis.setText(String.format("%.1f km", killlo));
+                            RideUnitText.set(binding.dis, String.format("%.1f km", killlo));
                             binding.mDistance.setText(String.format("%.1f", killlo) + "km");
                         }
-                        binding.calories.setText(String.format(Locale.KOREA, "%d kcal", Math.round(killlo * 50.8)));
+                        RideUnitText.set(binding.calories, String.format(Locale.KOREA, "%d kcal", Math.round(killlo * 50.8)));
 
                         avg = total_time > 0 ? (hap / total_time) * 3.6 : 0;
-                        binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
+                        RideUnitText.set(binding.avgspeed, String.format(Locale.KOREA, "%.1f km/h", avg));
                         cha_avg = String.format(Locale.KOREA, "%.0f", avg);
 
                         updateCurrentGrade(location);
@@ -1004,7 +1045,7 @@ public class StartActivity extends AppCompatActivity
                         case WAITING_FIRST_FIX:
                         case DEFERRED_POOR_ACCURACY:
                         case REJECTED_POOR_ACCURACY:
-                            binding.gpsStatus.setText("GPS 신호 약함");
+                            refreshGpsStatus();
                             break;
                         default:
                             break;
@@ -1026,6 +1067,100 @@ public class StartActivity extends AppCompatActivity
                     binding.mSpeed.setText(String.format("%.1f", kmh) + "km/h");
                     binding.speedGauge.setSpeedKmh((float) kmh);
                 }
+                /** Remembers when a fresh (non-cached) position arrived; the chip is derived from that. */
+                private void noteFixForGpsStatus(Location location) {
+                    long ageMillis = (SystemClock.elapsedRealtimeNanos() - location.getElapsedRealtimeNanos()) / 1_000_000L;
+                    if (location.getElapsedRealtimeNanos() <= 0L || ageMillis <= gpsConfig.maxFixAgeMillis) {
+                        lastFreshFixElapsedMs = SystemClock.elapsedRealtime();
+                        lastFixAccuracy = location.hasAccuracy() ? location.getAccuracy() : Double.NaN;
+                    }
+                }
+
+                /** Shows the real state of location delivery: permission, GPS switch, fresh fixes, accuracy. */
+                private void refreshGpsStatus() {
+                    boolean permission = RidePermissionFlow.hasPreciseLocation(this);
+                    boolean providerOn = false;
+                    try {
+                        providerOn = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    } catch (RuntimeException ignored) {
+                        // treat as off
+                    }
+                    long since = lastFreshFixElapsedMs < 0L ? -1L : SystemClock.elapsedRealtime() - lastFreshFixElapsedMs;
+                    GpsStatusPolicy.State state = GpsStatusPolicy.evaluate(permission, providerOn, since, lastFixAccuracy,
+                            10_000L, gpsConfig.poorHorizontalAccuracyMeters);
+                    binding.gpsStatus.setText(state.label);
+                    int color;
+                    switch (state.tone) {
+                        case GOOD:
+                            color = 0xFF237A35;
+                            break;
+                        case WARN:
+                            color = 0xFFB26A00;
+                            break;
+                        case BAD:
+                            color = 0xFFC0392B;
+                            break;
+                        default:
+                            color = 0xFF55615A;
+                            break;
+                    }
+                    binding.gpsStatus.setTextColor(color);
+                }
+
+                /**
+                 * Asks the server (never the weather service directly) for the observed weather where
+                 * and when this ride started, and keeps the answer with the ride session. A few
+                 * attempts at most; failing to get it never affects recording.
+                 */
+                private void maybeRequestRideWeather(double lat, double lon, boolean firstPoint) {
+                    if (weatherStored || weatherInFlight || weatherAttempts >= WEATHER_MAX_ATTEMPTS) {
+                        return;
+                    }
+                    if (firstPoint && rideStartedAtMillis == 0L) {
+                        rideStartedAtMillis = System.currentTimeMillis();
+                    }
+                    long now = SystemClock.elapsedRealtime();
+                    if (weatherAttempts > 0 && now - lastWeatherAttemptAt < WEATHER_RETRY_MS) {
+                        return;
+                    }
+                    if (rideStartedAtMillis == 0L) {
+                        // restored ride: the start is the time the ride has been running ago
+                        rideStartedAtMillis = System.currentTimeMillis() - (long) (total_time + rest) * 1000L;
+                    }
+                    weatherAttempts++;
+                    lastWeatherAttemptAt = now;
+                    weatherInFlight = true;
+                    java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
+                    format.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul"));
+                    String startedAt = format.format(new java.util.Date(rideStartedAtMillis));
+                    String riderId = com.bike.trailgo.setting.AccountSession.isGuest(this)
+                            ? null : getSharedPreferences("auto", MODE_PRIVATE).getString("LoginId", null);
+                    final java.io.File directory = getFilesDir();
+                    serverApi.getWeather(lat, lon, startedAt, riderId)
+                            .enqueue(new Callback<com.bike.trailgo.dto.RecordWeather>() {
+                                @Override
+                                public void onResponse(Call<com.bike.trailgo.dto.RecordWeather> call,
+                                                       Response<com.bike.trailgo.dto.RecordWeather> response) {
+                                    weatherInFlight = false;
+                                    com.bike.trailgo.dto.RecordWeather weather = response.isSuccessful() ? response.body() : null;
+                                    if (weather != null && weather.isAvailable()) {
+                                        try {
+                                            RideWeatherFile.save(directory, weather);
+                                            weatherStored = true;
+                                        } catch (java.io.IOException error) {
+                                            Log.w("RideWeather", "Start weather not kept: " + error.getClass().getSimpleName());
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<com.bike.trailgo.dto.RecordWeather> call, Throwable error) {
+                                    weatherInFlight = false;
+                                    Log.w("RideWeather", "Start weather unavailable: " + error.getClass().getSimpleName());
+                                }
+                            });
+                }
+
                 private void checkpointRideSessionIfDue() {
                     long now = SystemClock.elapsedRealtime();
                     if (now - lastSessionCheckpointMillis >= SESSION_CHECKPOINT_INTERVAL_MS) {
@@ -1073,6 +1208,7 @@ public class StartActivity extends AppCompatActivity
                     totalDescentMeters = snapshot.descentMeters;
                     gainBaseMeters = snapshot.elevationGainMeters;
                     descentBaseMeters = snapshot.descentMeters;
+                    elevationTotalsShown = true;
                     maxLat = snapshot.maxLat;
                     maxLon = snapshot.maxLon;
                     minLat = snapshot.minLat;
@@ -1100,10 +1236,10 @@ public class StartActivity extends AppCompatActivity
                         lastGoodLongitude = lonngitude;
                     }
                     binding.resttime.setText(formatDuration(rest));
-                    binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
-                    binding.totalDescent.setText(String.format(Locale.KOREA, "%d m", totalDescentMeters));
-                    binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));
-                    binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
+                    RideUnitText.set(binding.getgodo, String.format(Locale.KOREA, "%d m", getgodo));
+                    RideUnitText.set(binding.totalDescent, String.format(Locale.KOREA, "%d m", totalDescentMeters));
+                    RideUnitText.set(binding.maxspeed, String.format(Locale.KOREA, "%.1f km/h", maX));
+                    RideUnitText.set(binding.avgspeed, String.format(Locale.KOREA, "%.1f km/h", avg));
                     if (cur_status == Pause) {
                         binding.resumeBt.setVisibility(View.VISIBLE);
                         binding.pausebt.setVisibility(View.GONE);
@@ -1118,6 +1254,13 @@ public class StartActivity extends AppCompatActivity
                  */
                 private void updateElevationStats(GpsFix fix) {
                     ElevationGainTracker.Status status = gainTracker.onFix(fix);
+                    if (!elevationTotalsShown && status != ElevationGainTracker.Status.SKIPPED_NO_ALTITUDE
+                            && status != ElevationGainTracker.Status.SKIPPED_POOR_ACCURACY) {
+                        // First usable altitude: show 0 m instead of "-" for both totals
+                        elevationTotalsShown = true;
+                        RideUnitText.set(binding.getgodo, String.format(Locale.KOREA, "%d m", getgodo));
+                        RideUnitText.set(binding.totalDescent, String.format(Locale.KOREA, "%d m", totalDescentMeters));
+                    }
                     if (status == ElevationGainTracker.Status.OUTLIER || status == ElevationGainTracker.Status.RESYNC) {
                         Log.d("GpsElevation", status + " alt=" + fix.altitudeMeters
                                 + " smoothed=" + gainTracker.getSmoothedAltitude());
@@ -1126,11 +1269,11 @@ public class StartActivity extends AppCompatActivity
                     int descent = descentBaseMeters + (int) Math.round(gainTracker.getDescentMeters());
                     if (gain != getgodo) {
                         getgodo = gain;
-                        binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
+                        RideUnitText.set(binding.getgodo, String.format(Locale.KOREA, "%d m", getgodo));
                     }
                     if (descent != totalDescentMeters) {
                         totalDescentMeters = descent;
-                        binding.totalDescent.setText(String.format(Locale.KOREA, "%d m", totalDescentMeters));
+                        RideUnitText.set(binding.totalDescent, String.format(Locale.KOREA, "%d m", totalDescentMeters));
                     }
                 }
                 private void updateCurrentGrade(Location location) {
@@ -1200,7 +1343,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 public void onProviderEnabled(String provider) {
-                    binding.gpsStatus.setText("GPS 연결 중");
+                    refreshGpsStatus();
                 // ????썹땟??癲ル슢???ъ쒜??????욍걛???ш끽維??
                     if (!RidePermissionFlow.hasPreciseLocation(this)) {
                         // TODO: Consider calling
@@ -1217,7 +1360,7 @@ public class StartActivity extends AppCompatActivity
 
                 @Override
                 public void onProviderDisabled(String provider) {
-                    binding.gpsStatus.setText("GPS 꺼짐");
+                    refreshGpsStatus();
                 }
 
                 @Override
@@ -1279,6 +1422,7 @@ public class StartActivity extends AppCompatActivity
                         rideLocationReceiverRegistered = false;
                     }
                     RidingTimer.removeCallbacksAndMessages(null);
+                    gpsWatchdog.removeCallbacks(gpsWatchdogTask);
                     if (kakaoV2MapView != null) {
                         kakaoV2MapView.finish();
                         kakaoV2MapView = null;

@@ -63,6 +63,7 @@ final class RideSessionStore {
     static synchronized void clear(Context context) {
         AtomicFile file = new AtomicFile(new File(context.getFilesDir(), FILE_NAME));
         file.delete();
+        RideWeatherFile.clear(context.getFilesDir());
     }
 
     static final class Snapshot implements Serializable {

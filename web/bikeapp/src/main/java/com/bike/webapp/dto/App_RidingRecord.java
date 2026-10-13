@@ -23,9 +23,17 @@ public class App_RidingRecord extends WeatherColumns {
 	private String rr_tag;
 	private String rr_foname;
 	private String r_image;
-	
-	
-	
+	private String rr_memo;
+
+	public String getRr_memo() {
+		return rr_memo;
+	}
+
+	public void setRr_memo(String rr_memo) {
+		this.rr_memo = rr_memo;
+	}
+
+
 	public String getR_image() {
 		return r_image;
 	}

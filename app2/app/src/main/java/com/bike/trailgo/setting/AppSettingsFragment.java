@@ -379,6 +379,7 @@ public class AppSettingsFragment extends BaseFragment {
         settings.setText("설정");
         settings.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.drawer_ic_settings_custom, 0, 0);
         settings.setTextColor(GREEN);
+        settings.setSelected(true);
         settings.setTypeface(null, android.graphics.Typeface.BOLD);
         root.findViewById(R.id.bottom_nav_home).setOnClickListener(v -> navigateTo(R.id.nav_home));
         root.findViewById(R.id.bottom_nav_records).setOnClickListener(v -> navigateTo(R.id.nav_records));

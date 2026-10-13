@@ -99,6 +99,7 @@ public class RecordFragment extends BaseFragment {
         );
         TextView records = view.findViewById(R.id.bottom_nav_records);
         records.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
+        records.setSelected(true);
         records.setTypeface(null, android.graphics.Typeface.BOLD);
     }
 

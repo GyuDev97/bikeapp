@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +57,10 @@ import com.bike.webapp.dto.*;
 import com.bike.webapp.service.AndroidService;
 import com.bike.webapp.service.MemberService;
 import com.bike.webapp.service.*;
+import com.bike.webapp.weather.RequestRateLimiter;
 import com.bike.webapp.weather.WeatherCaptureService;
+import com.bike.webapp.weather.WeatherSnapshotTokens;
+import com.bike.webapp.weather.WeatherSnapshot;
 import com.bike.webapp.weather.WeatherService;
 
 
@@ -84,6 +88,29 @@ public class AndroidController {
 	//기록 시점 날씨 스냅샷 (기상청 API는 서버만 호출한다)
 	@Autowired
 	private WeatherCaptureService weatherCaptureService;
+
+	//날씨 조회(저장 화면 미리보기) / 라이딩 사진
+	@Autowired
+	private WeatherService weatherService;
+
+	//라이딩 시작 때 조회한 날씨를 저장 시점에 되돌려 받기 위한 토큰
+	@Autowired
+	private WeatherSnapshotTokens weatherSnapshotTokens;
+
+	//날씨 조회 엔드포인트 호출 제한 (10분 창): 기기(IP)별, 회원별
+	public static final long WEATHER_WINDOW_MS = 10L * 60L * 1000L;
+	private RequestRateLimiter weatherIpLimiter = new RequestRateLimiter(30, WEATHER_WINDOW_MS);
+	private RequestRateLimiter weatherRiderLimiter = new RequestRateLimiter(30, WEATHER_WINDOW_MS);
+	private RequestRateLimiter weatherAnonymousLimiter = new RequestRateLimiter(12, WEATHER_WINDOW_MS);
+
+	//프록시 뒤에서만 true: X-Forwarded-For의 첫 주소를 호출자 IP로 본다
+	@Value("${trailgo.weather.trust-forwarded-for:false}")
+	private boolean trustForwardedFor;
+
+	@Autowired
+	private RecordPhotoService recordPhotoService;
+
+	public static final int MAX_MEMO_LENGTH = 500;
 	
 	//로그인
 	@RequestMapping(value = "login")
@@ -113,12 +140,14 @@ public class AndroidController {
 	public ResponseEntity<Map<String, String>> insertriding(@ModelAttribute RidingRecord record) {
 		Map<String, String> result = new HashMap<String, String>();
 		try {
+			record.setRr_memo(normalizeMemo(record.getRr_memo()));
 			androidService.insertRecord(record); //기록저장
 			result.put("saved", "1");
+			result.put("rr_num", String.valueOf(record.getRr_num()));
 			// 날씨는 저장 이후(커밋 완료 후) 별도 스레드에서 붙인다. 실패해도 기록 저장 결과에는 영향이 없다.
 			try {
-				weatherCaptureService.captureAsync(record.getRr_num(), record.getRr_start_lat(),
-						record.getRr_start_lon(), LocalDateTime.now(WeatherService.KST));
+				weatherCaptureService.captureAsync(record.getRr_num(), record.getRr_weather_token(), record.getRr_start_lat(),
+						record.getRr_start_lon(), weatherTime(record.getRr_started_at()));
 			} catch (RuntimeException weatherError) {
 				log.warn("Weather capture skipped for record {}: {}", record.getRr_num(),
 						weatherError.getClass().getSimpleName());
@@ -150,7 +179,137 @@ public class AndroidController {
 		if (record == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
+		record.setPhotos(recordPhotoService.list(rrNum));
 		return ResponseEntity.ok(record);
+	}
+
+	//메모 수정. 작성자와 번호가 모두 일치할 때만 반영된다 (비우면 메모가 삭제된다).
+	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/memo", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, String>> updateMemo(@PathVariable("riderId") String riderId,
+			@PathVariable("rrNum") int rrNum, @RequestParam(value = "memo", required = false) String memo) {
+		if (memo != null && memo.length() > MAX_MEMO_LENGTH) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		int updated = androidService.updateMemo(riderId, rrNum, normalizeMemo(memo));
+		if (updated < 1) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("updated", "1");
+		return ResponseEntity.ok(result);
+	}
+
+	//사진 추가 (한 번에 한 장). 최대 10장, jpg/png/webp, 서버가 내용으로 형식을 판별한다.
+	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/photos", method = RequestMethod.POST)
+	public ResponseEntity<RecordPhoto> addPhoto(@PathVariable("riderId") String riderId,
+			@PathVariable("rrNum") int rrNum, @RequestParam("photo") MultipartFile photo) {
+		RecordPhotoService.AddResult result = recordPhotoService.add(riderId, rrNum, photo);
+		switch (result.status) {
+		case OK:
+			return ResponseEntity.ok(result.photo);
+		case NOT_FOUND:
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		case TOO_MANY:
+			return ResponseEntity.status(HttpStatus.CONFLICT).build();
+		case TOO_LARGE:
+			return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
+		case INVALID:
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		default:
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	//사진 삭제 (본인 기록의 사진만)
+	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/photos/{photoId}", method = RequestMethod.DELETE)
+	public ResponseEntity<Map<String, String>> deletePhoto(@PathVariable("riderId") String riderId,
+			@PathVariable("rrNum") int rrNum, @PathVariable("photoId") String photoId) {
+		if (!recordPhotoService.delete(riderId, rrNum, photoId)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("deleted", "1");
+		return ResponseEntity.ok(result);
+	}
+
+	//사진 보기. 공개 기록의 사진은 누구나, 비공개 기록의 사진은 작성자(riderId)만. 그 외에는 존재 여부도 알리지 않는다.
+	@RequestMapping(value = "riding/photos/{photoId}", method = RequestMethod.GET)
+	public ResponseEntity<byte[]> getPhoto(@PathVariable("photoId") String photoId,
+			@RequestParam(value = "riderId", required = false) String riderId) throws IOException {
+		RecordPhotoService.PhotoFile photo = recordPhotoService.open(photoId, riderId);
+		if (photo == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType(photo.contentType));
+		headers.setCacheControl(photo.publicRecord
+				? CacheControl.maxAge(1, java.util.concurrent.TimeUnit.DAYS).cachePublic().getHeaderValue()
+				: CacheControl.maxAge(1, java.util.concurrent.TimeUnit.HOURS).cachePrivate().getHeaderValue());
+		return new ResponseEntity<>(Files.readAllBytes(photo.path), headers, HttpStatus.OK);
+	}
+
+	//라이딩 날씨 조회(기상청 초단기실황). 항상 weather 객체를 돌려주며, 없으면 {"available": false}.
+	//회원은 riderId가 실제 회원이어야 하고, 호출은 기기(IP)·회원별로 제한된다. 기상청 호출은 서버만 한다.
+	@RequestMapping(value = "weather", method = RequestMethod.GET)
+	public ResponseEntity<RecordWeather> getWeather(HttpServletRequest request,
+			@RequestParam("lat") Double lat, @RequestParam("lon") Double lon,
+			@RequestParam(value = "at", required = false) String at,
+			@RequestParam(value = "riderId", required = false) String riderId) throws Exception {
+		long now = System.currentTimeMillis();
+		boolean member = riderId != null && !riderId.trim().isEmpty();
+		if (member && androidService.sameCheck(riderId.trim()) < 1) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		boolean allowed = weatherIpLimiter.tryAcquire("ip:" + clientAddress(request), now)
+				&& (member ? weatherRiderLimiter.tryAcquire("rider:" + riderId.trim(), now)
+						: weatherAnonymousLimiter.tryAcquire("anon:" + clientAddress(request), now));
+		if (!allowed) {
+			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header("Retry-After", "600").build();
+		}
+		try {
+			Optional<WeatherSnapshot> snapshot = weatherService.lookup(lat, lon, weatherTime(at));
+			if (!snapshot.isPresent()) {
+				return ResponseEntity.ok(RecordWeather.unavailable());
+			}
+			WeatherSnapshot s = snapshot.get();
+			RecordWeather weather = RecordWeather.from(s.getObservedAtTimestamp(), s.getTemperatureC(), s.getSkyCode(),
+					s.getPrecipitationCode(), s.getPrecipitationMm(), s.getLabel());
+			return ResponseEntity.ok(weather.withToken(weatherSnapshotTokens.put(s)));
+		} catch (RuntimeException e) {
+			log.warn("Weather lookup failed: {}", e.getClass().getSimpleName());
+			return ResponseEntity.ok(RecordWeather.unavailable());
+		}
+	}
+
+	private String clientAddress(HttpServletRequest request) {
+		if (trustForwardedFor) {
+			String forwarded = request.getHeader("X-Forwarded-For");
+			if (forwarded != null && !forwarded.trim().isEmpty()) {
+				return forwarded.split(",")[0].trim();
+			}
+		}
+		return request.getRemoteAddr();
+	}
+	/** Blank memo means "no memo"; anything longer than the limit is cut (the app limits input already). */
+	static String normalizeMemo(String memo) {
+		if (memo == null || memo.trim().isEmpty()) {
+			return null;
+		}
+		return memo.length() > MAX_MEMO_LENGTH ? memo.substring(0, MAX_MEMO_LENGTH) : memo;
+	}
+
+	/** The time the weather should describe: the ride start when the app sent a sane one, otherwise now. */
+	static LocalDateTime weatherTime(String startedAt) {
+		LocalDateTime now = LocalDateTime.now(WeatherService.KST);
+		if (startedAt == null || startedAt.trim().isEmpty()) {
+			return now;
+		}
+		try {
+			LocalDateTime parsed = LocalDateTime.parse(startedAt.trim().replace(' ', 'T'));
+			return parsed.isAfter(now.plusMinutes(5)) ? now : parsed;
+		} catch (java.time.format.DateTimeParseException e) {
+			return now;
+		}
 	}
 
 	//구 주행기록 상세 경로. 작성자를 알 수 없으므로 공개 기록만 반환한다 (기존에는 admin/1 하드코딩).

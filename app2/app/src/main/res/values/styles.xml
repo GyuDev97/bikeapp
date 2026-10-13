@@ -211,13 +211,17 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/trailgo_nav_item_bg</item>
         <item name="android:clickable">true</item>
+        <item name="android:drawablePadding">2dp</item>
+        <item name="android:drawableTint">@color/trailgo_nav_item</item>
         <item name="android:focusable">true</item>
-        <item name="android:drawablePadding">3dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:paddingTop">10dp</item>
-        <item name="android:textColor">#666D68</item>
-        <item name="android:textSize">9sp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textColor">@color/trailgo_nav_item</item>
+        <item name="android:textSize">11sp</item>
     </style>
 
     <style name="RecordTab">
@@ -288,5 +292,186 @@
         <item name="android:paddingEnd">20dp</item>
         <item name="android:textColor">#292E2A</item>
         <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Stat cells shared by the save screen (value + unit, label above) -->
+    <style name="DetailSectionTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:textColor">#111111</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Live riding screen -->
+    <style name="RideKeyCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+
+    <style name="RideKeyValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#151A17</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RideStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+    </style>
+
+    <style name="RideStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#677069</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="RideStatValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#151A17</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RideStatDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:background">#E1E6E2</item>
+    </style>
+
+    <style name="RideControlButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">58dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <!-- Home screen -->
+    <style name="HomeStatCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/home_stat_card_bg</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:minHeight">96dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingRight">4dp</item>
+        <item name="android:paddingTop">10dp</item>
+    </style>
+
+    <style name="HomeStatIcon">
+        <item name="android:layout_width">22dp</item>
+        <item name="android:layout_height">22dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:tint">#1F7A2E</item>
+    </style>
+
+    <style name="HomeStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textColor">#4B564F</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="HomeStatValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:text">-</item>
+        <item name="android:textColor">#12261A</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">11sp</item>
+        <item name="autoSizeMaxTextSize">19sp</item>
+        <item name="autoSizeStepGranularity">1sp</item>
+    </style>
+
+    <style name="HomeMetaGroup">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="HomeMetaIcon">
+        <item name="android:layout_width">14dp</item>
+        <item name="android:layout_height">14dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:tint">#5B7A61</item>
+    </style>
+
+    <style name="HomeMetaText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:textColor">#3C4840</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="SaveStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <style name="SaveStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#657068</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="SaveStatValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#152019</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="SaveStatDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:background">#E7ECE8</item>
     </style>
 </resources>

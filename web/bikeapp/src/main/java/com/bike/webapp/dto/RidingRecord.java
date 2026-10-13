@@ -31,6 +31,50 @@ public class RidingRecord extends WeatherColumns {
 	// to look up the weather snapshot: never stored, never returned.
 	private Double rr_start_lat;
 	private Double rr_start_lon;
+	// When the ride started ("yyyy-MM-dd HH:mm:ss", Asia/Seoul). Optional; only used to pick the
+	// weather observation time. Never stored, never returned.
+	private String rr_started_at;
+	// Token of the weather the server looked up when the ride started (see /app/weather). Never stored/returned.
+	private String rr_weather_token;
+
+	@JsonIgnore
+	public String getRr_weather_token() {
+		return rr_weather_token;
+	}
+
+	public void setRr_weather_token(String rr_weather_token) {
+		this.rr_weather_token = rr_weather_token;
+	}
+	// Free text written by the rider (max 500 chars). NULL for rides saved without one.
+	private String rr_memo;
+	// Filled only by the single-record detail API.
+	private java.util.List<RecordPhoto> photos;
+
+	@JsonIgnore
+	public String getRr_started_at() {
+		return rr_started_at;
+	}
+
+	public void setRr_started_at(String rr_started_at) {
+		this.rr_started_at = rr_started_at;
+	}
+
+	public String getRr_memo() {
+		return rr_memo;
+	}
+
+	public void setRr_memo(String rr_memo) {
+		this.rr_memo = rr_memo;
+	}
+
+	@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+	public java.util.List<RecordPhoto> getPhotos() {
+		return photos;
+	}
+
+	public void setPhotos(java.util.List<RecordPhoto> photos) {
+		this.photos = photos;
+	}
 
 	@JsonIgnore
 	public Double getRr_start_lat() {

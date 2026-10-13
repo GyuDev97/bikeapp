@@ -62,6 +62,11 @@ public class AndroidService {
 		return androidMapper.getPublicRecord(rrNum);
 	}
 
+	//메모 수정 (작성자와 번호가 모두 맞을 때만). 반영된 행 수를 돌려준다.
+	public int updateMemo(String riderId, int rrNum, String memo) {
+		return androidMapper.updateRecordMemo(riderId, rrNum, memo);
+	}
+
 	//기록 시점 날씨 스냅샷 저장 (이미 있으면 덮어쓰지 않음)
 	public int saveWeatherSnapshot(int rrNum, com.bike.webapp.weather.WeatherSnapshot snapshot) {
 		return androidMapper.updateRecordWeather(rrNum, snapshot);

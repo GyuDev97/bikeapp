@@ -53,7 +53,7 @@ class AndroidApiContractTest {
 	/** Fields the app reads from the record list / detail JSON ({@code RidingRecord} in Android). */
 	private static final List<String> RECORD_FIELDS = Arrays.asList(
 			"rr_num", "rr_rider", "rr_date", "rr_distance", "rr_topspeed", "rr_avgspeed", "rr_high",
-			"rr_gpx", "rr_open", "rr_breaktime", "rr_time", "rr_area", "rr_name", "weather");
+			"rr_gpx", "rr_open", "rr_breaktime", "rr_time", "rr_area", "rr_name", "rr_memo", "weather");
 
 	private static final Path ANDROID_ROOT = Paths.get("..", "..", "app2", "app", "src", "main", "java",
 			"com", "bike", "trailgo");
@@ -67,6 +67,7 @@ class AndroidApiContractTest {
 		AndroidController controller = new AndroidController();
 		ReflectionTestUtils.setField(controller, "androidService", androidService);
 		ReflectionTestUtils.setField(controller, "weatherCaptureService", mock(WeatherCaptureService.class));
+		ReflectionTestUtils.setField(controller, "recordPhotoService", mock(com.bike.webapp.service.RecordPhotoService.class));
 		ReflectionTestUtils.setField(controller, "storageRoot", "build/test-storage");
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}

@@ -84,4 +84,30 @@ public class RecordFormatterTest {
         assertFalse(RecordFormatter.hasMeasurement(100, 0));
         assertTrue(RecordFormatter.hasMeasurement(100, 60));
     }
-}
+
+    @Test
+    public void observedTimeIsReadFromTheIsoTimestamp() {
+        assertEquals("18:00 관측", RecordFormatter.formatObservedTime("2026-10-10T18:00:00+09:00"));
+        assertEquals("07:05 관측", RecordFormatter.formatObservedTime("2026-10-10T07:05:00+09:00"));
+        assertNull(RecordFormatter.formatObservedTime(null));
+        assertNull(RecordFormatter.formatObservedTime("garbage"));
+        assertNull(RecordFormatter.formatObservedTime("2026-10-10T99:99:00+09:00"));
+    }
+    @Test
+    public void precipitationAmountIsOnlyShownWhenThereWasSome() {
+        assertNull(RecordFormatter.formatPrecipitationAmount(null));
+        assertNull(RecordFormatter.formatPrecipitationAmount(0.0));
+        assertNull(RecordFormatter.formatPrecipitationAmount(Double.NaN));
+        assertEquals("1.5mm", RecordFormatter.formatPrecipitationAmount(1.5));
+        assertEquals("2mm", RecordFormatter.formatPrecipitationAmount(2.0));
+        assertEquals("0.3mm", RecordFormatter.formatPrecipitationAmount(0.3));
+    }
+
+    @Test
+    public void weatherNoteSaysWhereTheValueComesFrom() {
+        assertEquals("시작 시각 기준 · 19:00 관측",
+                RecordFormatter.formatWeatherNote("2026-10-10T19:00:00+09:00", null));
+        assertEquals("시작 시각 기준 · 19:00 관측 · 1시간 강수 1.5mm",
+                RecordFormatter.formatWeatherNote("2026-10-10T19:00:00+09:00", 1.5));
+        assertEquals("시작 시각 기준", RecordFormatter.formatWeatherNote(null, 0.0));
+    }}

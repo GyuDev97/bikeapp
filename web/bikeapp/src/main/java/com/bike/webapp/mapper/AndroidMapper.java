@@ -38,6 +38,23 @@ public interface AndroidMapper {
 
 	public RidingRecord getPublicRecord(@Param("rr_num") int rr_num);
 
+	// 메모 수정(작성자+번호 일치 시에만) / 사진
+	public int updateRecordMemo(@Param("rr_rider") String rr_rider, @Param("rr_num") int rr_num, @Param("memo") String memo);
+
+	public int countPhotos(@Param("rr_num") int rr_num);
+
+	public int nextPhotoOrder(@Param("rr_num") int rr_num);
+
+	public int insertPhoto(@Param("id") String id, @Param("rr_num") int rr_num, @Param("file") String file, @Param("order") int order);
+
+	public List<RecordPhoto> listPhotos(@Param("rr_num") int rr_num);
+
+	public PhotoAccess findPhotoAccess(@Param("id") String id);
+
+	public String findPhotoFile(@Param("id") String id, @Param("rr_num") int rr_num);
+
+	public int deletePhoto(@Param("id") String id, @Param("rr_num") int rr_num);
+
 	public int updateRecordWeather(@Param("rr_num") int rr_num, @Param("w") com.bike.webapp.weather.WeatherSnapshot snapshot);
 	
 	

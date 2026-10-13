@@ -76,3 +76,26 @@ ALTER TABLE riding_record
     ADD COLUMN IF NOT EXISTS rr_weather_sky_code VARCHAR(16) NULL,
     ADD COLUMN IF NOT EXISTS rr_weather_precipitation_code VARCHAR(16) NULL,
     ADD COLUMN IF NOT EXISTS rr_weather_label VARCHAR(40) NULL;
+
+-- V20261014_1: riding_record memo + photos (same as db/migration/V20261014_1__riding_record_memo_photos.sql)
+-- Rider memo and photos for a riding record. Purely additive: existing rides keep working with
+-- NULL memo and no photos. Photo bytes live on disk under <storage-root>/photos, the table only
+-- holds an unguessable token and the file name.
+ALTER TABLE riding_record
+    ADD COLUMN IF NOT EXISTS rr_memo VARCHAR(500) NULL;
+
+CREATE TABLE IF NOT EXISTS riding_record_photo (
+    photo_id VARCHAR(32) NOT NULL,
+    rr_idx VARCHAR(32) NOT NULL,
+    file_name VARCHAR(80) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (photo_id),
+    INDEX idx_riding_record_photo_record (rr_idx, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- V20261015_1: weather precipitation amount (same as db/migration/V20261015_1__riding_record_weather_precipitation_mm.sql)
+-- Observed precipitation amount (RN1, mm in the last hour) of the weather snapshot. The sky
+-- condition column (rr_weather_sky_code) stays NULL for new rows: the 초단기실황 observation has none.
+ALTER TABLE riding_record
+    ADD COLUMN IF NOT EXISTS rr_weather_precipitation_mm DECIMAL(5,1) NULL;

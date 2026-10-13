@@ -40,9 +40,9 @@ class RecordWeatherJsonTest {
 		RidingRecord record = record();
 		record.setRr_weather_observed_at(Timestamp.valueOf(LocalDateTime.of(2026, 10, 10, 19, 49)));
 		record.setRr_weather_temperature_c(21.0);
-		record.setRr_weather_sky_code("CLEAR");
-		record.setRr_weather_precipitation_code("NONE");
-		record.setRr_weather_label("맑음");
+		record.setRr_weather_precipitation_mm(1.5);
+		record.setRr_weather_precipitation_code("RAIN");
+		record.setRr_weather_label("비");
 		record.setRr_weather_nx(89);
 		record.setRr_weather_ny(90);
 
@@ -51,9 +51,11 @@ class RecordWeatherJsonTest {
 		assertTrue(weather.get("available").asBoolean());
 		assertEquals("2026-10-10T19:49:00+09:00", weather.get("observedAt").asText());
 		assertEquals(21.0, weather.get("temperatureC").asDouble(), 0.0);
-		assertEquals("CLEAR", weather.get("sky").asText());
-		assertEquals("NONE", weather.get("precipitation").asText());
-		assertEquals("맑음", weather.get("label").asText());
+		assertFalse(weather.has("sky")); // an observation has no sky condition
+		assertEquals(1.5, weather.get("precipitationMm").asDouble(), 0.0);
+		assertFalse(weather.has("token"));
+		assertEquals("RAIN", weather.get("precipitation").asText());
+		assertEquals("비", weather.get("label").asText());
 	}
 
 	@Test

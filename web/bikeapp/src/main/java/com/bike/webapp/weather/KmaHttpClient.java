@@ -16,11 +16,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Calls the data.go.kr 동네예보 API with short timeouts.
+ * Calls 기상청 단기예보 조회서비스 2.0 / getUltraSrtNcst (초단기실황) with short timeouts.
  *
  * <p>The service key comes from {@code trailgo.weather.kma-service-key} (environment variable
- * {@code KMA_SERVICE_KEY}). It is part of the request URL, so exception messages (which embed the
- * URL) are never logged: only the exception class and HTTP status are. Response bodies are never
+ * {@code KMA_SERVICE_KEY}) and is part of the request URL. Exception messages embed that URL, so
+ * they are never logged: only the exception class and HTTP status are. Response bodies are never
  * logged either.</p>
  */
 @Component
@@ -52,34 +52,27 @@ public class KmaHttpClient implements KmaWeatherClient {
 	}
 
 	@Override
-	public String fetchObservation(int nx, int ny, LocalDateTime baseDateTime) {
-		return call("getUltraSrtNcst", nx, ny, baseDateTime);
-	}
-
-	@Override
-	public String fetchForecast(int nx, int ny, LocalDateTime baseDateTime) {
-		return call("getUltraSrtFcst", nx, ny, baseDateTime);
-	}
-
-	private String call(String operation, int nx, int ny, LocalDateTime base) {
+	public RawResponse fetchObservation(int nx, int ny, LocalDateTime base) {
 		if (!isConfigured()) {
 			return null;
 		}
 		try {
-			URI uri = URI.create(baseUrl + "/" + operation
+			URI uri = URI.create(baseUrl + "/getUltraSrtNcst"
 					+ "?serviceKey=" + encodedKey()
-					+ "&pageNo=1&numOfRows=1000&dataType=JSON"
+					+ "&pageNo=1&numOfRows=100&dataType=JSON"
 					+ "&base_date=" + base.format(DATE)
 					+ "&base_time=" + base.format(TIME)
 					+ "&nx=" + nx + "&ny=" + ny);
-			return restTemplate.getForObject(uri, String.class);
+			return new RawResponse(200, restTemplate.getForObject(uri, String.class));
 		} catch (HttpStatusCodeException e) {
-			log.warn("KMA {} failed: HTTP {} (nx={}, ny={})", operation, e.getRawStatusCode(), nx, ny);
+			// 429 / 5xx etc.: the body (if any) may still carry the service's own error code.
+			log.warn("KMA getUltraSrtNcst failed: HTTP {} (nx={}, ny={})", e.getRawStatusCode(), nx, ny);
+			return new RawResponse(e.getRawStatusCode(), e.getResponseBodyAsString());
 		} catch (RuntimeException e) {
 			// Deliberately no message/stack trace: RestClientException text contains the request URL.
-			log.warn("KMA {} failed: {} (nx={}, ny={})", operation, e.getClass().getSimpleName(), nx, ny);
+			log.warn("KMA getUltraSrtNcst failed: {} (nx={}, ny={})", e.getClass().getSimpleName(), nx, ny);
+			return null;
 		}
-		return null;
 	}
 
 	/** Accepts both the "Encoding" and "Decoding" key from the data portal and encodes exactly once. */

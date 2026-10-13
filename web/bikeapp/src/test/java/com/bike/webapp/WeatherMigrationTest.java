@@ -62,4 +62,13 @@ class WeatherMigrationTest {
 		String properties = resource("/application.properties");
 		assertTrue(properties.contains("trailgo.weather.kma-service-key=${KMA_SERVICE_KEY:}"));
 	}
+
+	@Test
+	void precipitationAmountMigrationIsAdditiveAndAlsoRunsAtStartup() throws IOException {
+		String sql = resource("/db/migration/V20261015_1__riding_record_weather_precipitation_mm.sql");
+		assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS rr_weather_precipitation_mm DECIMAL(5,1) NULL"));
+		assertFalse(sql.toUpperCase().contains("NOT NULL"));
+		assertFalse(sql.toUpperCase().contains("DROP "));
+		assertTrue(resource("/schema.sql").contains("rr_weather_precipitation_mm DECIMAL(5,1) NULL"));
+	}
 }

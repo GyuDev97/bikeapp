@@ -112,6 +112,7 @@ public class Setting extends BaseFragment {
         view.findViewById(R.id.profile_menu_gear).setOnClickListener(v -> navigateTo(R.id.profile_gear));
         TextView profile = view.findViewById(R.id.bottom_nav_profile);
         profile.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
+        profile.setSelected(true);
         profile.setTypeface(null, android.graphics.Typeface.BOLD);
     }
 

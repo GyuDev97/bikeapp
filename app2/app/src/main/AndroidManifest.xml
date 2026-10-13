@@ -60,7 +60,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.riding.EndActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".ui.riding.FollowStart"
             android:theme="@style/AppTheme.NoActionBar" />

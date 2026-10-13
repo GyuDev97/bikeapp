@@ -77,6 +77,11 @@ final class RidePreviewMap {
         });
     }
 
+    /** Re-fits the camera to the whole route, e.g. after the map card changed size. */
+    void refit() {
+        renderRoute();
+    }
+
     void resume() {
         mapView.resume();
     }

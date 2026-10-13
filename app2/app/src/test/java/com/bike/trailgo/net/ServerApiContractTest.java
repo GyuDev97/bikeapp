@@ -57,4 +57,18 @@ public class ServerApiContractTest {
         assertFormPost("InsertRecord", "app/riding/upload");
         assertFormPost("setOpen", "app/recordset/open");
     }
-}
+
+    @Test
+    public void memoPhotoAndWeatherCallsUseTheOwnerScopedPaths() {
+        assertFormPost("updateMemo", "app/riding/records/{riderId}/{rrNum}/memo");
+        POST upload = method("uploadPhoto").getAnnotation(POST.class);
+        assertNotNull(upload);
+        assertEquals("app/riding/records/{riderId}/{rrNum}/photos", upload.value());
+        assertNotNull(method("uploadPhoto").getAnnotation(retrofit2.http.Multipart.class));
+        retrofit2.http.DELETE delete = method("deletePhoto").getAnnotation(retrofit2.http.DELETE.class);
+        assertNotNull(delete);
+        assertEquals("app/riding/records/{riderId}/{rrNum}/photos/{photoId}", delete.value());
+        assertGet("getWeather", "app/weather");
+        // lat, lon, at and riderId are plain query parameters of that call
+        assertEquals(4, method("getWeather").getParameterTypes().length);
+    }}

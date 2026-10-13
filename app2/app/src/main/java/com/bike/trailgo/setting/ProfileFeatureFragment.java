@@ -302,7 +302,7 @@ public class ProfileFeatureFragment extends BaseFragment {
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     private void bindBottomNavigation(View root) {
-        TextView profile = root.findViewById(R.id.bottom_nav_profile); profile.setTextColor(GREEN); profile.setTypeface(null, android.graphics.Typeface.BOLD);
+        TextView profile = root.findViewById(R.id.bottom_nav_profile); profile.setTextColor(GREEN); profile.setSelected(true); profile.setTypeface(null, android.graphics.Typeface.BOLD);
         root.findViewById(R.id.bottom_nav_home).setOnClickListener(v -> controller.navigate(R.id.nav_home));
         root.findViewById(R.id.bottom_nav_records).setOnClickListener(v -> controller.navigate(R.id.nav_records));
         root.findViewById(R.id.bottom_nav_course).setOnClickListener(v -> controller.navigate(R.id.nav_course_view));

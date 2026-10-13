@@ -4,38 +4,38 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
- * Weather at the moment a ride was saved, already normalised for the apps: no KMA codes leak out.
- * {@code observedAt} is Asia/Seoul wall-clock time.
+ * Observed weather near the start of a ride, already normalised for the apps: no KMA codes leak
+ * out. {@code observedAt} is the Asia/Seoul base time of the 초단기실황 observation.
+ *
+ * <p>There is deliberately no sky condition: the observation does not contain one.</p>
  */
 public final class WeatherSnapshot {
-
-	public static final String SKY_CLEAR = "CLEAR";
-	public static final String SKY_PARTLY_CLOUDY = "PARTLY_CLOUDY";
-	public static final String SKY_CLOUDY = "CLOUDY";
-	public static final String SKY_UNKNOWN = "UNKNOWN";
 
 	public static final String PRECIP_NONE = "NONE";
 	public static final String PRECIP_RAIN = "RAIN";
 	public static final String PRECIP_RAIN_SNOW = "RAIN_SNOW";
 	public static final String PRECIP_SNOW = "SNOW";
 	public static final String PRECIP_SHOWER = "SHOWER";
+	public static final String PRECIP_DRIZZLE = "DRIZZLE";
+	public static final String PRECIP_DRIZZLE_SNOW = "DRIZZLE_SNOW";
+	public static final String PRECIP_SNOW_FLURRY = "SNOW_FLURRY";
 
 	private final LocalDateTime observedAt;
 	private final int nx;
 	private final int ny;
 	private final double temperatureC;
-	private final String skyCode;
 	private final String precipitationCode;
+	private final Double precipitationMm;
 	private final String label;
 
 	public WeatherSnapshot(LocalDateTime observedAt, int nx, int ny, double temperatureC,
-			String skyCode, String precipitationCode, String label) {
+			String precipitationCode, Double precipitationMm, String label) {
 		this.observedAt = observedAt;
 		this.nx = nx;
 		this.ny = ny;
 		this.temperatureC = temperatureC;
-		this.skyCode = skyCode;
 		this.precipitationCode = precipitationCode;
+		this.precipitationMm = precipitationMm;
 		this.label = label;
 	}
 
@@ -43,7 +43,7 @@ public final class WeatherSnapshot {
 		return observedAt;
 	}
 
-	/** Wall-clock value for the DATETIME column (read back the same way, see RecordWeather). */
+	/** Wall-clock value for the DATETIME column. */
 	public Timestamp getObservedAtTimestamp() {
 		return Timestamp.valueOf(observedAt);
 	}
@@ -60,17 +60,21 @@ public final class WeatherSnapshot {
 		return temperatureC;
 	}
 
+	/** Always null: an observation has no sky condition. Kept for the (nullable) sky column. */
 	public String getSkyCode() {
-		return skyCode;
+		return null;
 	}
 
 	public String getPrecipitationCode() {
 		return precipitationCode;
 	}
 
+	/** 1-hour precipitation in mm, null when the observation did not carry a usable value. */
+	public Double getPrecipitationMm() {
+		return precipitationMm;
+	}
+
 	public String getLabel() {
 		return label;
 	}
-
 }
-

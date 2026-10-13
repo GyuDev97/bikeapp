@@ -464,9 +464,9 @@ public class FollowEndActivity extends AppCompatActivity {
     }
 
     private void saveFollowRideRecord(HashMap<String, Object> insert, Button save) {
-        serverApi.InsertRecord(insert).enqueue(new Callback<Void>() {
+        serverApi.InsertRecord(insert).enqueue(new Callback<java.util.Map<String, String>>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<java.util.Map<String, String>> call, Response<java.util.Map<String, String>> response) {
                 if (!response.isSuccessful()) {
                     save.setEnabled(true);
                     android.widget.Toast.makeText(FollowEndActivity.this, "기록 저장에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
@@ -483,7 +483,7 @@ public class FollowEndActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable error) {
+            public void onFailure(Call<java.util.Map<String, String>> call, Throwable error) {
                 Log.e("RideSave", "Unable to save followed ride", error);
                 save.setEnabled(true);
                 android.widget.Toast.makeText(FollowEndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();

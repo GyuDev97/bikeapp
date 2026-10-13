@@ -12,6 +12,8 @@ import com.bike.trailgo.dto.LoginInfo;
 
 import com.bike.trailgo.dto.Mission;
 import com.bike.trailgo.dto.MissionRanking;
+import com.bike.trailgo.dto.RecordPhoto;
+import com.bike.trailgo.dto.RecordWeather;
 import com.bike.trailgo.dto.RidingRecord;
 
 import com.bike.trailgo.dto.ScrapStatus;
@@ -29,6 +31,8 @@ import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -36,6 +40,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ServerApi {
     @GET("app/users")
@@ -59,7 +64,7 @@ public interface ServerApi {
     //라이딩 기록 저장
     @FormUrlEncoded
     @POST("app/riding/upload")
-    Call<Void> InsertRecord(@FieldMap HashMap<String, Object> param);
+    Call<Map<String, String>> InsertRecord(@FieldMap HashMap<String, Object> param);
 
     //라이딩 기록 저장 후 해당 기록 가져오기
     @GET("app/riding/getrecord")
@@ -86,6 +91,26 @@ public interface ServerApi {
     @GET("app/riding/records/{riderId}/{rrNum}")
     Call<RidingRecord> getMyRecordDetail(@Path("riderId") String riderId, @Path("rrNum") String rrNum);
 
+    //라이딩 메모 수정 (비우면 삭제). 본인 기록만.
+    @FormUrlEncoded
+    @POST("app/riding/records/{riderId}/{rrNum}/memo")
+    Call<Map<String, String>> updateMemo(@Path("riderId") String riderId, @Path("rrNum") String rrNum,
+                                         @Field("memo") String memo);
+
+    //라이딩 사진 추가(한 장씩) / 삭제. 본인 기록만, 최대 10장.
+    @Multipart
+    @POST("app/riding/records/{riderId}/{rrNum}/photos")
+    Call<RecordPhoto> uploadPhoto(@Path("riderId") String riderId, @Path("rrNum") String rrNum,
+                                  @Part MultipartBody.Part photo);
+
+    @DELETE("app/riding/records/{riderId}/{rrNum}/photos/{photoId}")
+    Call<Map<String, String>> deletePhoto(@Path("riderId") String riderId, @Path("rrNum") String rrNum,
+                                          @Path("photoId") String photoId);
+
+    //라이딩 당시 날씨 미리보기 (기상청 호출은 서버가 한다). at = 라이딩 시작 시각 "yyyy-MM-dd HH:mm:ss" (KST)
+    @GET("app/weather")
+    Call<RecordWeather> getWeather(@Query("lat") double lat, @Query("lon") double lon, @Query("at") String at,
+                                   @Query("riderId") String riderId);
     //라이딩 공개설정
     @FormUrlEncoded
     @POST("app/recordset/open")

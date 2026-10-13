@@ -34,13 +34,16 @@ public class WeatherCaptureService {
 
 	private final WeatherService weatherService;
 	private final AndroidService androidService;
+	private final WeatherSnapshotTokens tokens;
 	private final Executor executor;
 	private final ExecutorService ownedExecutor;
 
 	@Autowired
-	public WeatherCaptureService(WeatherService weatherService, AndroidService androidService) {
+	public WeatherCaptureService(WeatherService weatherService, AndroidService androidService,
+			WeatherSnapshotTokens tokens) {
 		this.weatherService = weatherService;
 		this.androidService = androidService;
+		this.tokens = tokens;
 		RejectedExecutionHandler dropAndLog = (task, pool) -> log.warn("Weather capture queue is full; skipping snapshot");
 		ThreadFactory daemon = runnable -> {
 			Thread thread = new Thread(runnable, "weather-capture");
@@ -53,43 +56,57 @@ public class WeatherCaptureService {
 	}
 
 	/** For tests: lets the capture run synchronously. */
-	WeatherCaptureService(WeatherService weatherService, AndroidService androidService, Executor executor) {
+	WeatherCaptureService(WeatherService weatherService, AndroidService androidService,
+			WeatherSnapshotTokens tokens, Executor executor) {
 		this.weatherService = weatherService;
 		this.androidService = androidService;
+		this.tokens = tokens;
 		this.executor = executor;
 		this.ownedExecutor = null;
+	}
+
+	/** Schedules the snapshot by position and start time (no token). */
+	public void captureAsync(final int rrNum, final Double latitude, final Double longitude,
+			final LocalDateTime startedAtKst) {
+		captureAsync(rrNum, null, latitude, longitude, startedAtKst);
 	}
 
 	/**
 	 * Schedules the snapshot. Never throws and never blocks on the network.
 	 *
-	 * @param savedAtKst when the ride was saved (Asia/Seoul wall clock)
+	 * <p>If the app sent the token it got when the ride started, the snapshot looked up <em>then</em>
+	 * is stored. Otherwise (no token, or the token expired / the server restarted) the weather is
+	 * looked up now for the start position and time. Values from the client are never stored.</p>
 	 */
-	public void captureAsync(final int rrNum, final Double latitude, final Double longitude,
-			final LocalDateTime savedAtKst) {
-		if (latitude == null || longitude == null) {
+	public void captureAsync(final int rrNum, final String token, final Double latitude, final Double longitude,
+			final LocalDateTime startedAtKst) {
+		boolean hasToken = token != null && !token.isEmpty();
+		if (!hasToken && (latitude == null || longitude == null)) {
 			return;
 		}
 		try {
-			executor.execute(() -> capture(rrNum, latitude, longitude, savedAtKst));
+			executor.execute(() -> capture(rrNum, token, latitude, longitude, startedAtKst));
 		} catch (RuntimeException e) {
 			log.warn("Weather capture could not be scheduled: {}", e.getClass().getSimpleName());
 		}
 	}
 
-	void capture(int rrNum, Double latitude, Double longitude, LocalDateTime savedAtKst) {
+	void capture(int rrNum, String token, Double latitude, Double longitude, LocalDateTime startedAtKst) {
 		try {
-			Optional<WeatherSnapshot> snapshot = weatherService.lookup(latitude, longitude, savedAtKst);
-			if (!snapshot.isPresent()) {
+			WeatherSnapshot snapshot = tokens == null ? null : tokens.get(token);
+			if (snapshot == null && latitude != null && longitude != null) {
+				Optional<WeatherSnapshot> looked = weatherService.lookup(latitude, longitude, startedAtKst);
+				snapshot = looked.isPresent() ? looked.get() : null;
+			}
+			if (snapshot == null) {
 				return;
 			}
-			int updated = androidService.saveWeatherSnapshot(rrNum, snapshot.get());
+			int updated = androidService.saveWeatherSnapshot(rrNum, snapshot);
 			log.debug("Weather snapshot stored for record {} (rows={})", rrNum, updated);
 		} catch (RuntimeException e) {
 			log.warn("Weather snapshot for record {} was not stored: {}", rrNum, e.getClass().getSimpleName());
 		}
 	}
-
 	@PreDestroy
 	void shutdown() {
 		if (ownedExecutor != null) {

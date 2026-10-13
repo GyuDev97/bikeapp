@@ -27,6 +27,21 @@ import com.bike.trailgo.SendGPXFile;
 import com.bike.trailgo.databinding.FragmentRidingEndBinding;
 import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.net.Uri;
+import com.bike.trailgo.data.GuestRideStoreCore;
+import com.bike.trailgo.dto.RecordPhoto;
+import com.bike.trailgo.dto.RecordWeather;
+import com.bike.trailgo.ui.photos.PhotoImporter;
+import com.bike.trailgo.ui.photos.PhotoStripView;
+import com.bike.trailgo.ui.photos.PhotoViewerDialog;
+import com.bike.trailgo.ui.photos.RidePhotoPicker;
+import com.bike.trailgo.ui.photos.RidePhotoUploader;
+import com.bike.trailgo.ui.records.RecordFormatter;
+import com.bike.trailgo.ui.records.WeatherIcons;
+import java.util.Locale;
+import java.util.TimeZone;
 import com.bike.trailgo.dto.Tag_Status;
 import com.bike.trailgo.net.HttpClient;
 import com.bike.trailgo.net.Server;
@@ -62,12 +77,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class EndActivity extends AppCompatActivity {
+    private static final String STATE_PHOTOS = "draft_photos";
+    private static final String STATE_GPX_STAMP = "gpx_stamp";
+
     private FragmentRidingEndBinding binding;
 
-    //????낆쉐?棺??짆??눀?
     private ServerApi serverApi = Server.getInstance().getApi();
 
-    //?????????ロ룂???????????좊읈??嶺뚮ㅎ?닸쾮??String?嶺???
+    // Ride summary handed over by StartActivity. The legacy helper classes at the bottom of this
+    // file also read some of these fields.
     int MaxSpeed=0;
     int AvgSpeed=0;
     int Getgodo=0;
@@ -77,14 +95,12 @@ public class EndActivity extends AppCompatActivity {
     int rr_num;
     String rr_comp="";
     String address_dong="";
-    //?????????ロ룂???????????좊읈??嶺뚮ㅎ?닸쾮???좊즴????????몄릇?嶺뚮ㅎ?붷ㅇ????源놁젳
 
     int check, clearCount=0;
     private RidePreviewMap ridePreviewMap;
-    //DB????ш끽維뽬땻????꾨탿 ??ш낄援η뵳??怨뚮뼚???
+    // "1" public / "0" private; read from the radio group when saving.
     String open = "1";
 
-    //?棺??짆??嶺뚮ㅎ???륁녃??袁⑸즵?룸돁????됰씚逾?
     SharedPreferences auto;
     String LoginId;
     int[] typeScore;
@@ -93,11 +109,25 @@ public class EndActivity extends AppCompatActivity {
     int dis;
     int riding_point=0;
 
-    //???怨뚮뼚???
     String comp_name, adress_value;
     Intent intent;
     private LineChart lineChart;
     private Object endActivity;
+
+    // ---- save screen state ----
+    /** Prepared (resized, private) copies of the photos picked so far; not yet part of any record. */
+    private final ArrayList<File> draftPhotos = new ArrayList<>();
+    private File draftDirectory;
+    private RecordWeather rideWeather;
+    private RideStartPoint startPoint;
+    private String startedAtText;
+    private boolean saving;
+    private boolean mapExpanded;
+    private RidePhotoUploader activeUploader;
+    private Call<RecordWeather> weatherCall;
+    private AlertDialog uploadDialog;
+    private File gpxFile;
+    private String gpxStamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,23 +136,21 @@ public class EndActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
-        //?棺??짆??嶺뚮ㅎ???륁녃??袁⑸즵?룸돁????됰씚逾?
         auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
         LoginId  = auto.getString("LoginId","");
         r_club = auto.getInt("r_club", 0);
-
         endActivity = this;
+        draftDirectory = new File(getCacheDir(), "ride-photo-drafts");
 
-        //??筌뚯슦苑??intent???壤굿??몃탿
         intent = new Intent(this.getIntent());
 
-        Distence = intent.getIntExtra("distence",0); //????猷뱀돥?얠쉪??ㅽ떜??
+        Distence = intent.getIntExtra("distence",0);
         dis = Distence;
-        MaxSpeed = intent.getIntExtra("maxspeed",0); //癲ル슔?됭짆?????뽦뵣
-        AvgSpeed = intent.getIntExtra("avgspeed",0); //????????뽦뵣
-        Getgodo = intent.getIntExtra("getgodo",0); //????볥뜪??關履??
-        RestTime = intent.getIntExtra("resttime",0); //???⑤８六??癰???
-        IngTime = intent.getIntExtra("ingtime",0); //??繹먮끏???獄쏅챶六????筌먐뼘??
+        MaxSpeed = intent.getIntExtra("maxspeed",0);
+        AvgSpeed = intent.getIntExtra("avgspeed",0);
+        Getgodo = intent.getIntExtra("getgodo",0);
+        RestTime = intent.getIntExtra("resttime",0);
+        IngTime = intent.getIntExtra("ingtime",0);
         check = intent.getIntExtra("check", 0);
         rr_comp = intent.getStringExtra("rr_comp");
         comp_name = intent.getStringExtra("comp_name");
@@ -139,22 +167,21 @@ public class EndActivity extends AppCompatActivity {
                 ? cachedRoute.longitudes : (ArrayList<Double>) intent.getSerializableExtra("witch_lon");
         ArrayList<Double> ele = cachedRoute != null
                 ? cachedRoute.elevations : (ArrayList<Double>) intent.getSerializableExtra("ele");
-        ArrayList<Float> godolist = cachedRoute != null
-                ? cachedRoute.elevationSamples : (ArrayList<Float>) intent.getSerializableExtra("godoarray");
         if (witch_lat == null) witch_lat = new ArrayList<>();
         if (witch_lon == null) witch_lon = new ArrayList<>();
         if (ele == null) ele = new ArrayList<>();
-        if (godolist == null) godolist = new ArrayList<>();
         Bundle extras = intent.getExtras();
         double maxLat = cachedRoute != null ? cachedRoute.maxLat : extras == null ? 0 : extras.getDouble("maxLat", 0);
         double maxLon = cachedRoute != null ? cachedRoute.maxLon : extras == null ? 0 : extras.getDouble("maxLon", 0);
         double minLat = cachedRoute != null ? cachedRoute.minLat : extras == null ? 0 : extras.getDouble("minLat", 0);
         double minLon = cachedRoute != null ? cachedRoute.minLon : extras == null ? 0 : extras.getDouble("minLon", 0);
 
-        //????숆강筌???
-        lineChart = (LineChart) findViewById(R.id.chart);//layout??id
+        bindStats();
+        bindDate();
+
         // Same data and same rules as the record detail: the track points that go into the GPX
         // (lat, lon, altitude). Unknown altitude is NaN and is skipped, never drawn as 0 m.
+        lineChart = (LineChart) findViewById(R.id.chart);
         ElevationProfile.Builder profileBuilder = new ElevationProfile.Builder();
         int profilePoints = Math.min(Math.min(witch_lat.size(), witch_lon.size()), ele.size());
         for (int g = 0; g < profilePoints; g++) {
@@ -162,123 +189,55 @@ public class EndActivity extends AppCompatActivity {
             profileBuilder.add(witch_lat.get(g), witch_lon.get(g),
                     altitude == null || altitude.isNaN() ? null : altitude);
         }
-        ElevationChartBinder.bind(lineChart,
-                (android.widget.TextView) findViewById(R.id.chart_empty), profileBuilder.build());
-
+        ElevationChartBinder.bind(lineChart, binding.chartEmpty, profileBuilder.build());
+        binding.chartToggle.setOnClickListener(v -> {
+            boolean show = binding.chartContainer.getVisibility() != View.VISIBLE;
+            binding.chartContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+            binding.chartArrow.setText(show ? "접기 ▴" : "펼치기 ▾");
+            if (show) {
+                lineChart.invalidate();
+            }
+        });
 
         ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
         ridePreviewMap = new RidePreviewMap(this, mapViewContainer, witch_lat, witch_lon);
         ridePreviewMap.start();
-        MapPolyline polyline = new MapPolyline();
-        polyline.setTag(1000);
-        polyline.setLineColor(Color.argb(128, 255, 51, 0)); // Polyline ??濡ル㎥??癲ル슣????
+        binding.mapExpand.setOnClickListener(v -> toggleMapSize());
 
-        // Polyline ???щ뮡嶺?癲ル슣????
-        int mapPointCount = Math.min(witch_lat.size(), witch_lon.size());
-        for (int i = 0; i < mapPointCount; i++) {
-            polyline.addPoint(MapPoint.mapPointWithGeoCoord(witch_lat.get(i), witch_lon.get(i)));
-        }
+        bindVisibility();
+        bindMemo();
+        bindPhotos(savedInstanceState);
 
-        Button save = (Button) findViewById(R.id.saveriding);
-        RadioGroup openselect = (RadioGroup)findViewById(R.id.selectgroup);
-        RideSettings.migrate(this);
-        open = RideSettings.isRecordPublic(this) ? "1" : "0";
-        if (AccountSession.isGuest(this)) {
-            open = "0";
-        }
-        openselect.check("0".equals(open) ? R.id.NoOpen : R.id.AllOpen);
-        if (AccountSession.isGuest(this)) {
-            openselect.setEnabled(false);
-            for (int i = 0; i < openselect.getChildCount(); i++) {
-                openselect.getChildAt(i).setEnabled(false);
-            }
-            android.widget.Toast.makeText(this, "비회원 기록은 이 기기에만 비공개로 저장됩니다.", android.widget.Toast.LENGTH_LONG).show();
-        }
+        startPoint = RideStartPoint.firstValid(witch_lat, witch_lon);
+        startedAtText = formatStartedAt();
+        loadWeather();
+
         findViewById(R.id.cancelriding).setOnClickListener(v -> confirmDiscardRide());
         findViewById(R.id.cancelriding_bottom).setOnClickListener(v -> confirmDiscardRide());
 
-        //??嚥▲꺆諭???袁⑸즵?룸돁???影??????源낃도 ????몄릇?嶺뚮ㅎ?붷ㅇ????源놁젳
-        binding.endavg.setText(String.valueOf(AvgSpeed+"km/h")); //????????뽦뵣
-        binding.endmax.setText(String.valueOf(MaxSpeed+"km/h")); //癲ル슔?됭짆?????뽦뵣
-
-
-        //??낆뒩???????몄릇??
-        String text = adress_value == null ? "" : adress_value.replace("\uB300\uD55C\uBBFC\uAD6D", "").trim();
+        String text = adress_value == null ? "" : adress_value.replace("대한민국", "").trim();
         binding.addr.setText(text);
+        binding.addr.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
 
-        //???⑤８六??癰?????癲ル슣??????몃빰??
-        int sec = IngTime;
-        int hour;
-        int min;
-
-        min = sec/60;
-        hour = min/60;
-        sec = sec % 60;
-        min = min % 60;
-        if(hour == 0){
-            hour=0;
+        // ---- GPX file of the ride (same content as before; unknown altitude has no <ele>) ----
+        gpxStamp = savedInstanceState != null ? savedInstanceState.getString(STATE_GPX_STAMP) : null;
+        if (gpxStamp == null) {
+            gpxStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date(System.currentTimeMillis()));
         }
-        if(min==0){
-            min=0;
-        }
-
-        int r_sec = RestTime;
-        int r_hour;
-        int r_min;
-
-        r_min = r_sec/60;
-        r_hour = r_min/60;
-        r_sec = r_sec%60;
-        r_min = r_min % 60;
-        if(r_hour == 0){
-            r_hour=00;
-        }
-        if(r_min==0){
-            r_min=00;
-        }
-        binding.ending.setText(hour + "\uC2DC\uAC04 " + min + "\uBD84 " + sec + "\uCD08");
-        binding.endresttime.setText(r_hour + "\uC2DC\uAC04 " + r_min + "\uBD84 " + r_sec + "\uCD08");
-
-        binding.endget.setText(Getgodo +"m");
-        double killlo = 0;
-
-        if (dis >= 1000) {
-            killlo = dis / 1000.0;
-            binding.enddis.setText(String.format("%.1f", killlo) + "km");
-        }else{
-            binding.enddis.setText(Distence+"m");
-        }
-
-
-        // gpx???????筌먯룄肄????ш낄援????ш끽維????癰???????엮??堉?
-        long now = System.currentTimeMillis();
-        Date date = new Date(now);
-        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
-        String nowTime = sdfNow.format(date);
+        final String nowTime = gpxStamp;
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        final String select;
 
-        //???????? ???ャ뀕??
-        openselect.setOnCheckedChangeListener((group, checkedId) -> {
-            // The legacy API currently accepts private/public only.
-            open = checkedId == R.id.NoOpen ? "0" : "1";
-        });
-
-
-        // gpx ???????獄쏅똻??
         GpxInfo gpxInfoObj = new GpxInfo();
         gpxInfoObj.setCreator("TrailGO");
 
         GpxInfo.metadata metaObj = new GpxInfo.metadata();
         gpxInfoObj.setMetadata(metaObj);
-
         metaObj.setDesc("TrailGO");
 
         GpxInfo.bounds boundsObj = new GpxInfo.bounds();
         metaObj.setBounds(boundsObj);
-
         boundsObj.setMaxLat(maxLat);
         boundsObj.setMaxLon(maxLon);
         boundsObj.setMinLat(minLat);
@@ -286,125 +245,374 @@ public class EndActivity extends AppCompatActivity {
 
         GpxInfo.trk trkObj = new GpxInfo.trk();
         gpxInfoObj.setTrk(trkObj);
-
         GpxInfo.trkseg trksegObj = new GpxInfo.trkseg();
         trkObj.setTrkseg(trksegObj);
 
         List<GpxInfo.trkpt> trkptArray = new ArrayList<GpxInfo.trkpt>();
+        int mapPointCount = Math.min(witch_lat.size(), witch_lon.size());
         int gpxPointCount = Math.min(mapPointCount, ele.size());
         for (int i = 0; i < gpxPointCount; i++) {
             GpxInfo.trkpt trkptObj = new GpxInfo.trkpt(witch_lat.get(i), witch_lon.get(i), ele.get(i));
             trkptArray.add(trkptObj);
         }
         trksegObj.setTrkptList(trkptArray);
-        // Create a file to save to and make sure to use the path provided from
-        // getFilesDir().getPath().
-        File xmlFile = new File(getFilesDir().getPath() + "/gpx_" + nowTime + ".gpx");
-        // Serialize the Person
-        try
-        {
+        gpxFile = new File(getFilesDir().getPath() + "/gpx_" + nowTime + ".gpx");
+        try {
             Serializer serializer = new Persister();
-            serializer.write(gpxInfoObj, xmlFile);
-        }
-        catch (Exception e)
-        {
+            serializer.write(gpxInfoObj, gpxFile);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Create a second person object
-        GpxInfo gpxInfoObj2 = null;
+        binding.saveriding.setOnClickListener(v -> onSaveClicked(nowTime));
+    }
 
-        // Deserialize the Person
-        if (xmlFile.exists())
-        {
-            try
-            {
-                Serializer serializer = new Persister();
-                gpxInfoObj2 = serializer.read(GpxInfo.class, xmlFile);
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        ArrayList<String> paths = new ArrayList<>();
+        for (File photo : draftPhotos) {
+            paths.add(photo.getAbsolutePath());
         }
+        outState.putStringArrayList(STATE_PHOTOS, paths);
+        outState.putString(STATE_GPX_STAMP, gpxStamp);
+    }
 
-        boolean b = gpxInfoObj.equals(gpxInfoObj2);
-        // ???源껉펾??? gpx???????獄쏅똻??
+    // ---------------------------------------------------------------------------------------
+    // Binding
+    // ---------------------------------------------------------------------------------------
 
+    /** Same units, digits and empty-value rules as the record detail screen. */
+    private void bindStats() {
+        binding.enddis.setText(RecordFormatter.formatDistance(Distence));
+        binding.ending.setText(RecordFormatter.formatDuration(IngTime));
+        binding.endresttime.setText(RecordFormatter.formatDuration(RestTime));
+        binding.endavg.setText(RecordFormatter.formatSpeed(AvgSpeed, Distence, IngTime));
+        binding.endmax.setText(RecordFormatter.formatSpeed(MaxSpeed, Distence, IngTime));
+        binding.endget.setText(RecordFormatter.formatElevationGain(Getgodo));
+    }
 
-        // Optional start position for the server-side weather snapshot; null when nothing usable.
-        final RideStartPoint startPoint = RideStartPoint.firstValid(witch_lat, witch_lon);
+    private void bindDate() {
+        Date now = new Date();
+        binding.rideDate.setText(new SimpleDateFormat("yyyy. MM. dd (E)", Locale.KOREA).format(now));
+        binding.rideTime.setText(new SimpleDateFormat("a h:mm", Locale.KOREA).format(now));
+    }
 
-        save.setOnClickListener(v -> {
-            String rideName = binding.ridingNameinput.getText().toString().trim();
-            if (rideName.isEmpty()) {
-                rideName = "라이딩 기록";
+    private void bindVisibility() {
+        RideSettings.migrate(this);
+        boolean guest = AccountSession.isGuest(this);
+        open = !guest && RideSettings.isRecordPublic(this) ? "1" : "0";
+        // Server records only know private (0) and public (1); there is no follower-only level.
+        binding.selectgroup.check("0".equals(open) ? R.id.NoOpen : R.id.AllOpen);
+        if (guest) {
+            for (int i = 0; i < binding.selectgroup.getChildCount(); i++) {
+                binding.selectgroup.getChildAt(i).setEnabled(false);
             }
-            if (AccountSession.isGuest(this)) {
-                saveGuestRide(xmlFile, rideName, save);
-                return;
-            }
-            if (LoginId == null || LoginId.trim().isEmpty()) {
-                android.widget.Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
-                return;
-            }
+            binding.visibilityHint.setText("비회원 기록은 이 기기에만 비공개로 저장됩니다.");
+        } else {
+            binding.visibilityHint.setText("전체 공개로 저장하면 다른 사용자가 경로, 메모, 사진을 볼 수 있습니다.");
+        }
+        binding.selectgroup.setOnCheckedChangeListener((group, checkedId) ->
+                open = checkedId == R.id.NoOpen ? "0" : "1");
+    }
 
-            String gpxFileName = "gpx_" + nowTime + ".gpx";
-            MultipartBody.Part gpxPart = Server.getFilePart(xmlFile.getAbsolutePath(), gpxFileName);
-            if (gpxPart == null) {
-                android.widget.Toast.makeText(EndActivity.this, "GPX 파일을 만들지 못해 기록을 저장할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            save.setEnabled(false);
-            HashMap<String, Object> insert = new HashMap<>();
-            insert.put("rr_rider", LoginId);
-            insert.put("rr_distance", String.valueOf(Distence));
-            insert.put("rr_topspeed", String.valueOf(MaxSpeed));
-            insert.put("rr_avgspeed", String.valueOf(AvgSpeed));
-            insert.put("rr_high", String.valueOf(Getgodo));
-            insert.put("rr_gpx", gpxFileName);
-            insert.put("rr_open", open);
-            insert.put("rr_breaktime", String.valueOf(RestTime));
-            insert.put("rr_time", String.valueOf(IngTime));
-            insert.put("rr_area", adress_value == null ? "" : adress_value);
-            insert.put("rr_name", rideName);
-            if (startPoint != null) {
-                // Only used by the server to look up the weather at save time; not stored as a field.
-                insert.put("rr_start_lat", String.valueOf(startPoint.latitude));
-                insert.put("rr_start_lon", String.valueOf(startPoint.longitude));
-            }
-            if (rr_comp != null && !rr_comp.trim().isEmpty() && !"null".equalsIgnoreCase(rr_comp.trim())) {
-                insert.put("rr_comp", rr_comp);
+    private void bindMemo() {
+        updateMemoCounter(binding.rideMemo.getText().length());
+        binding.rideMemo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            serverApi.upload(gpxPart, "gpx", gpxFileName).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (!response.isSuccessful()) {
-                        save.setEnabled(true);
-                        android.widget.Toast.makeText(EndActivity.this, "GPX 업로드에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    saveRideRecord(insert, save);
-                }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateMemoCounter(s.length());
+            }
 
-                @Override
-                public void onFailure(Call<Void> call, Throwable error) {
-                    Log.e("RideSave", "Unable to upload GPX", error);
-                    save.setEnabled(true);
-                    android.widget.Toast.makeText(EndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
-                }
-            });
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
-    private void saveGuestRide(File xmlFile, String rideName, Button save) {
+    private void updateMemoCounter(int length) {
+        binding.memoCounter.setText(length + "/" + GuestRideStoreCore.MAX_MEMO_LENGTH);
+    }
+
+    private void bindPhotos(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            ArrayList<String> paths = savedInstanceState.getStringArrayList(STATE_PHOTOS);
+            if (paths != null) {
+                for (String path : paths) {
+                    File file = new File(path);
+                    if (file.isFile() && draftPhotos.size() < RidePhotoPicker.MAX_PHOTOS) {
+                        draftPhotos.add(file);
+                    }
+                }
+            }
+        } else {
+            // A fresh screen never inherits photos from an abandoned earlier save screen.
+            PhotoImporter.clearDirectory(draftDirectory);
+        }
+        binding.photoStrip.setEditable(true);
+        binding.photoStrip.setListener(new PhotoStripView.Listener() {
+            @Override
+            public void onAddClicked() {
+                int remaining = RidePhotoPicker.MAX_PHOTOS - draftPhotos.size();
+                if (remaining <= 0) {
+                    android.widget.Toast.makeText(EndActivity.this, "사진은 최대 10장까지 추가할 수 있습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!RidePhotoPicker.launch(EndActivity.this, remaining)) {
+                    android.widget.Toast.makeText(EndActivity.this, "사진을 선택할 수 있는 앱을 찾지 못했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onPhotoClicked(int index) {
+                PhotoViewerDialog.show(EndActivity.this, draftItems(), index, null);
+            }
+
+            @Override
+            public void onRemoveClicked(int index) {
+                if (index >= 0 && index < draftPhotos.size()) {
+                    File removed = draftPhotos.remove(index);
+                    //noinspection ResultOfMethodCallIgnored
+                    removed.delete();
+                    refreshPhotos();
+                }
+            }
+        });
+        refreshPhotos();
+    }
+
+    private List<PhotoStripView.Item> draftItems() {
+        List<PhotoStripView.Item> items = new ArrayList<>();
+        for (File file : draftPhotos) {
+            items.add(new PhotoStripView.Item(file, null, file));
+        }
+        return items;
+    }
+
+    private void refreshPhotos() {
+        binding.photoStrip.setItems(draftItems());
+        binding.photoCount.setText(draftPhotos.size() + "/" + RidePhotoPicker.MAX_PHOTOS);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Cancelling the picker (or an empty result) leaves the photos chosen so far untouched.
+        if (requestCode != RidePhotoPicker.REQUEST_CODE || resultCode != RESULT_OK || data == null) {
+            return;
+        }
+        int remaining = RidePhotoPicker.MAX_PHOTOS - draftPhotos.size();
+        List<Uri> uris = RidePhotoPicker.parse(data, remaining);
+        if (uris.isEmpty()) {
+            return;
+        }
+        if (data.getClipData() != null && data.getClipData().getItemCount() > remaining) {
+            android.widget.Toast.makeText(this, "사진은 최대 10장까지 추가할 수 있어 일부만 추가했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+        }
+        PhotoImporter.importAsync(this, uris, draftDirectory, (files, failed) -> {
+            if (isFinishing() || isDestroyed()) {
+                for (File file : files) {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+                return;
+            }
+            for (File file : files) {
+                if (draftPhotos.size() < RidePhotoPicker.MAX_PHOTOS) {
+                    draftPhotos.add(file);
+                } else {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+            }
+            refreshPhotos();
+            if (failed > 0) {
+                android.widget.Toast.makeText(this, failed + "장은 불러오지 못했습니다. 사진 접근 권한이나 파일을 확인해 주세요.", android.widget.Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void toggleMapSize() {
+        mapExpanded = !mapExpanded;
+        ViewGroup.LayoutParams params = binding.mapCard.getLayoutParams();
+        params.height = Math.round((mapExpanded ? 420 : 190) * getResources().getDisplayMetrics().density);
+        binding.mapCard.setLayoutParams(params);
+        binding.mapExpand.setText(mapExpanded ? "⤡" : "⤢");
+        binding.mapExpand.setContentDescription(mapExpanded ? "지도 축소" : "지도 확대");
+        binding.mapCard.post(() -> {
+            if (ridePreviewMap != null) {
+                ridePreviewMap.refit();
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Weather at the start of the ride (looked up by the TrailGo server, never by the app)
+    // ---------------------------------------------------------------------------------------
+
+    private String formatStartedAt() {
+        long startedMillis = System.currentTimeMillis() - (long) Math.max(0, IngTime + RestTime) * 1000L;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
+        format.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+        return format.format(new Date(startedMillis));
+    }
+
+    private void loadWeather() {
+        // The weather looked up when the ride started is kept with the ride session: use that one.
+        RecordWeather atStart = RideWeatherFile.load(getFilesDir());
+        if (atStart != null) {
+            showWeather(atStart, "날씨 정보 없음");
+            return;
+        }
+        if (startPoint == null) {
+            showWeather(null, "위치 정보가 없어 날씨를 확인할 수 없습니다");
+            return;
+        }
+        String riderId = AccountSession.isGuest(this) || LoginId == null || LoginId.trim().isEmpty() ? null : LoginId;
+        weatherCall = serverApi.getWeather(startPoint.latitude, startPoint.longitude, startedAtText, riderId);
+        weatherCall.enqueue(new Callback<RecordWeather>() {
+            @Override
+            public void onResponse(Call<RecordWeather> call, Response<RecordWeather> response) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                RecordWeather body = response.isSuccessful() ? response.body() : null;
+                showWeather(body != null && body.isAvailable() ? body : null, "날씨 정보 없음");
+            }
+
+            @Override
+            public void onFailure(Call<RecordWeather> call, Throwable error) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) {
+                    return;
+                }
+                Log.w("RideWeather", "Weather unavailable: " + error.getClass().getSimpleName());
+                showWeather(null, "날씨 정보 없음");
+            }
+        });
+    }
+
+    /** Shows the weather, or {@code emptyText} when there is none. Nothing is ever made up. */
+    private void showWeather(RecordWeather weather, String emptyText) {
+        String text = weather == null ? null
+                : RecordFormatter.formatWeather(weather.isAvailable(), weather.getLabel(), weather.getTemperatureC());
+        if (text == null) {
+            rideWeather = null;
+            binding.weatherIcon.setVisibility(View.GONE);
+            binding.weatherText.setText(emptyText);
+            binding.weatherNote.setText("");
+            return;
+        }
+        rideWeather = weather;
+        binding.weatherIcon.setImageResource(WeatherIcons.resource(weather));
+        binding.weatherIcon.setVisibility(View.VISIBLE);
+        binding.weatherText.setText(text);
+        binding.weatherNote.setText(RecordFormatter.formatWeatherNote(weather.getObservedAt(), weather.getPrecipitationMm()));
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Saving
+    // ---------------------------------------------------------------------------------------
+
+    private void setSaving(boolean value) {
+        saving = value;
+        binding.saveriding.setEnabled(!value);
+        binding.saveriding.setText(value ? "저장 중..." : "기록 저장");
+        binding.saveProgress.setVisibility(value ? View.VISIBLE : View.GONE);
+        binding.cancelridingBottom.setEnabled(!value);
+        // A rotation would recreate the screen while uploads still report back to it.
+        setRequestedOrientation(value
+                ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED
+                : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+    }
+
+    private void onSaveClicked(String nowTime) {
+        if (saving) {
+            return; // double tap
+        }
+        String rideName = binding.ridingNameinput.getText().toString().trim();
+        if (rideName.isEmpty()) {
+            rideName = "라이딩 기록";
+        }
+        String memo = GuestRideStoreCore.normalizeMemo(binding.rideMemo.getText().toString());
+
+        if (AccountSession.isGuest(this)) {
+            saveGuestRide(gpxFile, rideName, memo);
+            return;
+        }
+        if (LoginId == null || LoginId.trim().isEmpty()) {
+            android.widget.Toast.makeText(this, "로그인 정보를 확인할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String gpxFileName = "gpx_" + nowTime + ".gpx";
+        MultipartBody.Part gpxPart = Server.getFilePart(gpxFile.getAbsolutePath(), gpxFileName);
+        if (gpxPart == null) {
+            android.widget.Toast.makeText(EndActivity.this, "GPX 파일을 만들지 못해 기록을 저장할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        setSaving(true);
+        final HashMap<String, Object> insert = new HashMap<>();
+        insert.put("rr_rider", LoginId);
+        insert.put("rr_distance", String.valueOf(Distence));
+        insert.put("rr_topspeed", String.valueOf(MaxSpeed));
+        insert.put("rr_avgspeed", String.valueOf(AvgSpeed));
+        insert.put("rr_high", String.valueOf(Getgodo));
+        insert.put("rr_gpx", gpxFileName);
+        insert.put("rr_open", "0".equals(open) ? "0" : "1");
+        insert.put("rr_breaktime", String.valueOf(RestTime));
+        insert.put("rr_time", String.valueOf(IngTime));
+        insert.put("rr_area", adress_value == null ? "" : adress_value);
+        insert.put("rr_name", rideName);
+        insert.put("rr_started_at", startedAtText);
+        if (memo != null) {
+            insert.put("rr_memo", memo);
+        }
+        if (rideWeather != null && rideWeather.getToken() != null) {
+            // The server stores the snapshot it looked up itself; the app never sends weather values.
+            insert.put("rr_weather_token", rideWeather.getToken());
+        }
+        if (startPoint != null) {
+            // Only used by the server to look up the weather at the start; not stored as a field.
+            insert.put("rr_start_lat", String.valueOf(startPoint.latitude));
+            insert.put("rr_start_lon", String.valueOf(startPoint.longitude));
+        }
+        if (rr_comp != null && !rr_comp.trim().isEmpty() && !"null".equalsIgnoreCase(rr_comp.trim())) {
+            insert.put("rr_comp", rr_comp);
+        }
+
+        serverApi.upload(gpxPart, "gpx", gpxFileName).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!response.isSuccessful()) {
+                    setSaving(false);
+                    android.widget.Toast.makeText(EndActivity.this, "GPX 업로드에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                saveRideRecord(insert);
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable error) {
+                Log.e("RideSave", "Unable to upload GPX", error);
+                setSaving(false);
+                android.widget.Toast.makeText(EndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveGuestRide(File xmlFile, String rideName, String memo) {
         if (!xmlFile.isFile() || xmlFile.length() == 0L) {
             android.widget.Toast.makeText(this, "GPX 파일을 만들지 못해 이 기기에 저장할 수 없습니다.", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
-        save.setEnabled(false);
+        setSaving(true);
+        final ArrayList<File> photos = new ArrayList<>(draftPhotos);
+        final RecordWeather weather = rideWeather == null ? null : rideWeather.withoutToken();
         new Thread(() -> {
             try {
                 LocalRideStore.save(
@@ -417,56 +625,124 @@ public class EndActivity extends AppCompatActivity {
                         RestTime,
                         IngTime,
                         adress_value,
-                        xmlFile
+                        xmlFile,
+                        memo,
+                        weather,
+                        photos
                 );
-                runOnUiThread(() -> finishGuestSave(save));
+                runOnUiThread(() -> finishGuestSave());
             } catch (IOException error) {
                 Log.e("GuestRideSave", "Unable to save local guest ride", error);
                 runOnUiThread(() -> {
-                    save.setEnabled(true);
+                    setSaving(false);
                     android.widget.Toast.makeText(EndActivity.this, "이 기기에 기록을 저장하지 못했습니다. 저장공간을 확인해 주세요.", android.widget.Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
     }
 
-    private void finishGuestSave(Button save) {
+    private void finishGuestSave() {
         android.widget.Toast.makeText(this, "주행 기록을 이 기기에 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
         RideSessionStore.clear(this);
         RideRouteCache.clear(this);
-        Intent home = new Intent(this, com.bike.trailgo.MainActivity.class);
-        home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(home);
-        finish();
+        goHome();
     }
 
-    private void saveRideRecord(HashMap<String, Object> insert, Button save) {
-        serverApi.InsertRecord(insert).enqueue(new Callback<Void>() {
+    private void saveRideRecord(HashMap<String, Object> insert) {
+        serverApi.InsertRecord(insert).enqueue(new Callback<Map<String, String>>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
                 if (!response.isSuccessful()) {
-                    save.setEnabled(true);
+                    setSaving(false);
                     android.widget.Toast.makeText(EndActivity.this, "기록 저장에 실패했습니다. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                android.widget.Toast.makeText(EndActivity.this, "라이딩 기록을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
-                // Keep the recovery checkpoint until both GPX upload and record insert succeed.
+                // The ride itself is safely on the server now: the recovery checkpoint can go.
+                // Photos are uploaded afterwards and can fail without losing the record.
                 RideSessionStore.clear(EndActivity.this);
                 RideRouteCache.clear(EndActivity.this);
-                Intent home = new Intent(EndActivity.this, com.bike.trailgo.MainActivity.class);
-                home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(home);
-                finish();
+                Map<String, String> body = response.body();
+                String savedNumber = body == null ? null : body.get("rr_num");
+                if (draftPhotos.isEmpty()) {
+                    android.widget.Toast.makeText(EndActivity.this, "라이딩 기록을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                    goHome();
+                } else if (savedNumber == null) {
+                    // An older server that does not report the new record number cannot take photos.
+                    android.widget.Toast.makeText(EndActivity.this, "기록은 저장했지만 서버가 사진 업로드를 지원하지 않아 사진은 올리지 못했습니다.", android.widget.Toast.LENGTH_LONG).show();
+                    goHome();
+                } else {
+                    uploadPhotos(savedNumber, new ArrayList<>(draftPhotos));
+                }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable error) {
+            public void onFailure(Call<Map<String, String>> call, Throwable error) {
                 Log.e("RideSave", "Unable to save ride", error);
-                save.setEnabled(true);
+                setSaving(false);
                 android.widget.Toast.makeText(EndActivity.this, "네트워크 연결을 확인한 뒤 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void uploadPhotos(final String recordNumber, final List<File> photos) {
+        dismissUploadDialog();
+        uploadDialog = new AlertDialog.Builder(this)
+                .setTitle("사진 업로드")
+                .setMessage("사진을 올리는 중입니다 (0/" + photos.size() + ")")
+                .setCancelable(false)
+                .create();
+        uploadDialog.show();
+        activeUploader = new RidePhotoUploader(serverApi, LoginId, recordNumber, photos, new RidePhotoUploader.Listener() {
+            @Override
+            public void onProgress(int done, int total) {
+                if (uploadDialog != null) {
+                    uploadDialog.setMessage("사진을 올리는 중입니다 (" + (done + 1) + "/" + total + ")");
+                }
+            }
+
+            @Override
+            public void onFinished(List<RecordPhoto> uploaded, final List<File> failed, int lastFailureCode) {
+                dismissUploadDialog();
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (failed.isEmpty()) {
+                    android.widget.Toast.makeText(EndActivity.this, "라이딩 기록과 사진을 저장했습니다.", android.widget.Toast.LENGTH_SHORT).show();
+                    goHome();
+                    return;
+                }
+                new AlertDialog.Builder(EndActivity.this)
+                        .setTitle("사진 일부를 올리지 못했습니다")
+                        .setMessage("라이딩 기록은 저장되었습니다.\n사진 " + failed.size() + "장: "
+                                + RidePhotoUploader.describeFailure(lastFailureCode)
+                                + "\n\n다시 시도하거나, 기록 상세 화면에서 나중에 추가할 수 있습니다.")
+                        .setCancelable(false)
+                        .setPositiveButton("다시 시도", (dialog, which) -> uploadPhotos(recordNumber, failed))
+                        .setNegativeButton("나중에 추가", (dialog, which) -> goHome())
+                        .show();
+            }
+        });
+        activeUploader.start();
+    }
+
+    private void dismissUploadDialog() {
+        if (uploadDialog != null) {
+            try {
+                uploadDialog.dismiss();
+            } catch (IllegalArgumentException ignored) {
+                // window already gone
+            }
+            uploadDialog = null;
+        }
+    }
+
+    private void goHome() {
+        PhotoImporter.clearDirectory(draftDirectory);
+        Intent home = new Intent(this, com.bike.trailgo.MainActivity.class);
+        home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(home);
+        finish();
     }
 
     @Override
@@ -487,6 +763,13 @@ public class EndActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (weatherCall != null) {
+            weatherCall.cancel();
+        }
+        if (activeUploader != null) {
+            activeUploader.cancel();
+        }
+        dismissUploadDialog();
         if (ridePreviewMap != null) {
             ridePreviewMap.finish();
             ridePreviewMap = null;
@@ -828,6 +1111,10 @@ public class EndActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        if (saving) {
+            android.widget.Toast.makeText(this, "저장 중입니다. 잠시만 기다려 주세요.", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
         confirmDiscardRide();
     }
 
@@ -839,6 +1126,7 @@ public class EndActivity extends AppCompatActivity {
                 .setPositiveButton("나가기", (dialog, which) -> {
                     RideSessionStore.clear(EndActivity.this);
                     RideRouteCache.clear(EndActivity.this);
+                    PhotoImporter.clearDirectory(draftDirectory);
                     finish();
                 })
                 .show();

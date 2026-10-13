@@ -52,6 +52,21 @@ public class AndroidService {
 		return androidMapper.getRidingRecordDetail(rr_rider, rr_num);
 	}
 	
+	//본인 기록 상세: 작성자와 번호가 모두 맞을 때만 반환 (없거나 남의 기록이면 null)
+	public RidingRecord getOwnRecord(String riderId, int rrNum) {
+		return androidMapper.getOwnRecord(riderId, rrNum);
+	}
+
+	//공개 기록 상세 (비공개면 null)
+	public RidingRecord getPublicRecord(int rrNum) {
+		return androidMapper.getPublicRecord(rrNum);
+	}
+
+	//기록 시점 날씨 스냅샷 저장 (이미 있으면 덮어쓰지 않음)
+	public int saveWeatherSnapshot(int rrNum, com.bike.webapp.weather.WeatherSnapshot snapshot) {
+		return androidMapper.updateRecordWeather(rrNum, snapshot);
+	}
+
 	public int RidingOpenSet(RidingRecord record) throws Exception {
 		return androidMapper.RidingOpenSet(record);
 	}

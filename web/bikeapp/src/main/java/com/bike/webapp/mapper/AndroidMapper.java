@@ -32,6 +32,13 @@ public interface AndroidMapper {
 	
 	// 사용자 라이딩 기록 검색
 	public List<RidingRecord> getRidingRecordDetail(@Param("rr_rider") String rr_rider, @Param("rr_num") String rr_num) throws Exception;
+
+	// 본인 기록 상세 (작성자 + 번호 일치) / 공개 기록 상세 / 기록 시점 날씨 스냅샷 저장(최초 1회)
+	public RidingRecord getOwnRecord(@Param("rr_rider") String rr_rider, @Param("rr_num") int rr_num);
+
+	public RidingRecord getPublicRecord(@Param("rr_num") int rr_num);
+
+	public int updateRecordWeather(@Param("rr_num") int rr_num, @Param("w") com.bike.webapp.weather.WeatherSnapshot snapshot);
 	
 	
 	//코스 가져오기

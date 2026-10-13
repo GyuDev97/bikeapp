@@ -136,17 +136,20 @@ public class GpxInfo
         @Attribute
         private double lon;
 
-        @Element
-        private double ele;
+        // Optional: omitted when the phone gave no (reliable) altitude, so "unknown" is never
+        // written as 0 m. Older files that always have <ele> are still read as before.
+        @Element(required = false)
+        private Double ele;
 
         public trkpt(){
 
         }
 
+        /** @param ele altitude in metres, or NaN when unknown (then no {@code <ele>} is written) */
         public trkpt ( double lat,  double lon,  double ele ){
             this.lat = lat;
             this.lon = lon;
-            this.ele = ele;
+            this.ele = Double.isNaN(ele) || Double.isInfinite(ele) ? null : ele;
         }
 
         public double getLat() {
@@ -165,12 +168,13 @@ public class GpxInfo
             this.lon = lon;
         }
 
+        /** @return the altitude in metres, or NaN when the point has none */
         public double getEle() {
-            return ele;
+            return ele == null ? Double.NaN : ele;
         }
 
         public void setEle(double ele) {
-            this.ele = ele;
+            this.ele = Double.isNaN(ele) || Double.isInfinite(ele) ? null : ele;
         }
     }
 

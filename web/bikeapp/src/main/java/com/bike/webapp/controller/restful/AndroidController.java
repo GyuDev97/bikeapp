@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -55,6 +56,8 @@ import com.bike.webapp.dto.*;
 import com.bike.webapp.service.AndroidService;
 import com.bike.webapp.service.MemberService;
 import com.bike.webapp.service.*;
+import com.bike.webapp.weather.WeatherCaptureService;
+import com.bike.webapp.weather.WeatherService;
 
 
 @Controller
@@ -77,6 +80,10 @@ public class AndroidController {
 	//라이딩 Service객체
 	@Autowired
 	private RidingService ridingService;
+
+	//기록 시점 날씨 스냅샷 (기상청 API는 서버만 호출한다)
+	@Autowired
+	private WeatherCaptureService weatherCaptureService;
 	
 	//로그인
 	@RequestMapping(value = "login")
@@ -108,6 +115,14 @@ public class AndroidController {
 		try {
 			androidService.insertRecord(record); //기록저장
 			result.put("saved", "1");
+			// 날씨는 저장 이후(커밋 완료 후) 별도 스레드에서 붙인다. 실패해도 기록 저장 결과에는 영향이 없다.
+			try {
+				weatherCaptureService.captureAsync(record.getRr_num(), record.getRr_start_lat(),
+						record.getRr_start_lon(), LocalDateTime.now(WeatherService.KST));
+			} catch (RuntimeException weatherError) {
+				log.warn("Weather capture skipped for record {}: {}", record.getRr_num(),
+						weatherError.getClass().getSimpleName());
+			}
 			return ResponseEntity.ok(result);
 		}catch(Exception e) {
 			log.error("Riding record save failed for rider={}", record.getRr_rider(), e);
@@ -115,17 +130,37 @@ public class AndroidController {
 		}
 	}
 
-	//메인화면 라이딩 기록 가져오기
-	@RequestMapping(value = "get/admin")
-	public @ResponseBody List<App_RidingRecord> getRidingRecord() throws Exception {
-		return androidService.readRecord("admin");
+	//내 라이딩 기록 목록 (앱이 실제로 호출하는 경로: GET /app/get/{loginId})
+	@RequestMapping(value = "get/{loginId}", method = RequestMethod.GET)
+	public @ResponseBody List<App_RidingRecord> getRidingRecord(@PathVariable("loginId") String loginId) throws Exception {
+		return androidService.readRecord(loginId);
 	}
 
-	//주행기록 상세보기
-	@RequestMapping(value = "get/detail/1")
-	public @ResponseBody List<RidingRecord> getRidingRecordDetail() throws Exception {
-		RidingRecord record = new RidingRecord();
-		return androidService.getRidingRecordDetail("admin", "1");
+	//내 라이딩 기록 목록 (명시적 경로, 위와 동일한 응답)
+	@RequestMapping(value = "riding/records/{riderId}", method = RequestMethod.GET)
+	public @ResponseBody List<App_RidingRecord> getMyRidingRecords(@PathVariable("riderId") String riderId) throws Exception {
+		return androidService.readRecord(riderId);
+	}
+
+	//본인 기록 상세. 작성자(riderId)와 기록 번호가 모두 일치하지 않으면 404 (다른 사용자의 기록은 존재 여부도 알리지 않는다)
+	@RequestMapping(value = "riding/records/{riderId}/{rrNum}", method = RequestMethod.GET)
+	public ResponseEntity<RidingRecord> getMyRidingRecordDetail(@PathVariable("riderId") String riderId,
+			@PathVariable("rrNum") int rrNum) {
+		RidingRecord record = androidService.getOwnRecord(riderId, rrNum);
+		if (record == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		return ResponseEntity.ok(record);
+	}
+
+	//구 주행기록 상세 경로. 작성자를 알 수 없으므로 공개 기록만 반환한다 (기존에는 admin/1 하드코딩).
+	@RequestMapping(value = "get/detail/{rrNum}", method = RequestMethod.GET)
+	public ResponseEntity<List<RidingRecord>> getRidingRecordDetail(@PathVariable("rrNum") int rrNum) {
+		RidingRecord record = androidService.getPublicRecord(rrNum);
+		if (record == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		return ResponseEntity.ok(java.util.Collections.singletonList(record));
 	}
 	
 	//주행기록 공개여부 설정

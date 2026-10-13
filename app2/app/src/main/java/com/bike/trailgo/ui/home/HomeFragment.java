@@ -24,6 +24,7 @@ import com.bike.trailgo.data.LocalRideStore;
 import com.bike.trailgo.dto.RidingRecord;
 import com.bike.trailgo.setting.AccountSession;
 import com.bike.trailgo.ui.BaseFragment;
+import com.bike.trailgo.ui.records.RecordFormatter;
 import com.bike.trailgo.ui.riding.StartActivity;
 
 import java.text.SimpleDateFormat;
@@ -313,13 +314,16 @@ public class HomeFragment extends BaseFragment {
         model.my_rec_name.setValue(record.getRr_name());
         model.my_rec_date.setValue(record.getRr_date());
         model.my_rec_adress.setValue(record.getRr_area());
-        model.my_rec_dis.setValue(formatDistance(record.getRr_distance()));
-        model.my_rec_get.setValue(record.getRr_high() + "m");
-        model.my_rec_time.setValue(formatDuration(record.getRr_time()));
-        model.my_rec_rest.setValue(formatDuration(record.getRr_breaktime()));
+        // Same display rules as the records list so both entrances show identical detail values.
+        model.my_rec_dis.setValue(RecordFormatter.formatDistance(record.getRr_distance()));
+        model.my_rec_get.setValue(RecordFormatter.formatElevationGain(record.getRr_high()));
+        model.my_rec_time.setValue(RecordFormatter.formatDuration(record.getRr_time()));
+        model.my_rec_rest.setValue(RecordFormatter.formatDuration(record.getRr_breaktime()));
         model.my_rec_open.setValue(record.getRr_open());
-        model.my_rec_max.setValue(record.getRr_topspeed() + "km/h");
-        model.my_rec_avg.setValue(record.getRr_avgspeed() + "km/h");
+        model.my_rec_max.setValue(RecordFormatter.formatSpeed(
+                record.getRr_topspeed(), record.getRr_distance(), record.getRr_time()));
+        model.my_rec_avg.setValue(RecordFormatter.formatSpeed(
+                record.getRr_avgspeed(), record.getRr_distance(), record.getRr_time()));
         model.my_rec_gpx.setValue(record.getRr_gpx());
         controller.navigate(R.id.action_nav_home_to_myDetailFragment);
     }

@@ -82,6 +82,10 @@ public interface ServerApi {
     @GET("app/get/detail/{rr_num}")
     Call<List<RidingRecord>> getRecordDetail(@Path("rr_num") String rr_num);
 
+    //본인 라이딩 기록 상세 (기록 시점 날씨 스냅샷 포함). 작성자와 번호가 모두 맞아야 조회된다.
+    @GET("app/riding/records/{riderId}/{rrNum}")
+    Call<RidingRecord> getMyRecordDetail(@Path("riderId") String riderId, @Path("rrNum") String rrNum);
+
     //라이딩 공개설정
     @FormUrlEncoded
     @POST("app/recordset/open")

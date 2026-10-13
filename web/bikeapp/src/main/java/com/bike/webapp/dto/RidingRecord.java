@@ -3,7 +3,9 @@ package com.bike.webapp.dto;
 
 import java.sql.Timestamp;
 
-public class RidingRecord {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class RidingRecord extends WeatherColumns {
 
 	private int rr_num;
 	private String rr_rider;
@@ -25,8 +27,29 @@ public class RidingRecord {
 	private String keyword;
 	private String rr_start_area;
 	private String rr_end_area;
-	
-	
+	// Optional ride start position sent by the Android app when a record is saved. It is only used
+	// to look up the weather snapshot: never stored, never returned.
+	private Double rr_start_lat;
+	private Double rr_start_lon;
+
+	@JsonIgnore
+	public Double getRr_start_lat() {
+		return rr_start_lat;
+	}
+
+	public void setRr_start_lat(Double rr_start_lat) {
+		this.rr_start_lat = rr_start_lat;
+	}
+
+	@JsonIgnore
+	public Double getRr_start_lon() {
+		return rr_start_lon;
+	}
+
+	public void setRr_start_lon(Double rr_start_lon) {
+		this.rr_start_lon = rr_start_lon;
+	}
+
 
 	public String getRr_start_area() {
 		return rr_start_area;

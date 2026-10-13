@@ -3,7 +3,7 @@ package com.bike.webapp.dto;
 
 import java.sql.Timestamp;
 
-public class App_RidingRecord {
+public class App_RidingRecord extends WeatherColumns {
 
 	private int rr_num;
 	private String rr_rider;

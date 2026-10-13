@@ -18,11 +18,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bike.trailgo.R;
 import com.bike.trailgo.data.LocalRideStore;
+import com.bike.trailgo.dto.RecordWeather;
 import com.bike.trailgo.dto.RidingRecord;
 import com.bike.trailgo.gpx.GPXParser;
 import com.bike.trailgo.gpx.Gpx;
@@ -31,6 +33,7 @@ import com.bike.trailgo.gpx.TrackPoint;
 import com.bike.trailgo.gpx.TrackSegment;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.ui.BaseFragment;
+import com.github.mikephil.charting.charts.LineChart;
 import com.kakao.vectormap.GestureType;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
@@ -108,8 +111,18 @@ public class MyDetailFragment extends BaseFragment {
     private ImageView userImage;
     private Call<Map<String, String>> record;
     List<Track> tracks;
-    private TextView RidingTime, RidingRest, RidingDistance, RidingMax, RidingAvg, RidingGet, RidingAddr;
-    private TextView detailTitle, detailDate, detailTime, detailGraphHigh, detailAnalysisHeight, detailAnalysisAvg;
+    private TextView RidingTime, RidingCalorie, RidingDistance, RidingMax, RidingAvg, RidingGet, RidingAddr;
+    private TextView detailTitle, detailDate, detailTime, detailGraphHigh, detailGraphLow,
+            detailAnalysisHeight, detailAnalysisAvg, detailDataNotice, detailElevationEmpty,
+            detailGraphCaption;
+    private View detailGraphLegend;
+    private LineChart elevationChart;
+    private View detailWeatherRow;
+    private TextView detailWeatherText;
+    private ImageView detailWeatherIcon;
+    private Call<RidingRecord> weatherCall;
+    // Built from GPX track points on the loader thread; null until the GPX load finishes.
+    private ElevationProfile elevationProfile;
 
     public MyDetailFragment() {
         // Required empty public constructor
@@ -157,13 +170,15 @@ public class MyDetailFragment extends BaseFragment {
         String gpxFile = firstNotEmpty(model.my_rec_gpx.getValue(), "");
 
         waitingForGpx = gpxFile.length() > 0 && !"null".equalsIgnoreCase(gpxFile);
+        gpxRequestFailed = false;
+        elevationProfile = null;
         startNativeMap(view);
         if (waitingForGpx) {
             loadGpxRoute(gpxFile);
         }
 
         RidingTime = (TextView) view.findViewById(R.id.Riding_time);
-        RidingRest = (TextView) view.findViewById(R.id.Riding_rest);
+        RidingCalorie = (TextView) view.findViewById(R.id.Riding_calorie);
         RidingDistance = (TextView) view.findViewById(R.id.Riding_distance);
         RidingMax = (TextView) view.findViewById(R.id.Riding_max);
         RidingAvg = (TextView) view.findViewById(R.id.Riding_avg);
@@ -173,8 +188,19 @@ public class MyDetailFragment extends BaseFragment {
         detailDate = view.findViewById(R.id.detail_date);
         detailTime = view.findViewById(R.id.detail_time);
         detailGraphHigh = view.findViewById(R.id.detail_graph_high);
+        detailGraphLow = view.findViewById(R.id.detail_graph_low);
+        detailGraphLegend = view.findViewById(R.id.detail_graph_legend);
+        detailGraphCaption = view.findViewById(R.id.detail_graph_caption);
+        detailElevationEmpty = view.findViewById(R.id.detail_elevation_empty);
+        elevationChart = view.findViewById(R.id.detail_elevation_chart_view);
         detailAnalysisHeight = view.findViewById(R.id.detail_analysis_height);
         detailAnalysisAvg = view.findViewById(R.id.detail_analysis_avg_text);
+        detailDataNotice = view.findViewById(R.id.detail_data_notice);
+        detailWeatherRow = view.findViewById(R.id.detail_weather_row);
+        detailWeatherText = view.findViewById(R.id.detail_weather);
+        detailWeatherIcon = view.findViewById(R.id.detail_weather_icon);
+        renderElevationState();
+        loadWeather();
 
         View back = view.findViewById(R.id.detail_back);
         if (back != null) {
@@ -187,25 +213,33 @@ public class MyDetailFragment extends BaseFragment {
         shareButton.setOnClickListener(shareClick);
         shareTop.setOnClickListener(shareClick);
 
-        view.findViewById(R.id.detail_more).setOnClickListener(v ->
-                Toast.makeText(requireContext(), "기록 메뉴", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.detail_more).setOnClickListener(this::showMoreMenu);
         view.findViewById(R.id.detail_delete_button).setOnClickListener(v -> showDeleteConfirmation());
 
-        setTextIfPresent(detailTitle, firstNotEmpty(model.my_rec_name.getValue(), model.my_rec_adress.getValue(), "라이딩 기록"));
+        String recordName = firstNotEmpty(model.my_rec_name.getValue());
+        String recordArea = firstNotEmpty(model.my_rec_adress.getValue());
+        setTextIfPresent(detailTitle, firstNotEmpty(recordName, recordArea, "라이딩 기록"));
         setTextIfPresent(detailDate, formatDate(model.my_rec_date.getValue()));
         setTextIfPresent(detailTime, formatClock(model.my_rec_date.getValue()));
-        setTextIfPresent(RidingTime, firstNotEmpty(model.my_rec_time.getValue(), "-"));
-        setTextIfPresent(RidingRest, estimateCalories(model.my_rec_dis.getValue()));
-        setTextIfPresent(RidingDistance, firstNotEmpty(model.my_rec_dis.getValue(), "-"));
-        setTextIfPresent(RidingMax, firstNotEmpty(model.my_rec_max.getValue(), "-"));
-        setTextIfPresent(RidingAvg, firstNotEmpty(model.my_rec_avg.getValue(), "-"));
-        setTextIfPresent(RidingGet, firstNotEmpty(model.my_rec_get.getValue(), "-"));
-        setTextIfPresent(RidingAddr, firstNotEmpty(model.my_rec_adress.getValue(), "-"));
-        String height = firstNotEmpty(model.my_rec_get.getValue(), "0 m");
-        String average = firstNotEmpty(model.my_rec_avg.getValue(), "0 km/h");
-        setTextIfPresent(detailGraphHigh, "▲ 최고 " + height);
-        setTextIfPresent(detailAnalysisHeight, "해발 " + height);
-        setTextIfPresent(detailAnalysisAvg, "평균 " + average);
+        // The address only gets its own line when the title is something else (a custom name).
+        if (RidingAddr != null && recordArea.length() > 0 && recordName.length() > 0
+                && !recordArea.equals(recordName)) {
+            RidingAddr.setText(recordArea);
+            RidingAddr.setVisibility(View.VISIBLE);
+        }
+
+        // Values arrive already formatted by RecordFormatter (records list and home both use it).
+        int distanceMeters = RecordFormatter.parseDistanceMeters(model.my_rec_dis.getValue());
+        int ridingSeconds = RecordFormatter.parseDurationSeconds(model.my_rec_time.getValue());
+        setTextIfPresent(RidingDistance, firstNotEmpty(model.my_rec_dis.getValue(), RecordFormatter.EMPTY));
+        setTextIfPresent(RidingTime, firstNotEmpty(model.my_rec_time.getValue(), RecordFormatter.EMPTY));
+        setTextIfPresent(RidingAvg, firstNotEmpty(model.my_rec_avg.getValue(), RecordFormatter.EMPTY));
+        setTextIfPresent(RidingMax, firstNotEmpty(model.my_rec_max.getValue(), RecordFormatter.EMPTY));
+        // rr_high is accumulated climbing; it is never reused as altitude above sea level.
+        setTextIfPresent(RidingGet, firstNotEmpty(model.my_rec_get.getValue(), RecordFormatter.EMPTY));
+        setTextIfPresent(RidingCalorie, RecordFormatter.formatEstimatedCalories(distanceMeters));
+        setTextIfPresent(detailAnalysisAvg, firstNotEmpty(model.my_rec_avg.getValue(), RecordFormatter.EMPTY));
+        renderDataNotice(distanceMeters, ridingSeconds);
         set_open = (LinearLayout) view.findViewById(R.id.set_open);
         set_noopen = (LinearLayout) view.findViewById(R.id.set_noopen);
         publicVisibilityAction = view.findViewById(R.id.detail_visibility_public_action);
@@ -355,6 +389,7 @@ public class MyDetailFragment extends BaseFragment {
     private void loadGpxRoute(String gpxFile) {
         new Thread(() -> {
             ArrayList<LatLng> loadedPoints = new ArrayList<>();
+            ElevationProfile.Builder elevationBuilder = new ElevationProfile.Builder();
             HttpURLConnection connection = null;
             InputStream input = null;
             boolean loadFailed = false;
@@ -372,6 +407,7 @@ public class MyDetailFragment extends BaseFragment {
                         for (TrackSegment segment : track.getTrackSegments()) {
                             for (TrackPoint point : segment.getTrackPoints()) {
                                 loadedPoints.add(LatLng.from(point.getLatitude(), point.getLongitude()));
+                                elevationBuilder.add(point.getLatitude(), point.getLongitude(), point.getElevation());
                             }
                         }
                     }
@@ -395,12 +431,15 @@ public class MyDetailFragment extends BaseFragment {
                 return;
             }
             final boolean didFail = loadFailed;
+            final ElevationProfile loadedProfile = didFail ? null : elevationBuilder.build();
             requireActivity().runOnUiThread(() -> {
                 gpxRequestFailed = didFail;
                 routePoints.clear();
                 routePoints.addAll(loadedPoints);
                 waitingForGpx = false;
+                elevationProfile = loadedProfile;
                 renderRoute();
+                renderElevationState();
             });
         }).start();
     }
@@ -583,17 +622,115 @@ public class MyDetailFragment extends BaseFragment {
         return null;
     }
 
-    private String estimateCalories(String distanceText) {
-        if (distanceText == null) {
-            return "0 kcal";
+    /**
+     * Weather at ride time comes from the server's stored snapshot of this exact record (never
+     * today's weather). Guest/local and unsaved records have none, and any failure, missing key or
+     * older server simply leaves the weather row hidden.
+     */
+    private void loadWeather() {
+        if (isLocalRecord() || isPreviewRecord() || firstNotEmpty(LoginId).length() == 0) {
+            return;
         }
-        try {
-            String number = distanceText.replace("km", "").trim();
-            double km = Double.parseDouble(number);
-            return Math.max(1, (int) Math.round(km * 50.0)) + " kcal";
-        } catch (NumberFormatException e) {
-            return "0 kcal";
+        weatherCall = serverApi.getMyRecordDetail(LoginId, rr_num);
+        weatherCall.enqueue(new Callback<RidingRecord>() {
+            @Override
+            public void onResponse(Call<RidingRecord> call, Response<RidingRecord> response) {
+                if (!isAdded() || detailWeatherRow == null) {
+                    return;
+                }
+                RidingRecord body = response.isSuccessful() ? response.body() : null;
+                renderWeather(body == null ? null : body.getWeather());
+            }
+
+            @Override
+            public void onFailure(Call<RidingRecord> call, Throwable t) {
+                Log.w("RecordWeather", "Weather unavailable: " + t.getClass().getSimpleName());
+            }
+        });
+    }
+
+    private void renderWeather(@Nullable RecordWeather weather) {
+        String text = weather == null ? null
+                : RecordFormatter.formatWeather(weather.isAvailable(), weather.getLabel(), weather.getTemperatureC());
+        if (text == null) {
+            detailWeatherRow.setVisibility(View.GONE);
+            return;
         }
+        detailWeatherText.setText(text);
+        detailWeatherIcon.setImageResource(weather.isClear() ? R.drawable.records_ic_sun : R.drawable.records_ic_cloud);
+        detailWeatherRow.setVisibility(View.VISIBLE);
+    }
+
+    private void showMoreMenu(View anchor) {
+        PopupMenu menu = new PopupMenu(requireContext(), anchor);
+        menu.getMenu().add(0, 1, 0, "공유하기");
+        menu.getMenu().add(0, 2, 1, "삭제하기");
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                shareRecord();
+            } else {
+                showDeleteConfirmation();
+            }
+            return true;
+        });
+        menu.show();
+    }
+
+    /** Explains stored values that are missing or cannot be trusted; never rewrites them. */
+    private void renderDataNotice(int distanceMeters, int ridingSeconds) {
+        if (detailDataNotice == null) {
+            return;
+        }
+        String notice = null;
+        if (!RecordFormatter.hasMeasurement(distanceMeters, ridingSeconds)) {
+            notice = "측정된 거리 또는 시간이 부족해 속도와 칼로리는 표시하지 않습니다.";
+        } else if (RecordFormatter.isSuspiciousDuration(distanceMeters, ridingSeconds)) {
+            notice = "라이딩 시간이 이동 거리에 비해 비정상적으로 깁니다. 기록 중 일시정지·복원 오류일 수 있어 저장된 값을 그대로 표시합니다.";
+        }
+        detailDataNotice.setText(notice);
+        detailDataNotice.setVisibility(notice == null ? View.GONE : View.VISIBLE);
+    }
+
+    /** Shows the real GPX altitude graph, or an honest empty state saying why there is none. */
+    private void renderElevationState() {
+        if (detailElevationEmpty == null || elevationChart == null) {
+            return;
+        }
+        String emptyMessage = null;
+        if (elevationProfile != null && elevationProfile.isAvailable()) {
+            showElevationChart(elevationProfile);
+        } else if (elevationProfile == null && waitingForGpx) {
+            emptyMessage = "고도 데이터를 불러오는 중입니다";
+        } else if (gpxRequestFailed) {
+            emptyMessage = "GPX를 불러오지 못해 고도 그래프를 표시할 수 없습니다";
+        } else if (elevationProfile == null) {
+            emptyMessage = "이 기록에는 GPX 고도 정보가 없습니다";
+        } else {
+            // Same wording as the save screen (ElevationProfile.Availability).
+            emptyMessage = elevationProfile.getAvailability().message;
+        }
+
+        if (emptyMessage != null) {
+            elevationChart.setVisibility(View.GONE);
+            detailGraphLegend.setVisibility(View.GONE);
+            detailGraphCaption.setVisibility(View.GONE);
+            detailElevationEmpty.setText(emptyMessage);
+            detailElevationEmpty.setVisibility(View.VISIBLE);
+            setTextIfPresent(detailAnalysisHeight, RecordFormatter.EMPTY);
+        }
+    }
+
+    private void showElevationChart(ElevationProfile profile) {
+        ElevationChartBinder.draw(elevationChart, profile);
+
+        setTextIfPresent(detailGraphHigh, "▲ 최고 " + RecordFormatter.formatElevation(profile.getMaxElevation()));
+        setTextIfPresent(detailGraphLow, "▼ 최저 " + RecordFormatter.formatElevation(profile.getMinElevation()));
+        setTextIfPresent(detailAnalysisHeight, "해발 " + RecordFormatter.formatElevation(profile.getMaxElevation()));
+
+        detailElevationEmpty.setVisibility(View.GONE);
+        elevationChart.setVisibility(View.VISIBLE);
+        detailGraphLegend.setVisibility(View.VISIBLE);
+        detailGraphCaption.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -627,6 +764,13 @@ public class MyDetailFragment extends BaseFragment {
         startMarker = null;
         finishMarker = null;
         routePoints.clear();
+        elevationChart = null;
+        detailElevationEmpty = null;
+        if (weatherCall != null) {
+            weatherCall.cancel();
+            weatherCall = null;
+        }
+        detailWeatherRow = null;
         super.onDestroyView();
     }
 

@@ -153,7 +153,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupDrawerClicks(DrawerLayout drawer, NavController navController) {
         setDrawerClick(R.id.drawer_profile_header, drawer, () -> {
             if (AccountSession.isGuest(this)) {
-                startActivity(new Intent(this, LoginActivity.class));
+                // Guest MVP intentionally has no account/server-sync entry point.
+                // Keep the drawer header useful by opening the local app settings instead.
+                navigateTo(navController, R.id.app_settings);
             } else {
                 navigateTo(navController, R.id.setting);
             }

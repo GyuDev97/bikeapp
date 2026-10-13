@@ -45,6 +45,10 @@ import com.bike.trailgo.R;
 import com.bike.trailgo.SoundManager;
 import com.bike.trailgo.databinding.ActivityRidingStartBinding;
 import com.bike.trailgo.dto.DangerousArea;
+import com.bike.trailgo.gps.ElevationGainTracker;
+import com.bike.trailgo.gps.GpsFix;
+import com.bike.trailgo.gps.GpsFixFilter;
+import com.bike.trailgo.gps.GpsQualityConfig;
 import com.bike.trailgo.gpx.GPXParser;
 import com.bike.trailgo.gpx.Gpx;
 import com.bike.trailgo.gpx.Track;
@@ -131,12 +135,19 @@ public class StartActivity extends AppCompatActivity
     private String getDalat, getDalon, getDacon, address_dong;
     //??醫딆┣??????⑤슢堉???
     private double latitude, lonngitude, getSpeed = 0, hap = 0, avg = 0, maX = 0, maxLat = 0, maxLon = 0, minLat = 1000, minLon = 1000;
-    private static final double MIN_ELEVATION_GAIN_METERS = 3.0;
+    // GPS quality pipeline: every threshold lives in GpsQualityConfig (see gps package).
+    private final GpsQualityConfig gpsConfig = GpsQualityConfig.DEFAULT;
+    private final GpsFixFilter gpsFilter = new GpsFixFilter(gpsConfig);
+    private final ElevationGainTracker gainTracker = new ElevationGainTracker(gpsConfig);
+    // Totals restored from a checkpoint; the tracker only knows what was gained since the restore.
+    private int gainBaseMeters = 0;
+    private int descentBaseMeters = 0;
+    private double lastGoodLatitude = 0.0;
+    private double lastGoodLongitude = 0.0;
     private static final double MAX_REASONABLE_RIDE_SPEED_KMH = 100.0;
     private static final long SESSION_CHECKPOINT_INTERVAL_MS = 10_000L;
     private int getgodo = 0;
     private int totalDescentMeters = 0;
-    private Double elevationBaselineMeters = null;
     private Location gradeBaselineLocation = null;
     private long lastSpeedLocationReceivedAtMillis = 0L;
     private long lastSessionCheckpointMillis = 0L;
@@ -408,6 +419,7 @@ public class StartActivity extends AppCompatActivity
                 }
 
                 Log.d("RideEnd", "time=" + total_time + ", distance=" + hap + ", max=" + maX + ", avg=" + avg + ", high=" + getgodo + ", rest=" + rest + ", addr=" + adress_value);
+                Log.d("RideEnd", "gps filter: " + gpsFilter.summary() + ", points=" + witch_lat.size());
                 persistRideSession();
                 stopRideTracking();
                 startActivity(intent);
@@ -886,56 +898,72 @@ public class StartActivity extends AppCompatActivity
                 }
 
 
-                @Override
+                                @Override
                 public void onLocationChanged(Location location) {
                     latitude = location.getLatitude();
                     lonngitude = location.getLongitude();
                     binding.gpsStatus.setText("GPS 연결됨");
                     boolean shouldRecord = cur_status == Run;
-                    updateCurrentPosition(latitude, lonngitude, shouldRecord);
 
                     if (!shouldRecord) {
+                        updateCurrentPosition(latitude, lonngitude, false);
                         mLastlocation = null;
-                        elevationBaselineMeters = null;
+                        gainTracker.resetBaseline();
+                        gpsFilter.reset();
                         gradeBaselineLocation = null;
                         lastSpeedLocationReceivedAtMillis = 0L;
                         return;
                     }
 
-                    // ????썹땟?嶺??嚥▲굧??嶸???癲ル슢???ъ쒜??熬곣뫖利?影?뉖뜦?????
+                    // Quality gate: stale/cached positions, impossible jumps and stationary jitter
+                    // are not recorded; nothing is ever rewritten (see GpsFixFilter).
+                    GpsFix fix = LocationFixes.from(location);
+                    GpsFixFilter.Result quality = gpsFilter.evaluate(fix, SystemClock.elapsedRealtimeNanos());
+                    Log.d("GpsFilter", quality.toString()
+                            + " | acc=" + fix.horizontalAccuracyMeters
+                            + " vAcc=" + fix.verticalAccuracyMeters
+                            + " alt=" + fix.altitudeMeters
+                            + " speed=" + fix.speedMps);
+                    updateGpsQuality(location);
+                    if (!quality.isRecorded()) {
+                        handleUnrecordedFix(location, quality);
+                        checkpointRideSessionIfDue();
+                        return;
+                    }
+
+                    updateCurrentPosition(latitude, lonngitude, true);
+                    lastGoodLatitude = latitude;
+                    lastGoodLongitude = lonngitude;
                     witch_lat.add(latitude);
                     witch_lon.add(lonngitude);
-                    godoArray.add((float) location.getAltitude());
+                    // Unknown altitude is NaN, never 0 m (GPX then simply has no <ele> for the point).
+                    boolean usableAltitude = gainTracker.isUsable(fix);
+                    ele.add(usableAltitude ? fix.altitudeMeters : Double.NaN);
+                    godoArray.add(usableAltitude ? (float) fix.altitudeMeters : Float.NaN);
 
-                    // ?꿔꺂????쭍? ?꿔꺂????쭍??????썹땟?嶺??嚥▲굧??嶸????影??낟??
                     if (maxLat < latitude) maxLat = latitude;
                     if (minLat > latitude) minLat = latitude;
                     if (maxLon < lonngitude) maxLon = lonngitude;
                     if (minLon > lonngitude) minLon = lonngitude;
 
-                    // ???쒙쭫???癲ル슢???ъ쒜?????
-                    ele.add(location.getAltitude());
-                    if (location.hasAltitude()) {
-                        updateElevationStats(location);
+                    if (fix.hasAltitude()) {
+                        binding.Nowgodo.setText(String.format(Locale.KOREA, "%.0f m", fix.altitudeMeters));
                     }
-                    updateGpsQuality(location);
+                    if (usableAltitude) {
+                        updateElevationStats(fix);
+                    }
 
-                    //????썹땟?????戮?덫
                     getSpeed = resolveSpeedKmh(location);
-                    binding.nowspeed.setText(String.format("%.1f", getSpeed));  //Get Speed
-                    binding.mSpeed.setText(String.format("%.1f", getSpeed) + "km/h");
-                    binding.speedGauge.setSpeedKmh((float) getSpeed);
+                    showSpeed(getSpeed);
 
-                    // Keep legacy map rendering off the hot GPS path.  The bounded Kakao route
-                    // layer below owns visual updates; address lookup happens at finish time.
-
-                    if (mLastlocation != null) {
+                    // Distance only grows by a verified step from the previous recorded point; the
+                    // first point of a segment (start, resume, restore) and re-syncs add none.
+                    if (quality.verdict == GpsFixFilter.Verdict.RECORDED_MOVE && mLastlocation != null) {
                         if (getSpeed > maX) {
                             maX = getSpeed;
                             binding.maxspeed.setText(String.format(Locale.KOREA, "%.1f km/h", maX));
                             cha_max = String.format("%.0f", maX);
                         }
-                        //?????룸????좎돦???쎈뼔??
                         hap = hap + mLastlocation.distanceTo(location);
                         cha_dis = String.format("%.0f", hap);
 
@@ -949,19 +977,55 @@ public class StartActivity extends AppCompatActivity
                         }
                         binding.calories.setText(String.format(Locale.KOREA, "%d kcal", Math.round(killlo * 50.8)));
 
-                        //????????戮?덫
                         avg = total_time > 0 ? (hap / total_time) * 3.6 : 0;
                         binding.avgspeed.setText(String.format(Locale.KOREA, "%.1f km/h", avg));
                         cha_avg = String.format(Locale.KOREA, "%.0f", avg);
 
                         updateCurrentGrade(location);
-
                     }
-                    // ????썹땟?????썹땟????꿔꺂?????????썹땟?熬?????⑤슢堉???
                     mLastlocation = location;
                     checkpointRideSessionIfDue();
                 }
 
+                /** Fixes that did not become track points: keep the UI honest without recording them. */
+                private void handleUnrecordedFix(Location location, GpsFixFilter.Result quality) {
+                    switch (quality.verdict) {
+                        case IGNORED_STATIONARY:
+                            // Not moving (or inside GPS jitter): show the device's own speed, count nothing.
+                            double reportedKmh = location.hasSpeed() ? location.getSpeed() * 3.6 : 0.0;
+                            showSpeed(reportedKmh <= MAX_REASONABLE_RIDE_SPEED_KMH ? reportedKmh : 0.0);
+                            break;
+                        case REJECTED_STALE:
+                            // A cached position may still centre the map before the first real fix.
+                            if (!gpsFilter.hasRecordedPoint()) {
+                                updateCurrentPosition(location.getLatitude(), location.getLongitude(), false);
+                            }
+                            break;
+                        case WAITING_FIRST_FIX:
+                        case DEFERRED_POOR_ACCURACY:
+                        case REJECTED_POOR_ACCURACY:
+                            binding.gpsStatus.setText("GPS 신호 약함");
+                            break;
+                        default:
+                            break;
+                    }
+                    boolean implausible = quality.verdict == GpsFixFilter.Verdict.REJECTED_JUMP
+                            || quality.verdict == GpsFixFilter.Verdict.REJECTED_INVALID;
+                    if (implausible && (lastGoodLatitude != 0.0 || lastGoodLongitude != 0.0)) {
+                        // An impossible position must not become the position the SOS message reports.
+                        latitude = lastGoodLatitude;
+                        lonngitude = lastGoodLongitude;
+                    } else if (!implausible) {
+                        lastGoodLatitude = latitude;
+                        lastGoodLongitude = lonngitude;
+                    }
+                }
+
+                private void showSpeed(double kmh) {
+                    binding.nowspeed.setText(String.format("%.1f", kmh));
+                    binding.mSpeed.setText(String.format("%.1f", kmh) + "km/h");
+                    binding.speedGauge.setSpeedKmh((float) kmh);
+                }
                 private void checkpointRideSessionIfDue() {
                     long now = SystemClock.elapsedRealtime();
                     if (now - lastSessionCheckpointMillis >= SESSION_CHECKPOINT_INTERVAL_MS) {
@@ -993,11 +1057,22 @@ public class StartActivity extends AppCompatActivity
                     PauseTime = snapshot.pauseTime;
                     rest = snapshot.restSeconds;
                     total_time = snapshot.activeSeconds;
+                    // Diagnostics only: BaseTime is an elapsedRealtime() value, so the timer keeps
+                    // counting across process death, and a reboot makes it meaningless (negative).
+                    long restoredElapsedMs = SystemClock.elapsedRealtime() - snapshot.baseTime;
+                    Log.w("RideRestore", "status=" + snapshot.status
+                            + ", savedActiveSec=" + snapshot.activeSeconds
+                            + ", elapsedSinceBaseSec=" + (restoredElapsedMs / 1000L)
+                            + ", distanceM=" + snapshot.distanceMeters
+                            + ", restSec=" + snapshot.restSeconds
+                            + (restoredElapsedMs < 0 ? " [reboot suspected]" : ""));
                     hap = snapshot.distanceMeters;
                     maX = snapshot.maxSpeedKmh;
                     avg = snapshot.averageSpeedKmh;
                     getgodo = snapshot.elevationGainMeters;
                     totalDescentMeters = snapshot.descentMeters;
+                    gainBaseMeters = snapshot.elevationGainMeters;
+                    descentBaseMeters = snapshot.descentMeters;
                     maxLat = snapshot.maxLat;
                     maxLon = snapshot.maxLon;
                     minLat = snapshot.minLat;
@@ -1021,7 +1096,8 @@ public class StartActivity extends AppCompatActivity
                         last.setLongitude(lonngitude);
                         last.setAltitude(snapshot.lastAltitude);
                         mLastlocation = last;
-                        elevationBaselineMeters = snapshot.lastAltitude;
+                        lastGoodLatitude = latitude;
+                        lastGoodLongitude = lonngitude;
                     }
                     binding.resttime.setText(formatDuration(rest));
                     binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
@@ -1035,27 +1111,28 @@ public class StartActivity extends AppCompatActivity
                     return true;
                 }
 
-                private void updateElevationStats(Location location) {
-                    double altitude = location.getAltitude();
-                    binding.Nowgodo.setText(String.format(Locale.KOREA, "%.0f m", altitude));
-
-                    if (elevationBaselineMeters == null) {
-                        elevationBaselineMeters = altitude;
-                        return;
+                /**
+                 * Climb/descent from smoothed GPS altitude (see ElevationGainTracker): the first usable
+                 * altitude is only a baseline, noise and wild samples do not add up, steep real
+                 * changes are followed.
+                 */
+                private void updateElevationStats(GpsFix fix) {
+                    ElevationGainTracker.Status status = gainTracker.onFix(fix);
+                    if (status == ElevationGainTracker.Status.OUTLIER || status == ElevationGainTracker.Status.RESYNC) {
+                        Log.d("GpsElevation", status + " alt=" + fix.altitudeMeters
+                                + " smoothed=" + gainTracker.getSmoothedAltitude());
                     }
-
-                    double elevationChange = altitude - elevationBaselineMeters;
-                    if (elevationChange >= MIN_ELEVATION_GAIN_METERS) {
-                        getgodo += Math.round(elevationChange);
-                        elevationBaselineMeters = altitude;
+                    int gain = gainBaseMeters + (int) Math.round(gainTracker.getGainMeters());
+                    int descent = descentBaseMeters + (int) Math.round(gainTracker.getDescentMeters());
+                    if (gain != getgodo) {
+                        getgodo = gain;
                         binding.getgodo.setText(String.format(Locale.KOREA, "%d m", getgodo));
-                    } else if (elevationChange <= -MIN_ELEVATION_GAIN_METERS) {
-                        totalDescentMeters += Math.round(Math.abs(elevationChange));
-                        elevationBaselineMeters = altitude;
+                    }
+                    if (descent != totalDescentMeters) {
+                        totalDescentMeters = descent;
                         binding.totalDescent.setText(String.format(Locale.KOREA, "%d m", totalDescentMeters));
                     }
                 }
-
                 private void updateCurrentGrade(Location location) {
                     if (!location.hasAltitude()) {
                         binding.currentGrade.setText("-- %");
@@ -1092,7 +1169,7 @@ public class StartActivity extends AppCompatActivity
                 private double resolveSpeedKmh(Location location) {
                     long receivedAtMillis = SystemClock.elapsedRealtime();
                     double reportedSpeedKmh = location.getSpeed() * 3.6;
-                    if (location.hasSpeed() && reportedSpeedKmh > 0.1) {
+                    if (location.hasSpeed() && reportedSpeedKmh > 0.1 && reportedSpeedKmh <= MAX_REASONABLE_RIDE_SPEED_KMH) {
                         lastSpeedLocationReceivedAtMillis = receivedAtMillis;
                         return reportedSpeedKmh;
                     }

@@ -146,7 +146,10 @@
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="고도 그래프" android:textColor="#152019" android:textSize="16sp" android:textStyle="bold" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="라이딩 고도 변화" android:textColor="#1F7A2E" android:textSize="12sp" />
                 </LinearLayout>
-                <com.github.mikephil.charting.charts.LineChart android:id="@+id/chart" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" />
+                <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp">
+                    <com.github.mikephil.charting.charts.LineChart android:id="@+id/chart" android:layout_width="match_parent" android:layout_height="match_parent" />
+                    <TextView android:id="@+id/chart_empty" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:textColor="#7A837D" android:textSize="12sp" android:visibility="gone" />
+                </FrameLayout>
             </LinearLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/riding_save_card" android:elevation="2dp" android:gravity="center_vertical" android:minHeight="74dp" android:orientation="horizontal" android:paddingStart="16dp" android:paddingEnd="16dp">

@@ -20,6 +20,16 @@ public class RidingRecord {
     // Device-only id used to make an interrupted guest save safe to retry.
     // The field is never sent as part of the legacy server record form.
     private String local_source_id;
+    // Optional: absent for guest records, old records and older servers.
+    private RecordWeather weather;
+
+    public RecordWeather getWeather() {
+        return weather;
+    }
+
+    public void setWeather(RecordWeather weather) {
+        this.weather = weather;
+    }
 
     public String getR_image() {
         return r_image;

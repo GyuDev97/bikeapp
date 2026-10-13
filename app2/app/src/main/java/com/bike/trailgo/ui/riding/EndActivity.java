@@ -33,10 +33,9 @@ import com.bike.trailgo.net.Server;
 import com.bike.trailgo.net.ServerApi;
 import com.bike.trailgo.setting.RideSettings;
 import com.bike.trailgo.setting.AccountSession;
+import com.bike.trailgo.ui.records.ElevationChartBinder;
+import com.bike.trailgo.ui.records.ElevationProfile;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 import com.google.gson.Gson;
 
 import net.daum.mf.map.api.MapPoint;
@@ -153,35 +152,18 @@ public class EndActivity extends AppCompatActivity {
         double minLon = cachedRoute != null ? cachedRoute.minLon : extras == null ? 0 : extras.getDouble("minLon", 0);
 
         //????숆강筌???
-        ArrayList<Entry> entry_chart = new ArrayList<>();
         lineChart = (LineChart) findViewById(R.id.chart);//layout??id
-        LineData chartData = new LineData();
-        for(int g=0; g<godolist.size(); g++){
-            entry_chart.add(new Entry(g, godolist.get(g)));
+        // Same data and same rules as the record detail: the track points that go into the GPX
+        // (lat, lon, altitude). Unknown altitude is NaN and is skipped, never drawn as 0 m.
+        ElevationProfile.Builder profileBuilder = new ElevationProfile.Builder();
+        int profilePoints = Math.min(Math.min(witch_lat.size(), witch_lon.size()), ele.size());
+        for (int g = 0; g < profilePoints; g++) {
+            Double altitude = ele.get(g);
+            profileBuilder.add(witch_lat.get(g), witch_lon.get(g),
+                    altitude == null || altitude.isNaN() ? null : altitude);
         }
-
-            /* 癲ル슢??節됰쑏?(2, 3) add???寃뗏?(2, 5)??筌먲퐢???關履???
-            ??れ삀???(2, 3)??????瑜????釉먮윪????ш끽維???x??좊읈? 2?嶺뚮∥梨뜻쾮??y??좊읈? 3, 5???????癲ル슔?蹂?엥??*/
-        LineDataSet lineDataSet = new LineDataSet(entry_chart, "Elevation");
-        lineDataSet.setColor(Color.parseColor("#1F8A3B"));
-        lineDataSet.setLineWidth(2.25f);
-        lineDataSet.setDrawCircles(false);
-        lineDataSet.setDrawValues(false);
-        lineDataSet.setDrawFilled(true);
-        lineDataSet.setFillColor(Color.parseColor("#E4F4E7"));
-        chartData.addDataSet(lineDataSet);
-
-        lineChart.setData(chartData);
-        lineChart.getDescription().setEnabled(false);
-        lineChart.getLegend().setEnabled(false);
-        lineChart.getXAxis().setDrawLabels(false);
-        lineChart.getXAxis().setDrawGridLines(false);
-        lineChart.getXAxis().setDrawAxisLine(false);
-        lineChart.getAxisLeft().setDrawLabels(false);
-        lineChart.getAxisLeft().setDrawAxisLine(false);
-        lineChart.getAxisLeft().setGridColor(Color.parseColor("#E7ECE8"));
-        lineChart.getAxisRight().setEnabled(false);
-        lineChart.invalidate();
+        ElevationChartBinder.bind(lineChart,
+                (android.widget.TextView) findViewById(R.id.chart_empty), profileBuilder.build());
 
 
         ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
@@ -309,7 +291,6 @@ public class EndActivity extends AppCompatActivity {
         trkObj.setTrkseg(trksegObj);
 
         List<GpxInfo.trkpt> trkptArray = new ArrayList<GpxInfo.trkpt>();
-        ArrayList<Entry> entries = new ArrayList<>();
         int gpxPointCount = Math.min(mapPointCount, ele.size());
         for (int i = 0; i < gpxPointCount; i++) {
             GpxInfo.trkpt trkptObj = new GpxInfo.trkpt(witch_lat.get(i), witch_lon.get(i), ele.get(i));
@@ -351,6 +332,9 @@ public class EndActivity extends AppCompatActivity {
         // ???源껉펾??? gpx???????獄쏅똻??
 
 
+        // Optional start position for the server-side weather snapshot; null when nothing usable.
+        final RideStartPoint startPoint = RideStartPoint.firstValid(witch_lat, witch_lon);
+
         save.setOnClickListener(v -> {
             String rideName = binding.ridingNameinput.getText().toString().trim();
             if (rideName.isEmpty()) {
@@ -385,6 +369,11 @@ public class EndActivity extends AppCompatActivity {
             insert.put("rr_time", String.valueOf(IngTime));
             insert.put("rr_area", adress_value == null ? "" : adress_value);
             insert.put("rr_name", rideName);
+            if (startPoint != null) {
+                // Only used by the server to look up the weather at save time; not stored as a field.
+                insert.put("rr_start_lat", String.valueOf(startPoint.latitude));
+                insert.put("rr_start_lon", String.valueOf(startPoint.longitude));
+            }
             if (rr_comp != null && !rr_comp.trim().isEmpty() && !"null".equalsIgnoreCase(rr_comp.trim())) {
                 insert.put("rr_comp", rr_comp);
             }

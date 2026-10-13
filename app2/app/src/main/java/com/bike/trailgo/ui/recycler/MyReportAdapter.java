@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bike.trailgo.MainViewModel;
 import com.bike.trailgo.R;
 import com.bike.trailgo.dto.RidingRecord;
+import com.bike.trailgo.ui.records.RecordFormatter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,16 +48,16 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
     public void onBindViewHolder(@NonNull final MyRecordHolder holder, final int position) {
         RidingRecord item = itemList.get(position);
 
-        String totalDistance = formatDistance(item.getRr_distance());
-        String ridingDuration = formatDuration(item.getRr_time());
-        String breakDuration = formatDuration(item.getRr_breaktime());
+        String totalDistance = RecordFormatter.formatDistance(item.getRr_distance());
+        String ridingDuration = RecordFormatter.formatDuration(item.getRr_time());
+        String breakDuration = RecordFormatter.formatDuration(item.getRr_breaktime());
 
         holder.recordName.setText(formatTitle(item));
         holder.recordDate.setText(formatDate(item.getRr_date()));
         holder.recordTime.setText(formatClock(item.getRr_date()));
         holder.recordAddress.setText(firstNotEmpty(item.getRr_area(), "라이딩 코스"));
         holder.recordDistance.setText(totalDistance);
-        holder.recordHeight.setText(item.getRr_high() + " m");
+        holder.recordHeight.setText(RecordFormatter.formatElevationGain(item.getRr_high()));
         holder.recordDuration.setText(ridingDuration);
         holder.recordImage.setImageResource(R.drawable.trailgo_route_preview);
         holder.weatherIcon.setImageResource(position % 3 == 0 ? R.drawable.records_ic_sun : R.drawable.records_ic_cloud);
@@ -68,12 +69,14 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
             model.my_rec_date.setValue(item.getRr_date());
             model.my_rec_adress.setValue(item.getRr_area());
             model.my_rec_dis.setValue(totalDistance);
-            model.my_rec_get.setValue(item.getRr_high() + "m");
+            model.my_rec_get.setValue(RecordFormatter.formatElevationGain(item.getRr_high()));
             model.my_rec_time.setValue(ridingDuration);
             model.my_rec_rest.setValue(breakDuration);
             model.my_rec_open.setValue(item.getRr_open());
-            model.my_rec_max.setValue(item.getRr_topspeed() + "km/h");
-            model.my_rec_avg.setValue(item.getRr_avgspeed() + "km/h");
+            model.my_rec_max.setValue(RecordFormatter.formatSpeed(
+                    item.getRr_topspeed(), item.getRr_distance(), item.getRr_time()));
+            model.my_rec_avg.setValue(RecordFormatter.formatSpeed(
+                    item.getRr_avgspeed(), item.getRr_distance(), item.getRr_time()));
             model.my_rec_gpx.setValue(item.getRr_gpx());
             controller.navigate(R.id.action_nav_records_to_myDetailFragment);
         });
@@ -91,19 +94,6 @@ public class MyReportAdapter extends RecyclerView.Adapter<MyReportAdapter.MyReco
         }
 
         return "라이딩 기록";
-    }
-
-    private String formatDistance(int meters) {
-        return String.format(Locale.KOREA, "%.2f km", meters / 1000.0);
-    }
-
-    private String formatDuration(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        if (hours > 0) {
-            return hours + "시간 " + minutes + "분";
-        }
-        return minutes + "분";
     }
 
     private String formatDate(String value) {

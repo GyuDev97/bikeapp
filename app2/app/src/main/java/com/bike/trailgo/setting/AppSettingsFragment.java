@@ -88,10 +88,7 @@ public class AppSettingsFragment extends BaseFragment {
         addMainRow("개인정보", "기본 공개 범위", R.drawable.profile_ic_lock, () -> showPage("privacy"));
         addMainRow("연동 서비스", "GPX, 외부 서비스", R.drawable.profile_ic_data, () -> showPage("services"));
         addMainRow("버전 정보", "앱 버전, 정책, 라이선스", R.drawable.profile_ic_help, () -> showPage("version"));
-        if (AccountSession.isGuest(requireContext())) {
-            TextView login = simpleAction("로그인 또는 회원가입", GREEN);
-            login.setOnClickListener(v -> startActivity(new Intent(requireContext(), LoginActivity.class)));
-        } else {
+        if (!AccountSession.isGuest(requireContext())) {
             TextView logout = simpleAction("로그아웃", Color.rgb(229, 57, 53));
             logout.setOnClickListener(v -> confirmLogout());
         }
@@ -135,18 +132,22 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void buildPrivacy() {
-        addChoiceRow("기본 기록 공개 범위", "저장 화면의 초기 공개 범위에 반영됩니다.", RideSettings.KEY_RECORD_VISIBILITY, "전체 공개", new String[]{"전체 공개", "비공개"});
+        if (AccountSession.isGuest(requireContext())) {
+            addUnavailableRow("기록 저장 위치", "게스트 기록과 GPX는 이 기기에만 비공개로 저장됩니다.");
+        } else {
+            addChoiceRow("기본 기록 공개 범위", "저장 화면의 초기 공개 범위에 반영됩니다.", RideSettings.KEY_RECORD_VISIBILITY, "전체 공개", new String[]{"전체 공개", "비공개"});
+        }
         addValueRow("개인정보·위치정보 안내", "›", this::openPrivacyCenter);
-        addValueRow("계정 삭제", "삭제 범위 및 처리 상태  ›", this::openPrivacyCenter);
+        if (!AccountSession.isGuest(requireContext())) {
+            addValueRow("계정 삭제", "삭제 범위 및 처리 상태  ›", this::openPrivacyCenter);
+        }
         addSecurityNotice();
     }
 
     private void buildServices() {
-        addServiceRow("GPX 가져오기", "GPX 파일을 가져와 코스로 추가합니다.", R.drawable.profile_ic_data, () -> openGpx());
-        addServiceRow("GPX 내보내기", "기록을 GPX 파일로 내보냅니다.", R.drawable.profile_ic_data, () -> createGpx());
-        addServiceRow("Strava 연동", "준비 중", R.drawable.profile_ic_bicycle, this::comingSoon);
-        addServiceRow("Garmin 연동", "준비 중", R.drawable.profile_ic_bicycle, this::comingSoon);
-        addServiceRow("Komoot 연동", "준비 중", R.drawable.profile_ic_bicycle, this::comingSoon);
+        addUnavailableRow("GPX 가져오기", "코스 탭의 GPX 가져오기에서 사용할 수 있습니다.");
+        addUnavailableRow("GPX 내보내기", "기록 상세 화면의 GPX 내보내기에서 사용할 수 있습니다.");
+        addUnavailableRow("외부 서비스 연동", "Strava·Garmin·Komoot 연동은 게스트 MVP에서 제공하지 않습니다.");
     }
 
     private void buildVersion() {

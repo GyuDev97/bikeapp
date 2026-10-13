@@ -1,0 +1,60 @@
+package com.bike.trailgo.net;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+import java.lang.reflect.Method;
+
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+
+/**
+ * Pins the HTTP method and URL of every ride-record call the app makes. The web project's
+ * {@code AndroidApiContractTest} checks the same strings against its controller, so a change on
+ * either side breaks a test.
+ */
+public class ServerApiContractTest {
+
+    private static Method method(String name) {
+        for (Method candidate : ServerApi.class.getDeclaredMethods()) {
+            if (candidate.getName().equals(name)) {
+                return candidate;
+            }
+        }
+        throw new AssertionError("ServerApi." + name + " is missing");
+    }
+
+    private static void assertGet(String methodName, String expectedPath) {
+        GET annotation = method(methodName).getAnnotation(GET.class);
+        assertNotNull(methodName + " must be a GET", annotation);
+        assertEquals(expectedPath, annotation.value());
+    }
+
+    private static void assertFormPost(String methodName, String expectedPath) {
+        Method m = method(methodName);
+        POST annotation = m.getAnnotation(POST.class);
+        assertNotNull(methodName + " must be a POST", annotation);
+        assertEquals(expectedPath, annotation.value());
+        assertNotNull(methodName + " must stay form-encoded", m.getAnnotation(FormUrlEncoded.class));
+    }
+
+    @Test
+    public void recordListIsStillTheSamePath() {
+        assertGet("getRecord", "app/get/{loginId}");
+        assertGet("getMyRecord", "app/get/{rr_rider}");
+    }
+
+    @Test
+    public void recordDetailWithWeatherUsesTheOwnerScopedPath() {
+        assertGet("getMyRecordDetail", "app/riding/records/{riderId}/{rrNum}");
+    }
+
+    @Test
+    public void saveAndVisibilityCallsAreUnchanged() {
+        assertFormPost("InsertRecord", "app/riding/upload");
+        assertFormPost("setOpen", "app/recordset/open");
+    }
+}

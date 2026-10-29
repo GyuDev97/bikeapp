@@ -33,21 +33,10 @@
 
 <!-- 안드로이드 로그인 -->
 	
-	<!-- 로그인 정보 -->
+	<!-- 로그인 정보. 실제 rider 테이블에는 r_id, r_pw, r_image만 있다: 닉네임은 소셜 로그인 응답으로 앱이 받고, 클럽 정보는 아직 없다. -->
 	<select id="getLoginInfo" parameterType="String" resultType="com.bike.webapp.dto.LoginInfo">
-		select
-			r.r_nickname,
-			r.r_image,
-			nvl(cj.cj_club, 0) as cj_club,
-			cb.cb_name
+		select r.r_image, 0 as cj_club
 		from rider r
-		left join (
-			select cj_rider, cj_club,
-				row_number() over (partition by cj_rider order by cj_join desc) as rn
-			from club_join
-			where cj_withdraw is null
-		) cj on cj.cj_rider = r.r_id and cj.rn = 1
-		left join club cb on cb.cb_num = cj.cj_club
 		where r.r_id = #{LoginId}
 	</select>
 	

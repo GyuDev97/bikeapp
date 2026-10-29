@@ -101,6 +101,8 @@
         <include layout="@layout/profile_mock_row_favorite" />
         <include layout="@layout/profile_mock_row_badge" />
         <include layout="@layout/profile_mock_row_gear" />
+        <include layout="@layout/profile_mock_row_settings" />
+        <include layout="@layout/profile_mock_row_logout" />
     </LinearLayout>
 
     <LinearLayout android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone">

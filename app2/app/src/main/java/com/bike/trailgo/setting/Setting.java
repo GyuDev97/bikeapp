@@ -99,6 +99,7 @@ public class Setting extends BaseFragment {
 
         view.findViewById(R.id.row_phone).setOnClickListener(v -> showPhoneDialog(auto, rowPhoneValue));
         view.findViewById(R.id.row_logout).setOnClickListener(v -> logout(auto));
+        view.findViewById(R.id.profile_menu_logout).setOnClickListener(v -> logout(auto));
         view.findViewById(R.id.bottom_nav_home).setOnClickListener(v -> navigateTo(R.id.nav_home));
         view.findViewById(R.id.bottom_nav_records).setOnClickListener(v -> navigateTo(R.id.nav_records));
         view.findViewById(R.id.bottom_nav_course).setOnClickListener(v -> navigateTo(R.id.nav_course_view));
@@ -110,6 +111,7 @@ public class Setting extends BaseFragment {
         view.findViewById(R.id.profile_menu_favorite).setOnClickListener(v -> navigateTo(R.id.profile_favorites));
         view.findViewById(R.id.profile_menu_badge).setOnClickListener(v -> navigateTo(R.id.profile_badges));
         view.findViewById(R.id.profile_menu_gear).setOnClickListener(v -> navigateTo(R.id.profile_gear));
+        view.findViewById(R.id.profile_menu_settings).setOnClickListener(v -> navigateTo(R.id.app_settings));
         TextView profile = view.findViewById(R.id.bottom_nav_profile);
         profile.setTextColor(android.graphics.Color.parseColor("#1F7A2E"));
         profile.setSelected(true);

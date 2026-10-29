@@ -2,11 +2,15 @@ package com.bike.trailgo.setting;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,14 +25,17 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.bike.trailgo.R;
 import com.bike.trailgo.BuildConfig;
+import com.bike.trailgo.ui.BackHandler;
 import com.bike.trailgo.ui.BaseFragment;
+import com.bike.trailgo.ui.courses.CourseViewFragment;
 import com.bike.trailgo.ui.member.LoginActivity;
 import com.bike.trailgo.ui.riding.StartActivity;
 
-public class AppSettingsFragment extends BaseFragment {
+public class AppSettingsFragment extends BaseFragment implements BackHandler {
     private static final String STATE_PAGE = "settings_page";
     private static final int GREEN = Color.rgb(46, 125, 50);
     private static final int TEXT = Color.rgb(20, 27, 23);
@@ -61,6 +68,16 @@ public class AppSettingsFragment extends BaseFragment {
         showPage(state == null ? "main" : state.getString(STATE_PAGE, "main"));
     }
 
+    /** Back inside a settings list returns to the list of settings, not to Home. */
+    @Override
+    public boolean onBackPressed() {
+        if (content == null || "main".equals(currentPage)) {
+            return false;
+        }
+        showPage("main");
+        return true;
+    }
+
     private void showPage(String page) {
         currentPage = page;
         content.removeAllViews();
@@ -81,31 +98,101 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void buildMain() {
-        addMainRow("일반", "1.0 기본 동작", R.drawable.ic_setting_home, () -> showPage("general"));
-        addMainRow("알림", "위험지역 알림", R.drawable.profile_ic_bell, () -> showPage("notifications"));
+        addMainRow("일반", "시작 화면, 백그라운드 주행", R.drawable.ic_setting_home, () -> showPage("general"));
+        addMainRow("알림", "위험지역, 코스 이탈, 배터리, 진동", R.drawable.profile_ic_bell, () -> showPage("notifications"));
         addMainRow("화면 표시", "화면 꺼짐·밝기 유지", R.drawable.profile_ic_theme, () -> showPage("display"));
         addMainRow("주행 설정", "기록 주기, 배터리, 음성", R.drawable.profile_ic_bicycle, () -> showPage("riding"));
         addMainRow("개인정보", "기본 공개 범위", R.drawable.profile_ic_lock, () -> showPage("privacy"));
         addMainRow("연동 서비스", "GPX, 외부 서비스", R.drawable.profile_ic_data, () -> showPage("services"));
         addMainRow("버전 정보", "앱 버전, 정책, 라이선스", R.drawable.profile_ic_help, () -> showPage("version"));
-        if (!AccountSession.isGuest(requireContext())) {
+        if (AccountSession.isGuest(requireContext())) {
+            TextView login = simpleAction("로그인", GREEN);
+            login.setTypeface(null, android.graphics.Typeface.BOLD);
+            login.setOnClickListener(v -> openLogin());
+        } else {
             TextView logout = simpleAction("로그아웃", Color.rgb(229, 57, 53));
             logout.setOnClickListener(v -> confirmLogout());
         }
     }
 
     private void buildGeneral() {
-        addUnavailableRow("언어와 단위", "한국어 · km 단위로 고정되어 있습니다.");
-        addUnavailableRow("시작 화면", "현재는 홈 화면으로 고정되어 있습니다.");
-        addUnavailableRow("자동 저장", "저장 전 기록 요약 화면에서 사용자가 확인합니다.");
-        addUnavailableRow("백그라운드 주행", "주행 중에는 위치 기록 서비스가 항상 유지됩니다.");
+        addChoiceRow("시작 화면", "앱을 켰을 때 가장 먼저 열 화면입니다.", RideSettings.KEY_START_SCREEN,
+                RideSettings.START_HOME,
+                new String[]{RideSettings.START_HOME, RideSettings.START_RECORDS, RideSettings.START_COURSES});
+
+        boolean unrestricted = isIgnoringBatteryOptimizations();
+        addActionRow("백그라운드 주행",
+                unrestricted
+                        ? "배터리 최적화에서 제외되어 있어 화면이 꺼져도 기록이 이어집니다."
+                        : "배터리 최적화가 적용 중이라 화면이 꺼지면 기록이 끊길 수 있습니다. 제외하면 안정적입니다.",
+                unrestricted ? "제외됨" : "설정  ›", this::openBatterySettings);
+
+        addInfoRow("언어와 단위", "한국어 · km, km/h, m 단위를 사용합니다.", "고정");
+        addInfoRow("기록 저장", "주행을 끝내면 요약 화면에서 확인한 뒤 저장합니다.", "항상");
+    }
+
+    private boolean isIgnoringBatteryOptimizations() {
+        PowerManager power = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
+        return power != null && power.isIgnoringBatteryOptimizations(requireContext().getPackageName());
+    }
+
+    /** The list of apps the system does not restrict; no special permission is needed to open it. */
+    private void openBatterySettings() {
+        try {
+            startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+        } catch (RuntimeException e) {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + requireContext().getPackageName())));
+        }
+    }
+
+    /** A setting that is fixed on purpose: it states the behavior instead of pretending to be a switch. */
+    private void addInfoRow(String heading, String detail, String status) {
+        LinearLayout row = baseRow(dp(68));
+        row.setClickable(false);
+        row.setFocusable(false);
+        addLabels(row, heading, detail);
+        TextView value = text(status, 12, MUTED);
+        value.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        row.addView(value, new LinearLayout.LayoutParams(dp(58), ViewGroup.LayoutParams.MATCH_PARENT));
+        content.addView(row);
+        addDivider();
+    }
+
+    private void addActionRow(String heading, String detail, String status, Runnable action) {
+        LinearLayout row = baseRow(dp(76));
+        addLabels(row, heading, detail);
+        TextView value = text(status, 12, GREEN);
+        value.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        row.addView(value, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        row.setOnClickListener(v -> action.run());
+        content.addView(row);
+        addDivider();
     }
 
     private void buildNotifications() {
-        addSwitchRow("위험지역 접근 음성 안내", "위험지역에 접근하면 주행 중 음성으로 안내합니다.", RideSettings.KEY_DANGER_ALERTS, true);
-        addUnavailableRow("코스 이탈 알림", "코스 이탈 판정 기능이 준비되면 제공됩니다.");
-        addUnavailableRow("배터리 부족 알림", "1.0에서는 시스템 배터리 알림을 사용합니다.");
-        addUnavailableRow("알림 시간대·진동", "1.0에서는 기기 기본 설정을 따릅니다.");
+        addSwitchRow("위험지역 접근 알림", "위험지역에 가까워지면 알려 줍니다. 음성은 주행 설정의 음성 안내를 따릅니다.", RideSettings.KEY_DANGER_ALERTS, true);
+        addSwitchRow("코스 이탈 알림", "코스를 따라 달리는 중 경로에서 60 m 넘게 벗어나면 알려 줍니다.", RideSettings.KEY_COURSE_ALERTS, true);
+        addSwitchRow("배터리 부족 알림", "주행 중 배터리가 20%, 10%가 되면 한 번씩 알려 줍니다. 충전 중에는 알리지 않습니다.", RideSettings.KEY_BATTERY_ALERTS, true);
+        addSwitchRow("진동", "위 알림이 울릴 때 진동도 함께 사용합니다.", RideSettings.KEY_VIBRATION, true);
+
+        boolean allowed = NotificationManagerCompat.from(requireContext()).areNotificationsEnabled();
+        addActionRow("기기 알림 권한",
+                allowed
+                        ? "허용되어 있어 화면이 꺼져 있어도 알림이 표시됩니다."
+                        : "꺼져 있어 알림이 표시되지 않습니다. 음성과 진동만 사용됩니다.",
+                allowed ? "허용됨" : "설정  ›", this::openNotificationSettings);
+    }
+
+    private void openNotificationSettings() {
+        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().getPackageName());
+        try {
+            startActivity(intent);
+        } catch (RuntimeException e) {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + requireContext().getPackageName())));
+        }
     }
 
     private void buildDisplay() {
@@ -145,9 +232,9 @@ public class AppSettingsFragment extends BaseFragment {
     }
 
     private void buildServices() {
-        addUnavailableRow("GPX 가져오기", "코스 탭의 GPX 가져오기에서 사용할 수 있습니다.");
-        addUnavailableRow("GPX 내보내기", "기록 상세 화면의 GPX 내보내기에서 사용할 수 있습니다.");
-        addUnavailableRow("외부 서비스 연동", "Strava·Garmin·Komoot 연동은 게스트 MVP에서 제공하지 않습니다.");
+        addActionRow("GPX 가져오기", "GPX 파일을 열어 코스로 미리 보고, 그 경로를 따라 달릴 수 있습니다.", "열기  ›", this::importGpx);
+        addActionRow("GPX 내보내기", "내 기록의 경로를 GPX 파일로 저장해 다른 앱·서비스에서 쓸 수 있습니다.", "기록 선택  ›", this::exportGpxHint);
+        addUnavailableRow("외부 서비스 연동", "Garmin·Komoot 연동은 아직 제공하지 않습니다.");
     }
 
     private void buildVersion() {
@@ -393,6 +480,15 @@ public class AppSettingsFragment extends BaseFragment {
         }
     }
 
+    /** A guest signs in from the login screen; the guest rides on this device stay where they are. */
+    private void openLogin() {
+        Intent intent = new Intent(requireContext(), LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        AccountSession.clear(requireContext());
+        startActivity(intent);
+        requireActivity().finish();
+    }
+
     private void confirmLogout() {
         if (UserSessionManager.hasUnfinishedRide(requireContext())) {
             new AlertDialog.Builder(requireContext())
@@ -417,6 +513,18 @@ public class AppSettingsFragment extends BaseFragment {
 
     private void openPrivacyCenter() {
         startActivity(new Intent(requireContext(), PrivacyCenterActivity.class));
+    }
+
+    private void importGpx() {
+        Bundle args = new Bundle();
+        args.putBoolean(CourseViewFragment.ARG_OPEN_GPX_IMPORT, true);
+        controller.navigate(R.id.nav_course_view, args);
+    }
+
+    /** The file is made from a single ride, so the rider picks the ride first. */
+    private void exportGpxHint() {
+        Toast.makeText(requireContext(), "내보낼 기록을 열고 'GPX 내보내기'를 누르세요.", Toast.LENGTH_LONG).show();
+        navigateTo(R.id.nav_records);
     }
 
     private void openGpx() {
@@ -460,5 +568,8 @@ public class AppSettingsFragment extends BaseFragment {
         super.onResume();
         View appBar = requireActivity().findViewById(R.id.app_bar_layout);
         if (appBar != null) appBar.setVisibility(View.GONE);
+        if (content != null && ("general".equals(currentPage) || "notifications".equals(currentPage))) {
+            showPage(currentPage);
+        }
     }
 }

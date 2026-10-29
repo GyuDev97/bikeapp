@@ -22,17 +22,14 @@ class MemberAccountsTest {
 		assertTrue(result.created);
 		assertTrue(store.riders.contains("kakao_123"));
 		assertEquals("kakao_123", store.findLinkedRider("kakao", "123"));
-		assertEquals("자전거", store.createdNickname.get("kakao_123"));
 	}
 
 	@Test
 	void theSecondSignInFindsTheSameRiderAndCreatesNothing() {
 		accounts.signIn(kakao("123", "자전거"));
-		store.createdNickname.clear();
 		MemberAccounts.Result again = accounts.signIn(kakao("123", "다른 이름"));
 		assertEquals("kakao_123", again.riderId);
 		assertFalse(again.created);
-		assertTrue(store.createdNickname.isEmpty());
 	}
 
 	@Test
@@ -62,22 +59,4 @@ class MemberAccountsTest {
 		assertFalse(kakaoRider.equals(naverRider));
 	}
 
-	@Test
-	void aTakenNicknameGetsASuffixAndAMissingOneAFallback() {
-		store.nicknames.add("자전거");
-		accounts.signIn(kakao("1", "자전거"));
-		String nickname = store.createdNickname.get("kakao_1");
-		assertTrue(nickname.startsWith("자전거#"), nickname);
-
-		accounts.signIn(kakao("2", null));
-		assertEquals("라이더", store.createdNickname.get("kakao_2"));
-		accounts.signIn(kakao("3", "   "));
-		assertTrue(store.createdNickname.get("kakao_3").startsWith("라이더"));
-	}
-
-	@Test
-	void aLongNicknameIsCut() {
-		accounts.signIn(kakao("1", "가나다라마바사아자차카타파하가나다라마바사아자차카타파하"));
-		assertEquals(MemberAccounts.MAX_NICKNAME, store.createdNickname.get("kakao_1").length());
-	}
 }

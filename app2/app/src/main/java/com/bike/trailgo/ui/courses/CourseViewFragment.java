@@ -47,6 +47,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class CourseViewFragment extends BaseFragment {
+    public static final String ARG_OPEN_GPX_IMPORT = "open_gpx_import";
     private static final int REQUEST_IMPORT_GPX = 7401;
     private Call<ArrayList<RidingRecord>> request;
     private List<RidingRecord> items;
@@ -165,6 +166,12 @@ public class CourseViewFragment extends BaseFragment {
         });
 
         importGpxButton.setOnClickListener(v -> selectGpxDocument());
+        // Settings > Linked services > GPX import opens this tab with the file picker already showing.
+        Bundle arguments = getArguments();
+        if (arguments != null && arguments.getBoolean(ARG_OPEN_GPX_IMPORT, false)) {
+            arguments.remove(ARG_OPEN_GPX_IMPORT);
+            selectGpxDocument();
+        }
 
         textView1.setOnClickListener( v -> {
             recyclerView.setAdapter(courseAdapter);

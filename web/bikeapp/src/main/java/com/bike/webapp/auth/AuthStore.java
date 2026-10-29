@@ -15,9 +15,8 @@ public interface AuthStore {
 
 	boolean riderExists(String riderId);
 
-	boolean nicknameTaken(String nickname);
-
-	void createRider(String riderId, String passwordPlaceholder, String nickname);
+	/** Adds the rider row. The rider table only has r_id, r_pw and r_image; social riders have no password. */
+	void createRider(String riderId);
 
 	void saveToken(String tokenHash, String kind, String riderId, String familyId, Instant expiresAt);
 

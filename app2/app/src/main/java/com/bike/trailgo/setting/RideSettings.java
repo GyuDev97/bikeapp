@@ -20,6 +20,14 @@ public final class RideSettings {
     public static final String KEY_KEEP_SCREEN = "keep_screen";
     public static final String KEY_KEEP_BRIGHTNESS = "keep_brightness";
     public static final String KEY_RECORD_VISIBILITY = "record_visibility";
+    public static final String KEY_START_SCREEN = "start_screen";
+    public static final String KEY_COURSE_ALERTS = "notify_course";
+    public static final String KEY_BATTERY_ALERTS = "notify_battery";
+    public static final String KEY_VIBRATION = "alert_vibration";
+
+    public static final String START_HOME = "홈";
+    public static final String START_RECORDS = "기록";
+    public static final String START_COURSES = "코스";
 
     private RideSettings() {
     }
@@ -34,6 +42,12 @@ public final class RideSettings {
         if ("친구 공개".equals(preferences.getString(KEY_RECORD_VISIBILITY, "전체 공개"))) {
             preferences.edit().putString(KEY_RECORD_VISIBILITY, "전체 공개").apply();
         }
+    }
+
+    /** The screen the app opens on when it is started (not when it returns from the background). */
+    public static String startScreen(Context context) {
+        String value = preferences(context).getString(KEY_START_SCREEN, START_HOME);
+        return START_RECORDS.equals(value) || START_COURSES.equals(value) ? value : START_HOME;
     }
 
     public static long locationIntervalMillis(Context context) {
@@ -53,6 +67,18 @@ public final class RideSettings {
 
     public static boolean areDangerAlertsEnabled(Context context) {
         return preferences(context).getBoolean(KEY_DANGER_ALERTS, true);
+    }
+
+    public static boolean areCourseAlertsEnabled(Context context) {
+        return preferences(context).getBoolean(KEY_COURSE_ALERTS, true);
+    }
+
+    public static boolean areBatteryAlertsEnabled(Context context) {
+        return preferences(context).getBoolean(KEY_BATTERY_ALERTS, true);
+    }
+
+    public static boolean isVibrationEnabled(Context context) {
+        return preferences(context).getBoolean(KEY_VIBRATION, true);
     }
 
     public static boolean isRecordPublic(Context context) {

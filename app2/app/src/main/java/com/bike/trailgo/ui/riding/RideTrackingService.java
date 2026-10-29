@@ -5,13 +5,16 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -62,6 +65,23 @@ public class RideTrackingService extends Service implements LocationListener {
         public void onLocationResult(LocationResult result) {
             if (result == null || result.getLastLocation() == null) return;
             dispatchLocation(result.getLastLocation());
+        }
+    };
+    private final BatteryAlertPolicy batteryPolicy = new BatteryAlertPolicy();
+    /** Sticky broadcast: also delivers the current level right away, so a low battery at the start is noticed. */
+    private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (rideAssistant == null || !RideSettings.areBatteryAlertsEnabled(RideTrackingService.this)) return;
+            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            boolean charging = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+                    || status == BatteryManager.BATTERY_STATUS_CHARGING
+                    || status == BatteryManager.BATTERY_STATUS_FULL;
+            int percent = level < 0 || scale <= 0 ? -1 : Math.round(level * 100f / scale);
+            String message = batteryPolicy.evaluate(percent, charging);
+            if (message != null) rideAssistant.announceBattery(message);
         }
     };
     private SharedPreferences rideSettings;
@@ -123,6 +143,8 @@ public class RideTrackingService extends Service implements LocationListener {
         rideSettings = RideSettings.preferences(this);
         rideSettings.registerOnSharedPreferenceChangeListener(settingsListener);
         rideAssistant = new RideAssistant(this);
+        rideAssistant.setAlertListener((kind, message) -> RideAlertFeedback.alert(this, kind, message));
+        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         rideAssistant.setVoiceGuidanceEnabled(RideSettings.isVoiceGuidanceEnabled(this));
         rideAssistant.setDangerAlertsEnabled(RideSettings.areDangerAlertsEnabled(this));
         rideAssistant.start();
@@ -265,6 +287,11 @@ public class RideTrackingService extends Service implements LocationListener {
     @Override
     public void onDestroy() {
         stopTracking();
+        try {
+            unregisterReceiver(batteryReceiver);
+        } catch (IllegalArgumentException ignored) {
+            // not registered
+        }
         if (rideSettings != null) {
             rideSettings.unregisterOnSharedPreferenceChangeListener(settingsListener);
         }

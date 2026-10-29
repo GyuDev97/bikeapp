@@ -11,8 +11,6 @@ class FakeAuthStore implements AuthStore {
 
 	final Map<String, String> links = new HashMap<String, String>();
 	final Set<String> riders = new HashSet<String>();
-	final Set<String> nicknames = new HashSet<String>();
-	final Map<String, String> createdNickname = new HashMap<String, String>();
 	final Map<String, TokenRow> tokens = new HashMap<String, TokenRow>();
 
 	private static String key(String provider, String id) {
@@ -39,15 +37,8 @@ class FakeAuthStore implements AuthStore {
 	}
 
 	@Override
-	public boolean nicknameTaken(String nickname) {
-		return nicknames.contains(nickname);
-	}
-
-	@Override
-	public void createRider(String riderId, String passwordPlaceholder, String nickname) {
+	public void createRider(String riderId) {
 		riders.add(riderId);
-		nicknames.add(nickname);
-		createdNickname.put(riderId, nickname);
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.bike.trailgo.dto.LoginInfo;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.setting.AccountSession;
+import com.bike.trailgo.setting.RideSettings;
 import com.kakao.sdk.user.UserApiClient;
 import com.bike.trailgo.setting.UserSessionManager;
 import com.bike.trailgo.ui.member.LoginActivity;
@@ -129,8 +130,22 @@ public class MainActivity extends AppCompatActivity {
         refreshProfile(model);
         setupDrawerClicks(drawer, navController);
         configureBackNavigation();
+        openChosenStartScreen(savedInstanceState);
 
         logKeyHash();
+    }
+
+    /** Settings > General > start screen: applied once per start, never after a rotation or restore. */
+    private void openChosenStartScreen(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            return;
+        }
+        String chosen = RideSettings.startScreen(this);
+        if (RideSettings.START_RECORDS.equals(chosen)) {
+            navController.navigate(R.id.nav_records);
+        } else if (RideSettings.START_COURSES.equals(chosen)) {
+            navController.navigate(R.id.nav_course_view);
+        }
     }
 
     private void bindDrawerHeader(MainViewModel model) {
@@ -282,9 +297,21 @@ public class MainActivity extends AppCompatActivity {
         handleBackNavigation();
     }
 
+    /** A screen with inner pages (settings) takes Back one page at a time before the app leaves it. */
+    private boolean currentScreenHandlesBack() {
+        androidx.fragment.app.Fragment host = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        if (host == null) return false;
+        androidx.fragment.app.Fragment current = host.getChildFragmentManager().getPrimaryNavigationFragment();
+        return current instanceof com.bike.trailgo.ui.BackHandler
+                && ((com.bike.trailgo.ui.BackHandler) current).onBackPressed();
+    }
+
     private void handleBackNavigation() {
         if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+            return;
+        }
+        if (currentScreenHandlesBack()) {
             return;
         }
         if (navController != null && navController.getCurrentDestination() != null

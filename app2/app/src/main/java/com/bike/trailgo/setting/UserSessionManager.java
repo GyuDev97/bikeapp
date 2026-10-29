@@ -18,8 +18,9 @@ public final class UserSessionManager {
         Context appContext = context.getApplicationContext();
         // Kakao SDK keeps its token separately from SharedPreferences. Clear it on app logout too.
         UserApiClient.getInstance().logout(error -> kotlin.Unit.INSTANCE);
-        // "auto" contains the remembered account/profile fields and SOS contact.
-        appContext.getSharedPreferences("auto", Context.MODE_PRIVATE).edit().clear().apply();
+        // Ends the server session (best effort), forgets the tokens and clears "auto": the remembered
+        // account/profile fields and SOS contact.
+        AccountSession.signOut(appContext);
         // These profile customizations are associated with the signed-in rider, not the device.
         appContext.getSharedPreferences("profile_features", Context.MODE_PRIVATE).edit().clear().apply();
         RideLocalData.clear(appContext);

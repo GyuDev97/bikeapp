@@ -12,9 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcAuthStore implements AuthStore {
 
-	/** rider.r_type of an ordinary rider (what the former in-app sign-up stored). */
-	private static final int ORDINARY_RIDER = 1;
-
 	private final JdbcTemplate jdbc;
 
 	@Autowired
@@ -54,15 +51,8 @@ public class JdbcAuthStore implements AuthStore {
 	}
 
 	@Override
-	public boolean nicknameTaken(String nickname) {
-		Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM rider WHERE r_nickname = ?", Integer.class, nickname);
-		return count != null && count > 0;
-	}
-
-	@Override
-	public void createRider(String riderId, String passwordPlaceholder, String nickname) {
-		jdbc.update("INSERT INTO rider (r_id, r_pw, r_nickname, r_type) VALUES (?, ?, ?, ?)",
-				riderId, passwordPlaceholder, nickname, ORDINARY_RIDER);
+	public void createRider(String riderId) {
+		jdbc.update("INSERT INTO rider (r_id) VALUES (?)", riderId);
 	}
 
 	@Override

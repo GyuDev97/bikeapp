@@ -31,6 +31,17 @@ public final class RideAssistant {
     private boolean dangerAlertsEnabled = true;
     private RideState lastLoggedState = RideState.FLAT;
 
+    /** Told about every safety alert, so the service can add vibration and a notification to the voice. */
+    public interface AlertListener {
+        void onAlert(RideAlertKind kind, String message);
+    }
+
+    private AlertListener alertListener;
+
+    public void setAlertListener(AlertListener listener) {
+        alertListener = listener;
+    }
+
     public interface Observer {
         void onContext(RideContext context);
         void onEvent(RideEvent event, String reason);
@@ -92,6 +103,13 @@ public final class RideAssistant {
     /** A local course-following warning from the foreground tracking flow. */
     public void announceCourseGuidance(String message) {
         speakIfEnabled(message, VoicePriority.HIGH);
+        if (alertListener != null) alertListener.onAlert(RideAlertKind.COURSE, message);
+    }
+
+    /** A battery warning: spoken like the other local alerts and shown through the alert listener. */
+    public void announceBattery(String message) {
+        speakIfEnabled(message, VoicePriority.HIGH);
+        if (alertListener != null) alertListener.onAlert(RideAlertKind.BATTERY, message);
     }
 
     public void onLocation(Location location) {
@@ -109,6 +127,7 @@ public final class RideAssistant {
         RideEvent danger = dangerAlertsEnabled ? dangerMonitor.evaluate(context) : null;
         if (danger != null) {
             speakIfEnabled(danger.localSafetyMessage, VoicePriority.HIGH);
+            if (alertListener != null) alertListener.onAlert(RideAlertKind.DANGER, danger.localSafetyMessage);
             submit(danger);
         }
     }

@@ -206,6 +206,7 @@ public class MyDetailFragment extends BaseFragment {
 
         view.findViewById(R.id.detail_more).setOnClickListener(this::showMoreMenu);
         view.findViewById(R.id.detail_delete_button).setOnClickListener(v -> showDeleteConfirmation());
+        view.findViewById(R.id.detail_gpx_export_button).setOnClickListener(v -> exportGpx());
 
         String recordName = firstNotEmpty(model.my_rec_name.getValue());
         String recordArea = firstNotEmpty(model.my_rec_adress.getValue());
@@ -494,6 +495,66 @@ public class MyDetailFragment extends BaseFragment {
         return bitmap;
     }
 
+    private static final int REQUEST_EXPORT_GPX = 7401;
+
+    /** Lets the rider pick where the GPX file of this ride is saved (Files app, Drive, ...). */
+    private void exportGpx() {
+        if (!hasGpx()) {
+            Toast.makeText(requireContext(), "이 기록에는 내보낼 경로(GPX)가 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(GpxExport.MIME_TYPE);
+        intent.putExtra(Intent.EXTRA_TITLE, GpxExport.fileName(
+                firstNotEmpty(model.my_rec_name.getValue(), model.my_rec_adress.getValue()), model.my_rec_date.getValue()));
+        try {
+            startActivityForResult(intent, REQUEST_EXPORT_GPX);
+        } catch (RuntimeException e) {
+            Toast.makeText(requireContext(), "파일을 저장할 앱을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean hasGpx() {
+        String gpxFile = firstNotEmpty(model.my_rec_gpx.getValue(), "");
+        return gpxFile.length() > 0 && !"null".equalsIgnoreCase(gpxFile);
+    }
+
+    /** Copies the ride's GPX (device store or server) byte for byte to the chosen file. */
+    private void writeGpxTo(android.net.Uri target) {
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final String gpxFile = firstNotEmpty(model.my_rec_gpx.getValue(), "");
+        new Thread(() -> {
+            boolean ok = false;
+            HttpURLConnection connection = null;
+            try {
+                InputStream source;
+                if (LocalRideStore.isLocalGpxReference(gpxFile)) {
+                    source = LocalRideStore.openGpx(appContext, gpxFile);
+                } else {
+                    connection = Server.openConnection("app/getGPX/gpx/" + gpxFile);
+                    source = connection.getInputStream();
+                }
+                try (InputStream in = source;
+                     java.io.OutputStream out = appContext.getContentResolver().openOutputStream(target, "wt")) {
+                    if (out == null) throw new IOException("no output");
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+                    ok = true;
+                }
+            } catch (IOException | RuntimeException error) {
+                Log.w("RecordDetail", "GPX export failed", error);
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final boolean saved = ok;
+            if (!isAdded()) return;
+            requireActivity().runOnUiThread(() -> Toast.makeText(appContext,
+                    saved ? "GPX 파일을 저장했습니다." : "GPX 파일을 저장하지 못했습니다.", Toast.LENGTH_SHORT).show());
+        }, "gpx-export").start();
+    }
+
     private void shareRecord() {
         String title = firstNotEmpty(model.my_rec_name.getValue(), "라이딩 기록");
         String summary = title + "\n"
@@ -619,10 +680,13 @@ public class MyDetailFragment extends BaseFragment {
     private void showMoreMenu(View anchor) {
         PopupMenu menu = new PopupMenu(requireContext(), anchor);
         menu.getMenu().add(0, 1, 0, "공유하기");
-        menu.getMenu().add(0, 2, 1, "삭제하기");
+        menu.getMenu().add(0, 3, 1, "GPX 내보내기");
+        menu.getMenu().add(0, 2, 2, "삭제하기");
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
                 shareRecord();
+            } else if (item.getItemId() == 3) {
+                exportGpx();
             } else {
                 showDeleteConfirmation();
             }
@@ -676,6 +740,10 @@ public class MyDetailFragment extends BaseFragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (mediaSection != null) {
             mediaSection.onActivityResult(requestCode, resultCode, data);
+        }
+        if (requestCode == REQUEST_EXPORT_GPX && resultCode == android.app.Activity.RESULT_OK
+                && data != null && data.getData() != null) {
+            writeGpxTo(data.getData());
         }
     }
 

@@ -493,6 +493,8 @@ public class FollowStart extends AppCompatActivity
         }
         courseFollowProgress.setText("진행률 " + update.progressPercent() + "% · 남은 거리 "
                 + formatCourseDistance(update.remainingMeters()));
+        // Settings > Notifications > course deviation. The status line above is shown either way.
+        if (!RideSettings.areCourseAlertsEnabled(this)) return;
         if (update.event == CourseGuidanceEngine.Event.OFF_ROUTE) {
             RideTrackingService.announceCourseGuidance(this,
                     "코스에서 벗어났습니다. GPX 경로를 확인해 주세요.");

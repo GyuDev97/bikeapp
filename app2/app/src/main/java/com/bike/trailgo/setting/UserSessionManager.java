@@ -3,6 +3,7 @@ package com.bike.trailgo.setting;
 import android.content.Context;
 
 import com.bike.trailgo.ui.riding.RideLocalData;
+import com.kakao.sdk.user.UserApiClient;
 
 /** Keeps local logout cleanup consistent across the two settings entry points. */
 public final class UserSessionManager {
@@ -15,6 +16,8 @@ public final class UserSessionManager {
 
     public static void clearLocalUserData(Context context) {
         Context appContext = context.getApplicationContext();
+        // Kakao SDK keeps its token separately from SharedPreferences. Clear it on app logout too.
+        UserApiClient.getInstance().logout(error -> kotlin.Unit.INSTANCE);
         // "auto" contains the remembered account/profile fields and SOS contact.
         appContext.getSharedPreferences("auto", Context.MODE_PRIVATE).edit().clear().apply();
         // These profile customizations are associated with the signed-in rider, not the device.

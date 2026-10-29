@@ -32,6 +32,8 @@ import androidx.navigation.ui.NavigationUI;
 import com.bike.trailgo.dto.LoginInfo;
 import com.bike.trailgo.net.Server;
 import com.bike.trailgo.setting.AccountSession;
+import com.kakao.sdk.user.UserApiClient;
+import com.bike.trailgo.setting.UserSessionManager;
 import com.bike.trailgo.ui.member.LoginActivity;
 import com.bike.trailgo.ui.riding.StartActivity;
 import com.squareup.picasso.Picasso;
@@ -326,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        auto.edit().clear().apply();
+        UserSessionManager.clearLocalUserData(this);
         Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

@@ -359,7 +359,7 @@ final class RecordMediaSection {
     }
 
     private String serverPhotoUrl(String photoId) {
-        return Server.getUrl("app/riding/photos/" + photoId + "?riderId=" + Uri.encode(riderId));
+        return Server.getUrl("app/riding/photos/" + photoId);
     }
 
     private void addPhotosClicked() {

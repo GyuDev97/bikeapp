@@ -1,7 +1,7 @@
 package com.bike.trailgo.net;
 
 
-import com.bike.trailgo.dto.AnLogin;
+import com.bike.trailgo.dto.AuthSession;
 import com.bike.trailgo.dto.Badge;
 import com.bike.trailgo.dto.CompClub;
 import com.bike.trailgo.dto.CompScore;
@@ -49,8 +49,22 @@ public interface ServerApi {
     @GET("app/users/{id}")
     Call<User> getUser(@Path("id") int id);
 
-    @POST("app/login")
-    Call<AnLogin> Login(@Body AnLogin login);
+    // Social sign-in: the provider's access token goes in, the server's own session comes out.
+    @FormUrlEncoded
+    @POST("app/auth/kakao")
+    Call<AuthSession> signInWithKakao(@Field("access_token") String accessToken);
+
+    @FormUrlEncoded
+    @POST("app/auth/naver")
+    Call<AuthSession> signInWithNaver(@Field("access_token") String accessToken);
+
+    @FormUrlEncoded
+    @POST("app/auth/refresh")
+    Call<AuthSession> refreshSession(@Field("refresh_token") String refreshToken);
+
+    @FormUrlEncoded
+    @POST("app/auth/logout")
+    Call<Void> signOut(@Field("refresh_token") String refreshToken);
 
     @GET("app/getLoginInfo/{LoginId}")
     Call<LoginInfo> getLoginInfo(@Path("LoginId") String LoginId);

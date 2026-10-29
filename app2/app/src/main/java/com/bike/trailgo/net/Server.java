@@ -23,23 +23,36 @@ public class Server{
     public static final int READ_TIMEOUT_MILLIS = 10_000;
     private static Server instance;
     private ServerApi api;
+    private final OkHttpClient httpClient;
 
 
     private Server(){
-        OkHttpClient httpClient = new OkHttpClient.Builder()
+        OkHttpClient plain = new OkHttpClient.Builder()
                 .connectTimeout(CONNECT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .readTimeout(READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .writeTimeout(READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
-        Retrofit retrofit = new Retrofit.Builder()
+        // Renewing a session must not itself go through the session handling.
+        final ServerApi refreshApi = retrofit(plain).create(ServerApi.class);
+        SessionAuth sessionAuth = new SessionAuth(BASE_URL, refreshToken -> refreshApi.refreshSession(refreshToken).execute());
+        httpClient = plain.newBuilder()
+                .addInterceptor(sessionAuth)
+                .authenticator(sessionAuth)
+                .build();
+        api = retrofit(httpClient).create(ServerApi.class);
+    }
+
+    private static Retrofit retrofit(OkHttpClient client) {
+        return new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(httpClient)
+                .client(client)
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        api = retrofit.create(ServerApi.class);
     }
 
+    /** The client that carries the member's session; image loading shares it. */
+    public OkHttpClient getClient() { return httpClient; }
     public static Server getInstance(){
         if ( instance == null ) instance = new Server();
         return instance;

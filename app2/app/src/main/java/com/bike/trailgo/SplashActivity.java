@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.bike.trailgo.setting.AccountSession;
+import com.bike.trailgo.ui.member.LoginActivity;
 
 public class SplashActivity extends Activity {
 
@@ -15,12 +16,6 @@ public class SplashActivity extends Activity {
 
         setContentView(R.layout.splash_activity);
 
-        // The store MVP is local-first.  Older installs may retain a member id from
-        // the retired server-sync flow; without this migration the records screen
-        // attempts a legacy account endpoint instead of reading private device data.
-        // beginGuest preserves LocalRideStore files while clearing only stale session metadata.
-        AccountSession.beginGuest(this);
-
         Handler hd = new Handler();
         hd.postDelayed(new SplashHandler(), 1000); // 1초 후에 hd handler 실행  3000ms = 3초
 
@@ -28,9 +23,12 @@ public class SplashActivity extends Activity {
 
     private class SplashHandler implements Runnable{
         public void run(){
-            // Store MVP starts locally.  Account-backed sync remains deliberately unreachable
-            // until its authentication and ownership model ships.
-            startActivity(new Intent(getApplication(), MainActivity.class));
+            // Signed in (member) or already chosen "without login" (guest): straight to the app.
+            // Otherwise the person has not decided yet, so the login screen comes first.
+            boolean decided = AccountSession.isMember(SplashActivity.this)
+                    || AccountSession.isGuest(SplashActivity.this);
+            Class<?> next = decided ? MainActivity.class : LoginActivity.class;
+            startActivity(new Intent(getApplication(), next));
             finish(); // 로딩페이지 Activity stack에서 제거
         }
     }

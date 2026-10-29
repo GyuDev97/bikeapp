@@ -82,6 +82,10 @@ dependencies {
     implementation 'net.danlew:android.joda:2.9.9.3'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
     implementation 'com.kakao.maps.open:android:2.14.1'
+    // Kakao Login. The native app key is provided to the manifest through a Gradle property.
+    implementation 'com.kakao.sdk:v2-user:2.26.0'
+    // Session tokens of a signed-in member are kept encrypted (Android Keystore).
+    implementation 'androidx.security:security-crypto:1.0.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'commons-io:commons-io:2.6'

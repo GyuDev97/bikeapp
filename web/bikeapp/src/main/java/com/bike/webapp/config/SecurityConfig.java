@@ -36,6 +36,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
                 .antMatchers("/", "/index", "/privacy", "/terms", "/support", "/css/**", "/js/**", "/images/**").permitAll()
                 .antMatchers("/api/public/**").permitAll()
+                // The app is not a browser session: it signs in through /app/auth/** and proves who it is
+                // with a bearer token that AppAuthFilter checks. Calls about a rider's own data check it
+                // (AppIdentity); the rest of /app/** is public as it was.
+                .antMatchers("/app/**").permitAll()
                 .antMatchers("/admin/login", "/admin/css/**", "/admin/js/**", "/admin/images/**").permitAll()
                 .antMatchers("/admin/api/**", "/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
@@ -56,7 +60,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .accessDeniedPage("/403")
             .and()
             .csrf()
-                .ignoringAntMatchers("/api/public/**");
+                .ignoringAntMatchers("/api/public/**", "/app/**");
     }
 
     @Override

@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.bike.trailgo.dto.AuthSession;
+import com.bike.trailgo.net.Server;
 import com.bike.trailgo.ui.member.LoginActivity;
 
 /** Single source of truth for an account session versus the local-only guest mode. */
@@ -26,7 +28,8 @@ public final class AccountSession {
     public static boolean isMember(Context context) {
         SharedPreferences preferences = preferences(context);
         return !preferences.getBoolean(KEY_GUEST_MODE, false)
-                && !isBlank(preferences.getString(KEY_LOGIN_ID, ""));
+                && !isBlank(preferences.getString(KEY_LOGIN_ID, ""))
+                && AuthTokens.hasSession();
     }
 
     public static void beginGuest(Context context) {
@@ -39,11 +42,39 @@ public final class AccountSession {
                 .apply();
     }
 
-    public static void completeMemberLogin(Context context, String loginId) {
+    /** Signs in with the session the server issued for a verified social account. */
+    public static void completeSocialLogin(Context context, AuthSession session) {
+        AuthTokens.save(session);
+        String nickname = session.getNickname();
+        String image = session.getImageUrl();
         preferences(context).edit()
-                .putString(KEY_LOGIN_ID, loginId)
+                .putString(KEY_LOGIN_ID, session.getRiderId())
+                .putString("r_nickname", nickname == null || nickname.trim().isEmpty() ? "라이더" : nickname)
+                .putString("r_image", image == null ? "" : image)
+                .putString("r_clubname", "")
                 .remove(KEY_GUEST_MODE)
                 .apply();
+    }
+
+    /**
+     * Ends the sign-in: the server is told (best effort), the tokens and the account data of this
+     * device are removed. Guest rides stored on the device are not touched.
+     */
+    public static void signOut(Context context) {
+        String refresh = AuthTokens.refreshToken();
+        if (refresh != null) {
+            Server.getInstance().getApi().signOut(refresh).enqueue(new retrofit2.Callback<Void>() {
+                @Override
+                public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                }
+            });
+        }
+        AuthTokens.clear();
+        preferences(context).edit().clear().apply();
     }
 
     public static void clear(Context context) {

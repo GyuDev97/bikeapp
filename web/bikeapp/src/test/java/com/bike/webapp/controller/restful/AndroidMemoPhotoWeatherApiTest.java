@@ -72,7 +72,18 @@ class AndroidMemoPhotoWeatherApiTest {
 		ReflectionTestUtils.setField(controller, "weatherService", weatherService);
 		ReflectionTestUtils.setField(controller, "weatherCaptureService", captureService);
 		ReflectionTestUtils.setField(controller, "storageRoot", "build/test-storage");
-		mvc = MockMvcBuilders.standaloneSetup(controller).build();
+		mvc = MockMvcBuilders.standaloneSetup(controller)
+				.defaultRequest(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/")
+						.requestAttr(com.bike.webapp.auth.AppIdentity.ATTRIBUTE, "rider1"))
+				.build();
+	}
+
+	/** The signed-in rider of the call (null: a guest without a session). */
+	private static org.springframework.test.web.servlet.request.RequestPostProcessor asRider(String rider) {
+		return request -> {
+			request.setAttribute(com.bike.webapp.auth.AppIdentity.ATTRIBUTE, rider);
+			return request;
+		};
 	}
 
 	private static String hex(char c) {
@@ -156,7 +167,7 @@ class AndroidMemoPhotoWeatherApiTest {
 	@Test
 	void memoOfSomeoneElsesRecordIsNotFoundAndOverlongMemoIsRejected() throws Exception {
 		when(androidService.updateMemo("intruder", 7, "x")).thenReturn(0);
-		mvc.perform(post("/app/riding/records/intruder/7/memo").param("memo", "x")).andExpect(status().isNotFound());
+		mvc.perform(post("/app/riding/records/intruder/7/memo").param("memo", "x")).andExpect(status().isForbidden());
 		mvc.perform(post("/app/riding/records/rider1/7/memo").param("memo", repeat(501)))
 				.andExpect(status().isBadRequest());
 		verify(androidService, never()).updateMemo(eq("rider1"), anyInt(), anyString());
@@ -213,7 +224,7 @@ class AndroidMemoPhotoWeatherApiTest {
 		when(photoService.delete("rider1", 7, id)).thenReturn(true);
 		mvc.perform(delete("/app/riding/records/rider1/7/photos/" + id)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.deleted").value("1"));
-		mvc.perform(delete("/app/riding/records/intruder/7/photos/" + id)).andExpect(status().isNotFound());
+		mvc.perform(delete("/app/riding/records/intruder/7/photos/" + id)).andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -223,13 +234,13 @@ class AndroidMemoPhotoWeatherApiTest {
 		String id = hex('e');
 		when(photoService.open(id, "rider1")).thenReturn(new RecordPhotoService.PhotoFile(file, "image/jpeg", false));
 
-		mvc.perform(get("/app/riding/photos/" + id).param("riderId", "rider1"))
+		mvc.perform(get("/app/riding/photos/" + id))
 				.andExpect(status().isOk())
 				.andExpect(header().string("Content-Type", "image/jpeg"))
 				.andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("private")))
 				.andExpect(content().bytes(Files.readAllBytes(file)));
-		mvc.perform(get("/app/riding/photos/" + id)).andExpect(status().isNotFound());
-		mvc.perform(get("/app/riding/photos/" + id).param("riderId", "intruder")).andExpect(status().isNotFound());
+		mvc.perform(get("/app/riding/photos/" + id).with(asRider(null))).andExpect(status().isNotFound());
+		mvc.perform(get("/app/riding/photos/" + id).with(asRider("intruder"))).andExpect(status().isNotFound());
 	}
 
 	// ---- weather lookup -----------------------------------------------------------------------
@@ -315,14 +326,14 @@ class AndroidMemoPhotoWeatherApiTest {
 		when(weatherService.lookup(any(), any(), any())).thenReturn(Optional.empty());
 		ReflectionTestUtils.setField(controller, "weatherRiderLimiter",
 				new com.bike.webapp.weather.RequestRateLimiter(1, 600_000L));
-		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "a")).andExpect(status().isOk());
-		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "a")).andExpect(status().isTooManyRequests());
-		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "b")).andExpect(status().isOk());
+		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "a").with(asRider("a"))).andExpect(status().isOk());
+		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "a").with(asRider("a"))).andExpect(status().isTooManyRequests());
+		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "b").with(asRider("b"))).andExpect(status().isOk());
 
 		ReflectionTestUtils.setField(controller, "weatherIpLimiter",
 				new com.bike.webapp.weather.RequestRateLimiter(1, 600_000L));
-		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "c")).andExpect(status().isOk());
-		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "d")).andExpect(status().isTooManyRequests());
+		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "c").with(asRider("c"))).andExpect(status().isOk());
+		mvc.perform(get("/app/weather").param("lat", "35.8").param("lon", "128.5").param("riderId", "d").with(asRider("d"))).andExpect(status().isTooManyRequests());
 	}
 
 	@Test

@@ -21,11 +21,6 @@ public class AndroidService {
 	@Autowired
 	private AndroidMapper androidMapper;
 	
-	//로그인
-	public int LoginProcess(AnLogin login) throws Exception{
-		return androidMapper.LoginProcess(login);
-	}
-	
 	public LoginInfo getLoginInfo(String LoginId) throws Exception{
 		return androidMapper.getLoginInfo(LoginId);
 	}

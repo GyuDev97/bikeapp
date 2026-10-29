@@ -13,9 +13,6 @@ import com.bike.webapp.dto.*;
 @Repository("com.bike.webapp.mapper.AndroidMapper")
 public interface AndroidMapper {
 
-	//안드로이드 로그인
-	public int LoginProcess(AnLogin login) throws Exception;
-	
 	//안드로이드 유저 정보 가져오기
 	public LoginInfo getLoginInfo(String LoginId) throws Exception;
 	

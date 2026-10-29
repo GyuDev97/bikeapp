@@ -69,7 +69,10 @@ class AndroidApiContractTest {
 		ReflectionTestUtils.setField(controller, "weatherCaptureService", mock(WeatherCaptureService.class));
 		ReflectionTestUtils.setField(controller, "recordPhotoService", mock(com.bike.webapp.service.RecordPhotoService.class));
 		ReflectionTestUtils.setField(controller, "storageRoot", "build/test-storage");
-		mvc = MockMvcBuilders.standaloneSetup(controller).build();
+		mvc = MockMvcBuilders.standaloneSetup(controller)
+				.defaultRequest(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/")
+						.requestAttr(com.bike.webapp.auth.AppIdentity.ATTRIBUTE, "rider1"))
+				.build();
 	}
 
 	private static String read(String relative) throws IOException {

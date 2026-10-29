@@ -45,6 +45,19 @@
         <activity
             android:name=".ui.member.LoginActivity"
             android:theme="@style/TrailGoAuthTheme" />
+        <!-- Receives the browser callback: kakao{native-app-key}://oauth -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao${KAKAO_APP_KEY}" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".setting.PrivacyCenterActivity"
             android:theme="@style/AppTheme" />
@@ -52,9 +65,6 @@
             android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity android:name=".ui.member.AddressActivity" />
-        <activity
-            android:name=".ui.member.registerActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".ui.riding.StartActivity"
             android:theme="@style/AppTheme.NoActionBar" />

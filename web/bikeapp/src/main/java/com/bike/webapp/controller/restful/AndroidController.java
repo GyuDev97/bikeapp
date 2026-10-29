@@ -48,11 +48,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.bike.webapp.dto.AnLogin;
 import com.bike.webapp.dto.App_RidingRecord;
 import com.bike.webapp.dto.Course;
 import com.bike.webapp.dto.LoginInfo;
 import com.bike.webapp.dto.RidingRecord;
+import com.bike.webapp.auth.AppIdentity;
 import com.bike.webapp.dto.*;
 import com.bike.webapp.service.AndroidService;
 import com.bike.webapp.service.MemberService;
@@ -112,22 +112,8 @@ public class AndroidController {
 
 	public static final int MAX_MEMO_LENGTH = 500;
 	
-	//로그인
-	@RequestMapping(value = "login")
-	public @ResponseBody AnLogin login(@RequestBody AnLogin login) throws Exception {
-		
-		int list = androidService.LoginProcess(login);
-		
-		log.info("로그인결과카운트",list);
-		if(list == 0) {
-			login.setStatus("false");
-		}
-		else {
-			login.setStatus("true");
-		}
-		return login;
-	}
-	
+	//로그인은 소셜 로그인(/app/auth/**)만 있다. 본인 기록·사진 호출은 로그인 토큰으로 확인한 회원(AppIdentity)만 허용한다.
+
 	//사용자 정보 가져오기
 	@RequestMapping(value = "getLoginInfo/{LoginId}")
 	public @ResponseBody LoginInfo getLoginInfo(@PathVariable String LoginId) throws Exception{
@@ -137,7 +123,8 @@ public class AndroidController {
 	// 주행기록 등록(안드로이드)
 	@RequestMapping(value = "riding/upload", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<Map<String, String>> insertriding(@ModelAttribute RidingRecord record) {
+	public ResponseEntity<Map<String, String>> insertriding(HttpServletRequest request, @ModelAttribute RidingRecord record) {
+		AppIdentity.requireOwner(request, record.getRr_rider());
 		Map<String, String> result = new HashMap<String, String>();
 		try {
 			record.setRr_memo(normalizeMemo(record.getRr_memo()));
@@ -161,20 +148,25 @@ public class AndroidController {
 
 	//내 라이딩 기록 목록 (앱이 실제로 호출하는 경로: GET /app/get/{loginId})
 	@RequestMapping(value = "get/{loginId}", method = RequestMethod.GET)
-	public @ResponseBody List<App_RidingRecord> getRidingRecord(@PathVariable("loginId") String loginId) throws Exception {
+	public @ResponseBody List<App_RidingRecord> getRidingRecord(HttpServletRequest request,
+			@PathVariable("loginId") String loginId) throws Exception {
+		AppIdentity.requireOwner(request, loginId);
 		return androidService.readRecord(loginId);
 	}
 
 	//내 라이딩 기록 목록 (명시적 경로, 위와 동일한 응답)
 	@RequestMapping(value = "riding/records/{riderId}", method = RequestMethod.GET)
-	public @ResponseBody List<App_RidingRecord> getMyRidingRecords(@PathVariable("riderId") String riderId) throws Exception {
+	public @ResponseBody List<App_RidingRecord> getMyRidingRecords(HttpServletRequest request,
+			@PathVariable("riderId") String riderId) throws Exception {
+		AppIdentity.requireOwner(request, riderId);
 		return androidService.readRecord(riderId);
 	}
 
 	//본인 기록 상세. 작성자(riderId)와 기록 번호가 모두 일치하지 않으면 404 (다른 사용자의 기록은 존재 여부도 알리지 않는다)
 	@RequestMapping(value = "riding/records/{riderId}/{rrNum}", method = RequestMethod.GET)
-	public ResponseEntity<RidingRecord> getMyRidingRecordDetail(@PathVariable("riderId") String riderId,
-			@PathVariable("rrNum") int rrNum) {
+	public ResponseEntity<RidingRecord> getMyRidingRecordDetail(HttpServletRequest request,
+			@PathVariable("riderId") String riderId, @PathVariable("rrNum") int rrNum) {
+		AppIdentity.requireOwner(request, riderId);
 		RidingRecord record = androidService.getOwnRecord(riderId, rrNum);
 		if (record == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -185,8 +177,10 @@ public class AndroidController {
 
 	//메모 수정. 작성자와 번호가 모두 일치할 때만 반영된다 (비우면 메모가 삭제된다).
 	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/memo", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, String>> updateMemo(@PathVariable("riderId") String riderId,
-			@PathVariable("rrNum") int rrNum, @RequestParam(value = "memo", required = false) String memo) {
+	public ResponseEntity<Map<String, String>> updateMemo(HttpServletRequest request,
+			@PathVariable("riderId") String riderId, @PathVariable("rrNum") int rrNum,
+			@RequestParam(value = "memo", required = false) String memo) {
+		AppIdentity.requireOwner(request, riderId);
 		if (memo != null && memo.length() > MAX_MEMO_LENGTH) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
@@ -201,8 +195,9 @@ public class AndroidController {
 
 	//사진 추가 (한 번에 한 장). 최대 10장, jpg/png/webp, 서버가 내용으로 형식을 판별한다.
 	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/photos", method = RequestMethod.POST)
-	public ResponseEntity<RecordPhoto> addPhoto(@PathVariable("riderId") String riderId,
+	public ResponseEntity<RecordPhoto> addPhoto(HttpServletRequest request, @PathVariable("riderId") String riderId,
 			@PathVariable("rrNum") int rrNum, @RequestParam("photo") MultipartFile photo) {
+		AppIdentity.requireOwner(request, riderId);
 		RecordPhotoService.AddResult result = recordPhotoService.add(riderId, rrNum, photo);
 		switch (result.status) {
 		case OK:
@@ -222,8 +217,10 @@ public class AndroidController {
 
 	//사진 삭제 (본인 기록의 사진만)
 	@RequestMapping(value = "riding/records/{riderId}/{rrNum}/photos/{photoId}", method = RequestMethod.DELETE)
-	public ResponseEntity<Map<String, String>> deletePhoto(@PathVariable("riderId") String riderId,
-			@PathVariable("rrNum") int rrNum, @PathVariable("photoId") String photoId) {
+	public ResponseEntity<Map<String, String>> deletePhoto(HttpServletRequest request,
+			@PathVariable("riderId") String riderId, @PathVariable("rrNum") int rrNum,
+			@PathVariable("photoId") String photoId) {
+		AppIdentity.requireOwner(request, riderId);
 		if (!recordPhotoService.delete(riderId, rrNum, photoId)) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
@@ -232,11 +229,11 @@ public class AndroidController {
 		return ResponseEntity.ok(result);
 	}
 
-	//사진 보기. 공개 기록의 사진은 누구나, 비공개 기록의 사진은 작성자(riderId)만. 그 외에는 존재 여부도 알리지 않는다.
+	//사진 보기. 공개 기록의 사진은 누구나, 비공개 기록의 사진은 로그인한 작성자만. 그 외에는 존재 여부도 알리지 않는다.
 	@RequestMapping(value = "riding/photos/{photoId}", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> getPhoto(@PathVariable("photoId") String photoId,
-			@RequestParam(value = "riderId", required = false) String riderId) throws IOException {
-		RecordPhotoService.PhotoFile photo = recordPhotoService.open(photoId, riderId);
+	public ResponseEntity<byte[]> getPhoto(HttpServletRequest request,
+			@PathVariable("photoId") String photoId) throws IOException {
+		RecordPhotoService.PhotoFile photo = recordPhotoService.open(photoId, AppIdentity.riderOf(request));
 		if (photo == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
@@ -257,8 +254,8 @@ public class AndroidController {
 			@RequestParam(value = "riderId", required = false) String riderId) throws Exception {
 		long now = System.currentTimeMillis();
 		boolean member = riderId != null && !riderId.trim().isEmpty();
-		if (member && androidService.sameCheck(riderId.trim()) < 1) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		if (member) {
+			AppIdentity.requireOwner(request, riderId);
 		}
 		boolean allowed = weatherIpLimiter.tryAcquire("ip:" + clientAddress(request), now)
 				&& (member ? weatherRiderLimiter.tryAcquire("rider:" + riderId.trim(), now)
@@ -739,39 +736,6 @@ public class AndroidController {
 		cr_num = request.getParameter("cr_num");
 
 		androidService.deleteCourseReview(cr_num);
-	}
-
-	@RequestMapping(value = "sameCheck/{id}")
-	@ResponseBody
-	public String sameCheck(@PathVariable(value = "id") String id) throws Exception {
-		int response;
-
-		response = androidService.sameCheck(id);
-
-		if (response == 0)
-			return "ok";
-		else
-			return "no";
-	}
-	
-	@RequestMapping(value = "insertreg")
-	@ResponseBody
-	public void insertReg(HttpServletRequest request) throws Exception {
-		Member member  = new Member();
-		
-		member.setR_id(request.getParameter("id"));
-		member.setR_pw(request.getParameter("pw"));
-		member.setR_name(request.getParameter("name"));
-		member.setR_nickname(request.getParameter("nickname"));	
-		member.setR_birth(request.getParameter("birth"));
-		member.setR_phone(request.getParameter("phone"));
-		member.setR_gender(request.getParameter("gender"));
-		member.setR_addr(request.getParameter("addr1"));
-		member.setR_addr2(request.getParameter("addr2"));
-		member.setR_type(request.getParameter("type"));
-		member.setR_image(request.getParameter("image"));
-
-		memberService.memberInsert(member);
 	}
 
 	// 사용자 등록 위험 지역 조회

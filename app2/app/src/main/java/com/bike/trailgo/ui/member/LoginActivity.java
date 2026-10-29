@@ -1,153 +1,214 @@
 package com.bike.trailgo.ui.member;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.widget.Button;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bike.trailgo.MainActivity;
 import com.bike.trailgo.R;
 import com.bike.trailgo.data.LocalRideStore;
-import com.bike.trailgo.dto.AnLogin;
-import com.bike.trailgo.dto.LoginInfo;
+import com.bike.trailgo.dto.AuthSession;
 import com.bike.trailgo.net.Server;
-import com.bike.trailgo.net.ServerApi;
 import com.bike.trailgo.setting.AccountSession;
+import com.bike.trailgo.setting.PrivacyCenterActivity;
+import com.kakao.sdk.auth.model.OAuthToken;
+import com.kakao.sdk.common.model.ClientError;
+import com.kakao.sdk.common.model.ClientErrorCause;
+import com.kakao.sdk.user.UserApiClient;
+import com.kakao.sdk.user.model.User;
 
-
+import kotlin.Unit;
+import kotlin.jvm.functions.Function2;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * First screen: continue with Kakao or Naver, or start without an account (local-only guest mode).
+ * Naver is a placeholder; Kakao delegates authentication to the official Kakao SDK.
+ */
 public class LoginActivity extends AppCompatActivity {
 
-    protected ServerApi serverApi;//서버 호출
-    private Call<AnLogin> request; //서버요청 콜
-    private Call<LoginInfo> profileRequest;
-    String Save_Path, rider;
+    private static final String TERMS_TEXT = "서비스 이용약관";
+    private static final String PRIVACY_TEXT = "개인정보 처리방침";
 
+    private boolean signingIn;
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        //현재 로그인상태인지 체크
-        SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        String LoginId = auto.getString("LoginId",null);
-        
-        //로그인이 되어있지 않다면 로그인 진행
-        if(LoginId == null || LoginId.trim().isEmpty()){
-            Button loginbt = (Button)findViewById(R.id.login_bt);
-            TextView userid = (TextView)findViewById(R.id.userid);
-            TextView userpw = (TextView)findViewById(R.id.userpw);
-            Button registerbt = (Button)findViewById(R.id.join);
-            Button guestStart = findViewById(R.id.guest_start);
-
-
-            loginbt.setOnClickListener(v -> {
-
-                //저장경로
-                Save_Path = getFilesDir().getPath();
-                //레트로핏
-                serverApi = Server.getInstance().getApi();
-
-                AnLogin login = new AnLogin();
-                login.setR_id(userid.getText().toString());
-                login.setR_pw(userpw.getText().toString());
-
-
-                request = serverApi.Login(login);
-                request.enqueue(new Callback<AnLogin>() {
-                    @Override
-                    public void onResponse(Call<AnLogin> call, Response<AnLogin> response) {
-                        AnLogin body = response.body();
-                        if (response.isSuccessful() && body != null && "true".equals(body.getStatus())) {
-                            completeLogin(userid.getText().toString().trim());
-                        } else {
-                            Toast.makeText(getApplicationContext(), "아이디와 비밀번호를 확인해주세요", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<AnLogin> call, Throwable t) {
-                        Toast toast = Toast.makeText(getApplicationContext(), "서버와 통신에 실패하였습니다.", Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-                });
-            });
-
-            registerbt.setOnClickListener( v -> {
-                Intent intent = new Intent ( getApplicationContext(), registerActivity.class);
-                startActivity(intent);
-            });
-            guestStart.setOnClickListener(v -> {
-                AccountSession.beginGuest(this);
-                openMainScreen();
-            });
-        }else{
-            Intent intent=new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(intent);
+        if (AccountSession.isMember(this)) {
+            startActivity(new Intent(this, MainActivity.class));
             finish();
+            return;
+        }
+        setContentView(R.layout.activity_login);
+        drawBehindSystemBars();
+        findViewById(R.id.login_kakao).setOnClickListener(v -> startKakaoLogin());
+        findViewById(R.id.login_naver).setOnClickListener(v -> notReady("네이버"));
+        findViewById(R.id.guest_start).setOnClickListener(v -> {
+            AccountSession.beginGuest(this);
+            openMainScreen();
+        });
+
+        bindTerms((TextView) findViewById(R.id.login_terms));
+    }
+
+    /** Lets the picture run under the status and navigation bars; the content keeps clear of them. */
+    private void drawBehindSystemBars() {
+        View root = findViewById(R.id.login_root);
+        int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        root.setSystemUiVisibility(flags);
+
+        final View content = findViewById(R.id.login_content);
+        final View panel = findViewById(R.id.login_panel);
+        final int panelBottom = panel.getPaddingBottom();
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            content.setPadding(content.getPaddingLeft(), insets.getSystemWindowInsetTop(),
+                    content.getPaddingRight(), content.getPaddingBottom());
+            panel.setPadding(panel.getPaddingLeft(), panel.getPaddingTop(), panel.getPaddingRight(),
+                    panelBottom + insets.getSystemWindowInsetBottom());
+            return insets;
+        });
+        root.requestApplyInsets();
+    }
+
+    private void notReady(String provider) {
+        Toast.makeText(this, provider + " 로그인은 아직 준비 중입니다.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void startKakaoLogin() {
+        Function2<OAuthToken, Throwable, Unit> callback = (token, error) -> {
+            if (error != null) {
+                Toast.makeText(this, "카카오 로그인에 실패했습니다. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show();
+            } else if (token != null) {
+                signInToServer(token.getAccessToken());
+            }
+            return Unit.INSTANCE;
+        };
+
+        if (UserApiClient.getInstance().isKakaoTalkLoginAvailable(this)) {
+            UserApiClient.getInstance().loginWithKakaoTalk(this, (token, error) -> {
+                if (error != null) {
+                    // Do not open a browser after the user intentionally closes KakaoTalk.
+                    if (error instanceof ClientError
+                            && ((ClientError) error).getReason() == ClientErrorCause.Cancelled) {
+                        return Unit.INSTANCE;
+                    }
+                    UserApiClient.getInstance().loginWithKakaoAccount(this, callback);
+                } else if (token != null) {
+                    signInToServer(token.getAccessToken());
+                }
+                return Unit.INSTANCE;
+            });
+        } else {
+            UserApiClient.getInstance().loginWithKakaoAccount(this, callback);
         }
     }
 
-    private void completeLogin(String loginId) {
-        SharedPreferences auto = getSharedPreferences("auto", Activity.MODE_PRIVATE);
-        AccountSession.completeMemberLogin(this, loginId);
-
-        profileRequest = serverApi.getLoginInfo(loginId);
-        profileRequest.enqueue(new Callback<LoginInfo>() {
+    /**
+     * The Kakao token is not trusted by this app: the server checks it with Kakao and answers with its
+     * own session, which is what every later call is authorised by.
+     */
+    private void signInToServer(String kakaoAccessToken) {
+        if (signingIn) {
+            return;
+        }
+        signingIn = true;
+        Server.getInstance().getApi().signInWithKakao(kakaoAccessToken).enqueue(new Callback<AuthSession>() {
             @Override
-            public void onResponse(Call<LoginInfo> call, Response<LoginInfo> response) {
-                LoginInfo info = response.body();
-                if (response.isSuccessful() && info != null) {
-                    SharedPreferences.Editor editor = auto.edit();
-                    if (info.getR_nickname() != null && !info.getR_nickname().trim().isEmpty()) {
-                        editor.putString("r_nickname", info.getR_nickname());
+            public void onResponse(Call<AuthSession> call, Response<AuthSession> response) {
+                signingIn = false;
+                AuthSession session = response.body();
+                if (response.isSuccessful() && session != null && session.isComplete()) {
+                    AccountSession.completeSocialLogin(LoginActivity.this, session);
+                    if (AccountSession.isMember(LoginActivity.this)) {
+                        openMainScreen();
+                    } else {
+                        toast("이 기기에서는 로그인 정보를 안전하게 저장할 수 없습니다.");
                     }
-                    if (info.getR_image() != null && !info.getR_image().trim().isEmpty()) {
-                        editor.putString("r_image", info.getR_image());
-                    }
-                    editor.putString("r_clubname", info.getCb_name() == null ? "" : info.getCb_name());
-                    editor.apply();
+                } else if (response.code() == 503) {
+                    toast("로그인 서버를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+                } else {
+                    toast("카카오 로그인에 실패했습니다. 다시 시도해 주세요.");
                 }
-                openMainScreen();
             }
 
             @Override
-            public void onFailure(Call<LoginInfo> call, Throwable error) {
-                openMainScreen();
+            public void onFailure(Call<AuthSession> call, Throwable t) {
+                signingIn = false;
+                toast("서버와 통신하지 못했습니다. 네트워크를 확인해 주세요.");
             }
         });
+    }
+
+    private void toast(String message) {
+        if (!isFinishing() && !isDestroyed()) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void bindTerms(TextView view) {
+        String full = "계속하면 " + TERMS_TEXT + " 및 " + PRIVACY_TEXT + "에 동의하게 됩니다.";
+        SpannableString text = new SpannableString(full);
+        link(text, full, TERMS_TEXT, () -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Server.getUrl("terms"))));
+            } catch (RuntimeException e) {
+                Toast.makeText(this, "이용약관을 열 수 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        link(text, full, PRIVACY_TEXT, () -> startActivity(new Intent(this, PrivacyCenterActivity.class)));
+        view.setText(text);
+        view.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    private static void link(SpannableString text, String full, String target, final Runnable action) {
+        int start = full.indexOf(target);
+        if (start < 0) {
+            return;
+        }
+        text.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(@NonNull View widget) {
+                action.run();
+            }
+
+            @Override
+            public void updateDrawState(@NonNull TextPaint paint) {
+                paint.setColor(0xFF168A45);
+                paint.setUnderlineText(true);
+            }
+        }, start, start + target.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     private void openMainScreen() {
         if (isFinishing() || isDestroyed()) {
             return;
         }
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, MainActivity.class));
         if (AccountSession.isMember(this) && LocalRideStore.hasRecords(this)) {
             Toast.makeText(this, "이 기기에 게스트 주행 기록이 있습니다. 서버 동기화는 아직 자동으로 진행되지 않습니다.", Toast.LENGTH_LONG).show();
         }
         finish();
     }
-
-    @Override
-    protected void onDestroy() {
-        if (request != null) {
-            request.cancel();
-        }
-        if (profileRequest != null) {
-            profileRequest.cancel();
-        }
-        super.onDestroy();
-    }
-
-
 }

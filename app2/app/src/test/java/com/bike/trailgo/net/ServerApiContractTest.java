@@ -1,6 +1,7 @@
 package com.bike.trailgo.net;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -45,6 +46,21 @@ public class ServerApiContractTest {
     public void recordListIsStillTheSamePath() {
         assertGet("getRecord", "app/get/{loginId}");
         assertGet("getMyRecord", "app/get/{rr_rider}");
+    }
+
+    @Test
+    public void signInCallsMatchTheServerAuthEndpoints() {
+        assertFormPost("signInWithKakao", "app/auth/kakao");
+        assertFormPost("signInWithNaver", "app/auth/naver");
+        assertFormPost("refreshSession", "app/auth/refresh");
+        assertFormPost("signOut", "app/auth/logout");
+    }
+
+    @Test
+    public void thePasswordLoginAndSignUpCallsAreGone() {
+        for (Method candidate : ServerApi.class.getDeclaredMethods()) {
+            assertFalse(candidate.getName(), candidate.getName().equals("Login"));
+        }
     }
 
     @Test
